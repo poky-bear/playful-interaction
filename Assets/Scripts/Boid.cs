@@ -60,9 +60,8 @@ public class Boid : MonoBehaviour {
         }
 
         if (numPerceivedFlockmates != 0) {
-            centreOfFlockmates /= numPerceivedFlockmates;
-
-            Vector3 offsetToFlockmatesCentre = (centreOfFlockmates - position);
+            // Use target position as the center instead of average flockmate position
+            Vector3 offsetToFlockmatesCentre = (target.position - position);
 
             var alignmentForce = SteerTowards (avgFlockHeading) * settings.alignWeight;
             var cohesionForce = SteerTowards (offsetToFlockmatesCentre) * settings.cohesionWeight;
