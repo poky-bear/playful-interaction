@@ -54,17 +54,19 @@ public class Boid : MonoBehaviour {
     public void UpdateBoid () {
         Vector3 acceleration = Vector3.zero;
 
-        if (target != null) {
+        // Only apply target following if target exists and is active
+        if (target != null && target.gameObject.activeInHierarchy) {
             Vector3 offsetToTarget = (target.position - position);
             acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
         }
 
         if (numPerceivedFlockmates != 0) {
-            // Use target position as the center instead of average flockmate position
-            Vector3 offsetToFlockmatesCentre = (target.position - position);
+            // Calculate center based on target if available, otherwise use flockmate average
+            Vector3 center = (target != null) ? target.position : (centreOfFlockmates / numPerceivedFlockmates);
+            Vector3 offsetToCenter = (center - position);
 
             var alignmentForce = SteerTowards (avgFlockHeading) * settings.alignWeight;
-            var cohesionForce = SteerTowards (offsetToFlockmatesCentre) * settings.cohesionWeight;
+            var cohesionForce = SteerTowards (offsetToCenter) * settings.cohesionWeight;
             var seperationForce = SteerTowards (avgAvoidanceHeading) * settings.seperateWeight;
 
             acceleration += alignmentForce;

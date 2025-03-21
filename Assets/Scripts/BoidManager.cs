@@ -12,11 +12,18 @@ public class BoidManager : MonoBehaviour {
     Boid[] boids;
 
     void Start () {
-        boids = FindObjectsOfType<Boid> ();
-        foreach (Boid b in boids) {
-            b.Initialize (settings, target);
+        // Ensure we have a valid target
+        if (target == null) {
+            Debug.LogWarning("BoidManager: No target assigned. Boids will only follow flocking rules.");
         }
 
+        // Find and initialize all boids
+        boids = FindObjectsOfType<Boid> ();
+        foreach (Boid b in boids) {
+            if (b != null) {
+                b.Initialize (settings, target);
+            }
+        }
     }
 
     void Update () {
