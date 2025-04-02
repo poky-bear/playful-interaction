@@ -418,6 +418,7 @@ MonoBehaviour:
   expansionSpeed: 2
   hitTolerance: 0.3
   concentricRings: {fileID: 192253964}
+  cubeObject: {fileID: 1167494958}
 --- !u!114 &192253964
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -210,6 +210,7 @@ public class RingGameController : MonoBehaviour
             if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
             {
                 // Turn on controller script for cube object
+                cubeObject.transform.position = concentricRings.targetSphere.transform.position;
             }
             return;
         }
