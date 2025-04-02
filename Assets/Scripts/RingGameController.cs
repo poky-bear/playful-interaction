@@ -209,7 +209,7 @@ public class RingGameController : MonoBehaviour
             // When game is completed, make the cube follow the sphere
             if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
             {
-                cubeObject.transform.position = concentricRings.targetSphere.transform.position;
+                // Turn on controller script for cube object
             }
             return;
         }
@@ -311,26 +311,6 @@ public class RingGameController : MonoBehaviour
                 // Hide the expanding circle
                 expandingCircle.SetActive(false);
                 currentRadius = 0f;
-                
-                // Position the cube at the sphere's position and make it visible
-                if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
-                {
-                    cubeObject.transform.position = concentricRings.targetSphere.transform.position;
-                    cubeObject.SetActive(true);
-                    
-                    // Make the cube a bit smaller than the sphere for better visibility
-                    float sphereScale = concentricRings.targetSphere.transform.localScale.x;
-                    cubeObject.transform.localScale = new Vector3(sphereScale * 0.8f, sphereScale * 0.8f, sphereScale * 0.8f);
-                    
-                    // Give the cube a distinct color
-                    Renderer cubeRenderer = cubeObject.GetComponent<Renderer>();
-                    if (cubeRenderer != null)
-                    {
-                        cubeRenderer.material.color = new Color(0.2f, 0.8f, 1f); // Light blue color
-                    }
-                    
-                    Debug.Log("Cube is now following the sphere!");
-                }
                 
                 // Notify UI if available
                 if (GetComponent<RingGameUI>() != null)
