@@ -5,8 +5,8 @@ The KeyboardSphere is an interactive object that can be controlled using the key
 ## Setup Instructions
 
 1. Open the Obstacles scene located in Assets/Scenes/Obstacles.unity
-2. The KeyboardController will be automatically attached to the KeyboardSphere when the scene starts
-3. Alternatively, in the Unity Editor menu, go to GameObject > Setup Keyboard Controller
+2. In the Unity Editor menu, go to GameObject > Setup Keyboard Controller
+3. This will automatically attach the KeyboardController component to the KeyboardSphere
 
 ## Controls
 
