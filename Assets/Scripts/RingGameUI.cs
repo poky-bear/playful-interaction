@@ -74,7 +74,14 @@ public class RingGameUI : MonoBehaviour
     {
         if (statusText != null)
         {
-            statusText.text = "Congratulations! You've completed all rings!\nPress R to play again.";
+            // Use the success message from the game controller if available
+            string message = "Congratulations! You've completed all rings!\nPress R to play again.";
+            if (gameController != null && !string.IsNullOrEmpty(gameController.successMessage))
+            {
+                message = gameController.successMessage + "\nPress R to play again.";
+            }
+            
+            statusText.text = message;
             statusText.color = Color.green;
             
             // Optional: animate the text
