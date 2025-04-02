@@ -62,18 +62,32 @@ public class RingGameController : MonoBehaviour
 
     void CreateExpandingCircle()
     {
+        // Create a sphere for the expanding circle
         expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         expandingCircle.name = "ExpandingCircle";
         expandingCircle.transform.parent = transform;
-        expandingCircle.transform.localPosition = Vector3.zero;
+        
+        // Position it at the sphere's position
+        if (concentricRings != null && concentricRings.targetSphere != null)
+        {
+            expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
+        }
+        else
+        {
+            expandingCircle.transform.localPosition = Vector3.zero;
+        }
+        
+        // Start with zero scale
         expandingCircle.transform.localScale = Vector3.zero;
         
         // Remove collider as we don't need physics for this
         Destroy(expandingCircle.GetComponent<Collider>());
         
-        // Create material for expanding circle
+        // Create material for expanding circle with transparency
         expandingCircleMaterial = new Material(Shader.Find("Standard"));
         expandingCircleMaterial.color = darkColor;
+        
+        // Set up transparency
         expandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
         expandingCircleMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         expandingCircleMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -82,10 +96,17 @@ public class RingGameController : MonoBehaviour
         expandingCircleMaterial.EnableKeyword("_ALPHABLEND_ON");
         expandingCircleMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         expandingCircleMaterial.renderQueue = 3000;
+        
+        // Set a semi-transparent dark color
         expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
         
+        // Apply the material to the sphere
         expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
+        
+        // Hide it initially
         expandingCircle.SetActive(false);
+        
+        Debug.Log("Created expanding circle");
     }
 
     void InitializeGame()
@@ -163,8 +184,12 @@ public class RingGameController : MonoBehaviour
         {
             currentRadius += expansionSpeed * Time.deltaTime;
             expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
-            
-            // Keep the expanding circle centered on the sphere
+        }
+        
+        // Always keep the expanding circle centered on the sphere, even when not expanding
+        // This ensures the distance calculation is always relative to the sphere's current position
+        if (expandingCircle.activeSelf)
+        {
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
         }
     }
@@ -184,8 +209,19 @@ public class RingGameController : MonoBehaviour
         // Get the current active ring radius
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         
+        // Calculate the distance from the sphere's center to the expanding circle edge
+        // This ensures we're measuring from the sphere's position, not world origin
+        Vector3 spherePosition = concentricRings.targetSphere.transform.position;
+        float distanceFromSphereToCircleEdge = currentRadius;
+        
         // Calculate how close the player was to the target
-        float distanceFromTarget = Mathf.Abs(currentRadius - activeRingRadius);
+        // The distance should be measured relative to the sphere's position
+        float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
+        
+        Debug.Log("Sphere position: " + spherePosition + 
+                  ", Circle radius: " + currentRadius + 
+                  ", Target ring radius: " + activeRingRadius + 
+                  ", Distance from target: " + distanceFromTarget);
         
         // Show visual feedback of how close they were
         StartCoroutine(ShowHitFeedback(distanceFromTarget, activeRingRadius));
@@ -277,12 +313,21 @@ public class RingGameController : MonoBehaviour
         float duration = 0.5f;
         float time = 0;
         
+        // Save the current radius for the feedback animation
+        float feedbackRadius = currentRadius;
+        
         while (time < duration)
         {
             time += Time.deltaTime;
             float alpha = Mathf.Lerp(0.5f, 0.1f, time / duration);
             
             expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
+            
+            // Keep the circle at the same size during feedback
+            expandingCircle.transform.localScale = new Vector3(feedbackRadius, feedbackRadius, feedbackRadius);
+            
+            // Ensure the circle stays centered on the sphere even if it's moving
+            expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
             
             yield return null;
         }
@@ -297,7 +342,9 @@ public class RingGameController : MonoBehaviour
     float GetRingRadius(int ringIndex)
     {
         // Calculate the ring radius based on the ConcentricRings component settings
-        return concentricRings.sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
+        // This is the distance from the sphere's center to the ring
+        float sphereRadius = concentricRings.targetSphere.transform.localScale.x / 2.0f;
+        return sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
     }
     
     // Reset the game
