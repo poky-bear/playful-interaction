@@ -241,16 +241,24 @@ public class RingGameController : MonoBehaviour
         // Calculate the distance from the sphere's center to the expanding circle edge
         // This ensures we're measuring from the sphere's position, not world origin
         Vector3 spherePosition = concentricRings.targetSphere.transform.position;
-        float distanceFromSphereToCircleEdge = currentRadius;
+        float distanceFromSphereToCircleEdge = currentRadius /2;
+
+       
         
         // Calculate how close the player was to the target
         // The distance should be measured relative to the sphere's position
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         
+         Debug.Log("Radius of target ring: " + activeRingRadius + 
+        ", Radius of user ring: " + distanceFromSphereToCircleEdge + 
+        ", total diff: " + distanceFromTarget);
+
         Debug.Log("Sphere position: " + spherePosition + 
                   ", Circle radius: " + currentRadius + 
                   ", Target ring radius: " + activeRingRadius + 
                   ", Distance from target: " + distanceFromTarget);
+
+        // Debug.Log("Ring position" + concentricRings.)
         
         // Show visual feedback of how close they were
         StartCoroutine(ShowHitFeedback(distanceFromTarget, activeRingRadius));
