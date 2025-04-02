@@ -24,6 +24,9 @@ public class RingGameController : MonoBehaviour
     [Tooltip("Reference to the ConcentricRings component")]
     public ConcentricRings concentricRings;
     
+    [Tooltip("Reference to the Cube object that will follow the sphere when game is completed")]
+    public GameObject cubeObject;
+    
     // Private variables
     private GameObject expandingCircle;
     private Material expandingCircleMaterial;
@@ -50,6 +53,22 @@ public class RingGameController : MonoBehaviour
             {
                 Debug.LogError("No ConcentricRings component found in the scene!");
                 return;
+            }
+        }
+        
+        // Find Cube object if not assigned
+        if (cubeObject == null)
+        {
+            // Try to find a GameObject named "Cube" in the scene
+            cubeObject = GameObject.Find("Cube");
+            if (cubeObject == null)
+            {
+                Debug.LogWarning("No Cube object found in the scene. Creating one...");
+                // Create a cube if none exists
+                cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cubeObject.name = "Cube";
+                // Position it away from the play area initially
+                cubeObject.transform.position = new Vector3(0, -10, 0);
             }
         }
 
@@ -139,6 +158,12 @@ public class RingGameController : MonoBehaviour
             expandingCircle.transform.localScale = Vector3.zero;
         }
         
+        // Hide the cube at the start of the game
+        if (cubeObject != null)
+        {
+            cubeObject.SetActive(false);
+        }
+        
         Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
     }
 
@@ -180,7 +205,14 @@ public class RingGameController : MonoBehaviour
     void Update()
     {
         if (gameCompleted)
+        {
+            // When game is completed, make the cube follow the sphere
+            if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
+            {
+                cubeObject.transform.position = concentricRings.targetSphere.transform.position;
+            }
             return;
+        }
             
         // Handle spacebar input
         if (Input.GetKeyDown(KeyCode.Space))
@@ -279,6 +311,26 @@ public class RingGameController : MonoBehaviour
                 // Hide the expanding circle
                 expandingCircle.SetActive(false);
                 currentRadius = 0f;
+                
+                // Position the cube at the sphere's position and make it visible
+                if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
+                {
+                    cubeObject.transform.position = concentricRings.targetSphere.transform.position;
+                    cubeObject.SetActive(true);
+                    
+                    // Make the cube a bit smaller than the sphere for better visibility
+                    float sphereScale = concentricRings.targetSphere.transform.localScale.x;
+                    cubeObject.transform.localScale = new Vector3(sphereScale * 0.8f, sphereScale * 0.8f, sphereScale * 0.8f);
+                    
+                    // Give the cube a distinct color
+                    Renderer cubeRenderer = cubeObject.GetComponent<Renderer>();
+                    if (cubeRenderer != null)
+                    {
+                        cubeRenderer.material.color = new Color(0.2f, 0.8f, 1f); // Light blue color
+                    }
+                    
+                    Debug.Log("Cube is now following the sphere!");
+                }
                 
                 // Notify UI if available
                 if (GetComponent<RingGameUI>() != null)
@@ -402,6 +454,12 @@ public class RingGameController : MonoBehaviour
     // Reset the game
     public void ResetGame()
     {
+        // Hide the cube when resetting the game
+        if (cubeObject != null)
+        {
+            cubeObject.SetActive(false);
+        }
+        
         InitializeGame();
     }
     
