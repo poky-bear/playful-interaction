@@ -11,6 +11,9 @@ public class RingGameController : MonoBehaviour
     [Tooltip("Bright color for active ring")]
     public Color brightColor = new Color(1f, 0.8f, 0.2f, 1f); // Bright yellow for active ring
     
+    [Tooltip("Success message when all rings are completed")]
+    public string successMessage = "Congratulations! All rings completed!";
+    
     [Tooltip("Speed at which the dark circle expands")]
     public float expansionSpeed = 1.0f;
     
@@ -130,6 +133,10 @@ public class RingGameController : MonoBehaviour
             expandingCircle.SetActive(false);
             currentRadius = 0f;
             isExpanding = false;
+            
+            // Reset the expanding circle position to the sphere's position
+            expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
+            expandingCircle.transform.localScale = Vector3.zero;
         }
         
         Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
@@ -258,7 +265,7 @@ public class RingGameController : MonoBehaviour
             if (currentRingIndex >= ringOrder.Length)
             {
                 // Game completed!
-                Debug.Log("Congratulations! You've completed the game!");
+                Debug.Log(successMessage);
                 gameCompleted = true;
                 
                 // Hide the expanding circle
@@ -276,6 +283,10 @@ public class RingGameController : MonoBehaviour
                 // Activate the next ring in the order
                 SetRingColor(ringOrder[currentRingIndex], brightColor);
                 Debug.Log("Good hit! Moving to next ring: " + ringOrder[currentRingIndex]);
+                
+                // Reset the expanding circle for the next attempt
+                expandingCircle.SetActive(false);
+                currentRadius = 0f;
                 
                 // Update UI if available
                 if (GetComponent<RingGameUI>() != null)
@@ -358,11 +369,16 @@ public class RingGameController : MonoBehaviour
             yield return null;
         }
         
-        // Hide the expanding circle
-        expandingCircle.SetActive(false);
-        
-        // Reset the expanding circle for the next attempt
-        currentRadius = 0f;
+        // Only hide the expanding circle if we're not moving to the next ring
+        // (for successful hits, we already hide it in CheckHit)
+        if (distanceFromTarget >= hitTolerance)
+        {
+            // Hide the expanding circle
+            expandingCircle.SetActive(false);
+            
+            // Reset the expanding circle for the next attempt
+            currentRadius = 0f;
+        }
         
         // Reset the expanding circle material color back to dark
         expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
