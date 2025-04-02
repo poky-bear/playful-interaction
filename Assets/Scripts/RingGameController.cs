@@ -6,10 +6,10 @@ public class RingGameController : MonoBehaviour
 {
     [Header("Game Settings")]
     [Tooltip("Dark color for inactive rings")]
-    public Color darkColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+    public Color darkColor = new Color(0.1f, 0.1f, 0.1f, 1f); // Darker color for inactive rings
     
     [Tooltip("Bright color for active ring")]
-    public Color brightColor = new Color(1f, 0.8f, 0.2f, 1f);
+    public Color brightColor = new Color(1f, 0.8f, 0.2f, 1f); // Bright yellow for active ring
     
     [Tooltip("Speed at which the dark circle expands")]
     public float expansionSpeed = 2.0f;
@@ -85,7 +85,6 @@ public class RingGameController : MonoBehaviour
         
         // Create material for expanding circle with transparency
         expandingCircleMaterial = new Material(Shader.Find("Standard"));
-        expandingCircleMaterial.color = darkColor;
         
         // Set up transparency
         expandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
@@ -124,6 +123,14 @@ public class RingGameController : MonoBehaviour
         
         // Set the first ring in order to bright
         SetRingColor(ringOrder[currentRingIndex], brightColor);
+        
+        // Reset the expanding circle
+        if (expandingCircle != null)
+        {
+            expandingCircle.SetActive(false);
+            currentRadius = 0f;
+            isExpanding = false;
+        }
         
         Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
     }
@@ -182,8 +189,14 @@ public class RingGameController : MonoBehaviour
         // Update expanding circle
         if (isExpanding)
         {
+            // Increase the radius based on time
             currentRadius += expansionSpeed * Time.deltaTime;
+            
+            // Update the scale of the expanding circle
             expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+            
+            // Ensure the expanding circle stays centered on the sphere
+            expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
         }
         
         // Always keep the expanding circle centered on the sphere, even when not expanding
@@ -198,8 +211,17 @@ public class RingGameController : MonoBehaviour
     {
         isExpanding = true;
         currentRadius = 0.1f; // Start with a small radius
+        
+        // Position the expanding circle at the sphere's current position
         expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
+        
+        // Set the expanding circle material to dark color
+        expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
+        
+        // Activate the expanding circle
         expandingCircle.SetActive(true);
+        
+        Debug.Log("Started expanding circle");
     }
     
     void CheckHit()
@@ -239,6 +261,10 @@ public class RingGameController : MonoBehaviour
                 Debug.Log("Congratulations! You've completed the game!");
                 gameCompleted = true;
                 
+                // Hide the expanding circle
+                expandingCircle.SetActive(false);
+                currentRadius = 0f;
+                
                 // Notify UI if available
                 if (GetComponent<RingGameUI>() != null)
                 {
@@ -247,9 +273,9 @@ public class RingGameController : MonoBehaviour
             }
             else
             {
-                // Activate the next ring
+                // Activate the next ring in the order
                 SetRingColor(ringOrder[currentRingIndex], brightColor);
-                Debug.Log("Good hit! Distance from perfect: " + distanceFromTarget.ToString("F2") + " units");
+                Debug.Log("Good hit! Moving to next ring: " + ringOrder[currentRingIndex]);
                 
                 // Update UI if available
                 if (GetComponent<RingGameUI>() != null)
@@ -335,8 +361,11 @@ public class RingGameController : MonoBehaviour
         // Hide the expanding circle
         expandingCircle.SetActive(false);
         
-        // Reset the expanding circle
+        // Reset the expanding circle for the next attempt
         currentRadius = 0f;
+        
+        // Reset the expanding circle material color back to dark
+        expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
     }
     
     float GetRingRadius(int ringIndex)
