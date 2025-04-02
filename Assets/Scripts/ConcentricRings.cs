@@ -19,8 +19,13 @@ public class ConcentricRings : MonoBehaviour
     [Tooltip("Reference to the sphere - if null, will use this GameObject")]
     public GameObject targetSphere;
     
-    private GameObject[] rings = new GameObject[3];
-    private float sphereRadius = 0.5f; // Default Unity sphere radius
+    // Made public to allow access from other scripts
+    [HideInInspector]
+    public GameObject[] rings = new GameObject[3];
+    
+    // Made public to allow access from other scripts
+    [HideInInspector]
+    public float sphereRadius = 0.5f; // Default Unity sphere radius
     
     void Start()
     {
