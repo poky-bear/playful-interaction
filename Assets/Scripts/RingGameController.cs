@@ -209,6 +209,26 @@ public class RingGameController : MonoBehaviour
             // When game is completed, make the cube follow the sphere
             if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
             {
+                // Ensure the cube is active and visible
+                if (!cubeObject.activeSelf)
+                {
+                    cubeObject.SetActive(true);
+                    
+                    // Make the cube a bit smaller than the sphere for better visibility
+                    float sphereScale = concentricRings.targetSphere.transform.localScale.x;
+                    cubeObject.transform.localScale = new Vector3(sphereScale * 0.8f, sphereScale * 0.8f, sphereScale * 0.8f);
+                    
+                    // Give the cube a distinct color
+                    Renderer cubeRenderer = cubeObject.GetComponent<Renderer>();
+                    if (cubeRenderer != null)
+                    {
+                        cubeRenderer.material.color = new Color(0.2f, 0.8f, 1f); // Light blue color
+                    }
+                    
+                    Debug.Log("Cube activated and following the sphere!");
+                }
+                
+                // Update the cube position to match the sphere
                 cubeObject.transform.position = concentricRings.targetSphere.transform.position;
             }
             return;
@@ -273,9 +293,7 @@ public class RingGameController : MonoBehaviour
         // Calculate the distance from the sphere's center to the expanding circle edge
         // This ensures we're measuring from the sphere's position, not world origin
         Vector3 spherePosition = concentricRings.targetSphere.transform.position;
-        float distanceFromSphereToCircleEdge = currentRadius /2;
-
-       
+        float distanceFromSphereToCircleEdge = currentRadius; // Use the full radius, not divided by 2
         
         // Calculate how close the player was to the target
         // The distance should be measured relative to the sphere's position
