@@ -180,13 +180,18 @@ public class RingGameController : MonoBehaviour
     void CheckHit()
     {
         isExpanding = false;
-        expandingCircle.SetActive(false);
         
         // Get the current active ring radius
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         
+        // Calculate how close the player was to the target
+        float distanceFromTarget = Mathf.Abs(currentRadius - activeRingRadius);
+        
+        // Show visual feedback of how close they were
+        StartCoroutine(ShowHitFeedback(distanceFromTarget, activeRingRadius));
+        
         // Check if the expanding circle is close to the active ring
-        if (Mathf.Abs(currentRadius - activeRingRadius) < hitTolerance)
+        if (distanceFromTarget < hitTolerance)
         {
             // Success! Move to the next ring
             SetRingColor(ringOrder[currentRingIndex], darkColor);
@@ -197,13 +202,93 @@ public class RingGameController : MonoBehaviour
                 // Game completed!
                 Debug.Log("Congratulations! You've completed the game!");
                 gameCompleted = true;
+                
+                // Notify UI if available
+                if (GetComponent<RingGameUI>() != null)
+                {
+                    GetComponent<RingGameUI>().ShowGameCompleteMessage();
+                }
             }
             else
             {
                 // Activate the next ring
                 SetRingColor(ringOrder[currentRingIndex], brightColor);
+                Debug.Log("Good hit! Distance from perfect: " + distanceFromTarget.ToString("F2") + " units");
+                
+                // Update UI if available
+                if (GetComponent<RingGameUI>() != null)
+                {
+                    GetComponent<RingGameUI>().ShowHitFeedback("Good hit!", Color.green);
+                }
             }
         }
+        else
+        {
+            // Provide feedback on how close they were
+            if (distanceFromTarget < hitTolerance * 2)
+            {
+                Debug.Log("Close! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
+                
+                // Update UI if available
+                if (GetComponent<RingGameUI>() != null)
+                {
+                    GetComponent<RingGameUI>().ShowHitFeedback("Close! Try again", new Color(1f, 0.6f, 0f)); // Orange
+                }
+            }
+            else
+            {
+                Debug.Log("Miss! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
+                
+                // Update UI if available
+                if (GetComponent<RingGameUI>() != null)
+                {
+                    GetComponent<RingGameUI>().ShowHitFeedback("Miss! Try again", Color.red);
+                }
+            }
+        }
+    }
+    
+    // Coroutine to show visual feedback of how close the hit was
+    private System.Collections.IEnumerator ShowHitFeedback(float distanceFromTarget, float targetRadius)
+    {
+        // Keep the expanding circle visible for feedback
+        Color feedbackColor;
+        
+        if (distanceFromTarget < hitTolerance)
+        {
+            // Good hit - green
+            feedbackColor = Color.green;
+        }
+        else if (distanceFromTarget < hitTolerance * 2)
+        {
+            // Close - orange
+            feedbackColor = new Color(1f, 0.6f, 0f);
+        }
+        else
+        {
+            // Miss - red
+            feedbackColor = Color.red;
+        }
+        
+        // Set the color with transparency
+        expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, 0.5f);
+        
+        // Flash the expanding circle
+        float duration = 0.5f;
+        float time = 0;
+        
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            float alpha = Mathf.Lerp(0.5f, 0.1f, time / duration);
+            
+            expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
+            
+            yield return null;
+        }
+        
+        // Hide the expanding circle
+        expandingCircle.SetActive(false);
         
         // Reset the expanding circle
         currentRadius = 0f;

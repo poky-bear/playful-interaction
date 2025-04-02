@@ -92,10 +92,27 @@ public class RingGameSetup : Editor
             statusText.rectTransform.anchoredPosition = new Vector2(-10, -10);
             statusText.rectTransform.sizeDelta = new Vector2(300, 50);
             
+            // Create feedback text (for hit accuracy)
+            GameObject feedbackObj = new GameObject("FeedbackText");
+            feedbackObj.transform.SetParent(canvas.transform, false);
+            UnityEngine.UI.Text feedbackText = feedbackObj.AddComponent<UnityEngine.UI.Text>();
+            feedbackText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            feedbackText.fontSize = 24;
+            feedbackText.fontStyle = FontStyle.Bold;
+            feedbackText.color = Color.white;
+            feedbackText.alignment = TextAnchor.MiddleCenter;
+            feedbackText.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            feedbackText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            feedbackText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            feedbackText.rectTransform.anchoredPosition = new Vector2(0, 0);
+            feedbackText.rectTransform.sizeDelta = new Vector2(400, 100);
+            feedbackText.gameObject.SetActive(false); // Start hidden
+            
             // Add UI controller
             RingGameUI uiController = canvas.AddComponent<RingGameUI>();
             uiController.instructionsText = instructionsText;
             uiController.statusText = statusText;
+            uiController.feedbackText = feedbackText;
             uiController.gameController = gameController;
         }
         

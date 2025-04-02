@@ -8,8 +8,9 @@ This Unity project implements a game with concentric rings around a sphere. The 
 2. Rings are initially dark, with a random order assigned at the start
 3. The first ring in the order is highlighted with a bright color
 4. When the player presses the spacebar, a dark circle expands from the center
-5. If the player releases the spacebar when the expanding circle is near the bright ring, the game progresses to the next ring
-6. The goal is to successfully time the release for all three rings in the assigned order
+5. If the player releases the spacebar when the expanding circle is near the bright ring (within the hit tolerance), the game progresses to the next ring
+6. The game provides feedback on how close the player was to the perfect timing
+7. The goal is to successfully time the release for all three rings in the assigned order
 
 ## Setup Instructions
 
@@ -57,7 +58,30 @@ If you prefer to set up the game manually:
 You can customize various aspects of the game by adjusting the public properties in the Inspector:
 
 - **Ring Settings**: Spacing, thickness, and distance from sphere
-- **Game Settings**: Colors, expansion speed, and hit tolerance
+- **Game Settings**: 
+  - Colors: Dark color for inactive rings, bright color for the active ring
+  - Expansion Speed: How quickly the dark circle expands from the center
+  - Hit Tolerance: The error margin for hitting the target ring (default: 0.3 units)
+    - Smaller values (e.g., 0.1) make the game more challenging
+    - Larger values (e.g., 0.5) make it more forgiving
+    - The game provides feedback on how close the player was to the perfect hit
 - **Movement Settings**: Speed, drag, and physics behavior
+
+## Difficulty Adjustment
+
+To adjust the game's difficulty:
+
+1. **Hit Tolerance**: The primary difficulty setting
+   - Easy: 0.5 units or higher
+   - Medium: 0.3 units (default)
+   - Hard: 0.1 units or lower
+
+2. **Expansion Speed**: Affects how quickly the player needs to react
+   - Slower speeds (1.0-1.5) make timing easier
+   - Faster speeds (2.5-3.0) make timing more challenging
+
+3. **Ring Spacing**: Adjust in the ConcentricRings component
+   - Closer rings increase difficulty
+   - More widely spaced rings make the game easier
 
 Enjoy the game!
