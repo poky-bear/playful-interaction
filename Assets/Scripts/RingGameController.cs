@@ -12,10 +12,10 @@ public class RingGameController : MonoBehaviour
     public Color brightColor = new Color(1f, 0.8f, 0.2f, 1f); // Bright yellow for active ring
     
     [Tooltip("Speed at which the dark circle expands")]
-    public float expansionSpeed = 2.0f;
+    public float expansionSpeed = 1.0f;
     
     [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.3f;
+    public float hitTolerance = 0.5f;
 
     [Header("References")]
     [Tooltip("Reference to the ConcentricRings component")]
@@ -370,10 +370,9 @@ public class RingGameController : MonoBehaviour
     
     float GetRingRadius(int ringIndex)
     {
-        // Calculate the ring radius based on the ConcentricRings component settings
-        // This is the distance from the sphere's center to the ring
-        float sphereRadius = concentricRings.targetSphere.transform.localScale.x / 2.0f;
-        return sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
+        // Use the same radius calculation as in ConcentricRings.CreateRings
+        // This ensures we're using the exact same radius values
+        return concentricRings.sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
     }
     
     // Reset the game
@@ -408,7 +407,14 @@ public class RingGameController : MonoBehaviour
                     ringMaterials[i] = new Material(originalMaterials[i]);
                     renderer.material = ringMaterials[i];
                 }
+                
+                // Log the ring radius for debugging
+                float ringRadius = GetRingRadius(i);
+                Debug.Log("Ring " + i + " radius: " + ringRadius);
             }
+            
+            // Log sphere radius for debugging
+            Debug.Log("Sphere radius from ConcentricRings: " + concentricRings.sphereRadius);
             
             // Initialize the game once rings are ready
             InitializeGame();
