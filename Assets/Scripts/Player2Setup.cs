@@ -22,11 +22,11 @@ public class Player2Setup : MonoBehaviour
         player2Sphere.AddComponent<Player2RingGameController>();
         Player2Controller controller = player2Sphere.AddComponent<Player2Controller>();
         
-        // Set up the default movement keys (IJKL)
-        controller.moveLeftKey = KeyCode.J;
-        controller.moveRightKey = KeyCode.L;
-        controller.moveForwardKey = KeyCode.I;
-        controller.moveBackwardKey = KeyCode.K;
+        // Set up the default movement keys (WASD)
+        controller.moveLeftKey = KeyCode.A;
+        controller.moveRightKey = KeyCode.D;
+        controller.moveForwardKey = KeyCode.W;
+        controller.moveBackwardKey = KeyCode.S;
         
         // Set up the ConcentricRings component
         ConcentricRings rings = player2Sphere.GetComponent<ConcentricRings>();

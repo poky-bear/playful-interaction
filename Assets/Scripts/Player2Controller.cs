@@ -12,10 +12,10 @@ public class Player2Controller : MonoBehaviour
     public float drag = 0.5f;
     
     [Header("Custom Input Keys")]
-    public KeyCode moveLeftKey = KeyCode.J;
-    public KeyCode moveRightKey = KeyCode.L;
-    public KeyCode moveForwardKey = KeyCode.I;
-    public KeyCode moveBackwardKey = KeyCode.K;
+    public KeyCode moveLeftKey = KeyCode.A;
+    public KeyCode moveRightKey = KeyCode.D;
+    public KeyCode moveForwardKey = KeyCode.W;
+    public KeyCode moveBackwardKey = KeyCode.S;
     
     private Rigidbody rb;
     private Vector3 movement;
@@ -34,7 +34,7 @@ public class Player2Controller : MonoBehaviour
     
     void Update()
     {
-        // Get input from custom keys (default to IJKL instead of WASD)
+        // Get input from custom keys (IJKL by default)
         float horizontalInput = 0f;
         float verticalInput = 0f;
         

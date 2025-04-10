@@ -28,12 +28,25 @@ public class KeyboardController : MonoBehaviour
     
     void Update()
     {
-        // Get input from arrow keys
-        float horizontalInput = Input.GetAxis("Horizontal"); // Left/Right arrows
-        float verticalInput = Input.GetAxis("Vertical");     // Up/Down arrows
+        // Get input from arrow keys only (not using Input.GetAxis to avoid WASD)
+        float horizontalInput = 0f;
+        float verticalInput = 0f;
+        
+        // Manual input detection for arrow keys only
+        if (Input.GetKey(KeyCode.LeftArrow)) horizontalInput -= 1f;
+        if (Input.GetKey(KeyCode.RightArrow)) horizontalInput += 1f;
+        if (Input.GetKey(KeyCode.DownArrow)) verticalInput -= 1f;
+        if (Input.GetKey(KeyCode.UpArrow)) verticalInput += 1f;
         
         // Store movement for use in FixedUpdate if using physics
-        movement = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+        if (horizontalInput != 0f || verticalInput != 0f)
+        {
+            movement = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+        }
+        else
+        {
+            movement = Vector3.zero;
+        }
         
         // If not using physics, move directly
         if (!usePhysics)
