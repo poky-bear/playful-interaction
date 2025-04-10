@@ -11,6 +11,12 @@ public class Player2Controller : MonoBehaviour
     [Header("Physics Settings")]
     public float drag = 0.5f;
     
+    [Header("Custom Input Keys")]
+    public KeyCode moveLeftKey = KeyCode.J;
+    public KeyCode moveRightKey = KeyCode.L;
+    public KeyCode moveForwardKey = KeyCode.I;
+    public KeyCode moveBackwardKey = KeyCode.K;
+    
     private Rigidbody rb;
     private Vector3 movement;
     
@@ -28,15 +34,15 @@ public class Player2Controller : MonoBehaviour
     
     void Update()
     {
-        // Get input from WASD keys
+        // Get input from custom keys (default to IJKL instead of WASD)
         float horizontalInput = 0f;
         float verticalInput = 0f;
         
-        // Manual input detection for WASD
-        if (Input.GetKey(KeyCode.A)) horizontalInput -= 1f;
-        if (Input.GetKey(KeyCode.D)) horizontalInput += 1f;
-        if (Input.GetKey(KeyCode.S)) verticalInput -= 1f;
-        if (Input.GetKey(KeyCode.W)) verticalInput += 1f;
+        // Manual input detection for custom keys
+        if (Input.GetKey(moveLeftKey)) horizontalInput -= 1f;
+        if (Input.GetKey(moveRightKey)) horizontalInput += 1f;
+        if (Input.GetKey(moveBackwardKey)) verticalInput -= 1f;
+        if (Input.GetKey(moveForwardKey)) verticalInput += 1f;
         
         // Normalize the movement vector to prevent diagonal movement being faster
         if (horizontalInput != 0f || verticalInput != 0f)

@@ -30,9 +30,11 @@ If you prefer to set up the second player manually:
 
 Player 2 uses different controls than Player 1:
 
-- **Movement**: WASD keys (instead of arrow keys)
+- **Movement**: IJKL keys (instead of arrow keys)
 - **Action**: F key (instead of spacebar)
 - **Reset**: R key (same as Player 1)
+
+You can customize these controls in the Inspector by modifying the Player2Controller component.
 
 ## Customization
 
