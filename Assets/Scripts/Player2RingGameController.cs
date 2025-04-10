@@ -2,17 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RingGameController : MonoBehaviour
+public class Player2RingGameController : MonoBehaviour
 {
     [Header("Game Settings")]
     [Tooltip("Dark color for inactive rings")]
     public Color darkColor = new Color(0.1f, 0.1f, 0.1f, 1f); // Darker color for inactive rings
     
     [Tooltip("Bright color for active ring")]
-    public Color brightColor = new Color(1f, 0.8f, 0.2f, 1f); // Bright yellow for active ring
+    public Color brightColor = new Color(0.2f, 0.8f, 1f, 1f); // Bright blue for active ring (different from player 1)
     
     [Tooltip("Success message when all rings are completed")]
-    public string successMessage = "Congratulations! Player 1 completed all rings!";
+    public string successMessage = "Congratulations! Player 2 completed all rings!";
     
     [Tooltip("Speed at which the dark circle expands")]
     public float expansionSpeed = 1.0f;
@@ -48,10 +48,10 @@ public class RingGameController : MonoBehaviour
         // Find ConcentricRings component if not assigned
         if (concentricRings == null)
         {
-            concentricRings = FindObjectOfType<ConcentricRings>();
+            concentricRings = GetComponent<ConcentricRings>();
             if (concentricRings == null)
             {
-                Debug.LogError("No ConcentricRings component found in the scene!");
+                Debug.LogError("No ConcentricRings component found on this GameObject!");
                 return;
             }
         }
@@ -59,14 +59,14 @@ public class RingGameController : MonoBehaviour
         // Find Cube object if not assigned
         if (cubeObject == null)
         {
-            // Try to find a GameObject named "Cube" in the scene
-            cubeObject = GameObject.Find("Cube");
+            // Try to find a GameObject named "Player2Cube" in the scene
+            cubeObject = GameObject.Find("Player2Cube");
             if (cubeObject == null)
             {
-                Debug.LogWarning("No Cube object found in the scene. Creating one...");
+                Debug.LogWarning("No Player2Cube object found in the scene. Creating one...");
                 // Create a cube if none exists
                 cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cubeObject.name = "Cube";
+                cubeObject.name = "Player2Cube";
                 // Position it away from the play area initially
                 cubeObject.transform.position = new Vector3(0, -10, 0);
             }
@@ -86,7 +86,7 @@ public class RingGameController : MonoBehaviour
     {
         // Create a sphere for the expanding circle
         expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        expandingCircle.name = "ExpandingCircle";
+        expandingCircle.name = "Player2ExpandingCircle";
         expandingCircle.transform.parent = transform;
         
         // Position it at the sphere's position
@@ -127,7 +127,7 @@ public class RingGameController : MonoBehaviour
         // Hide it initially
         expandingCircle.SetActive(false);
         
-        Debug.Log("Created expanding circle");
+        Debug.Log("Created Player 2 expanding circle");
     }
 
     void InitializeGame()
@@ -164,7 +164,7 @@ public class RingGameController : MonoBehaviour
             cubeObject.SetActive(false);
         }
         
-        Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
+        Debug.Log("Player 2 game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
     }
 
     int[] GenerateRandomOrder()
@@ -215,13 +215,13 @@ public class RingGameController : MonoBehaviour
             return;
         }
             
-        // Handle spacebar input
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Handle F key input instead of spacebar
+        if (Input.GetKeyDown(KeyCode.F))
         {
             StartExpanding();
         }
         
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.F))
         {
             CheckHit();
         }
@@ -261,7 +261,7 @@ public class RingGameController : MonoBehaviour
         // Activate the expanding circle
         expandingCircle.SetActive(true);
         
-        Debug.Log("Started expanding circle");
+        Debug.Log("Player 2 started expanding circle");
     }
     
     void CheckHit()
@@ -274,25 +274,16 @@ public class RingGameController : MonoBehaviour
         // Calculate the distance from the sphere's center to the expanding circle edge
         // This ensures we're measuring from the sphere's position, not world origin
         Vector3 spherePosition = concentricRings.targetSphere.transform.position;
-        float distanceFromSphereToCircleEdge = currentRadius /2;
-
-       
+        float distanceFromSphereToCircleEdge = currentRadius / 2;
         
         // Calculate how close the player was to the target
         // The distance should be measured relative to the sphere's position
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         
-         Debug.Log("Radius of target ring: " + activeRingRadius + 
-        ", Radius of user ring: " + distanceFromSphereToCircleEdge + 
-        ", total diff: " + distanceFromTarget);
+        Debug.Log("Player 2 - Radius of target ring: " + activeRingRadius + 
+                ", Radius of user ring: " + distanceFromSphereToCircleEdge + 
+                ", total diff: " + distanceFromTarget);
 
-        Debug.Log("Sphere position: " + spherePosition + 
-                  ", Circle radius: " + currentRadius + 
-                  ", Target ring radius: " + activeRingRadius + 
-                  ", Distance from target: " + distanceFromTarget);
-
-        // Debug.Log("Ring position" + concentricRings.)
-        
         // Show visual feedback of how close they were
         StartCoroutine(ShowHitFeedback(distanceFromTarget, activeRingRadius));
         
@@ -306,7 +297,7 @@ public class RingGameController : MonoBehaviour
             if (currentRingIndex >= ringOrder.Length)
             {
                 // Game completed!
-                Debug.Log(successMessage);
+                Debug.Log("Player 2: " + successMessage);
                 gameCompleted = true;
                 
                 // Hide the expanding circle
@@ -314,25 +305,27 @@ public class RingGameController : MonoBehaviour
                 currentRadius = 0f;
                 
                 // Notify UI if available
-                if (GetComponent<RingGameUI>() != null)
+                Player2RingGameUI ui = GetComponent<Player2RingGameUI>();
+                if (ui != null)
                 {
-                    GetComponent<RingGameUI>().ShowGameCompleteMessage();
+                    ui.ShowGameCompleteMessage();
                 }
             }
             else
             {
                 // Activate the next ring in the order
                 SetRingColor(ringOrder[currentRingIndex], brightColor);
-                Debug.Log("Good hit! Moving to next ring: " + ringOrder[currentRingIndex]);
+                Debug.Log("Player 2 good hit! Moving to next ring: " + ringOrder[currentRingIndex]);
                 
                 // Reset the expanding circle for the next attempt
                 expandingCircle.SetActive(false);
                 currentRadius = 0f;
                 
                 // Update UI if available
-                if (GetComponent<RingGameUI>() != null)
+                Player2RingGameUI ui = GetComponent<Player2RingGameUI>();
+                if (ui != null)
                 {
-                    GetComponent<RingGameUI>().ShowHitFeedback("Good hit!", Color.green);
+                    ui.ShowHitFeedback("Good hit!", Color.green);
                 }
             }
         }
@@ -341,22 +334,24 @@ public class RingGameController : MonoBehaviour
             // Provide feedback on how close they were
             if (distanceFromTarget < hitTolerance * 2)
             {
-                Debug.Log("Close! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
+                Debug.Log("Player 2 close! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
                 
                 // Update UI if available
-                if (GetComponent<RingGameUI>() != null)
+                Player2RingGameUI ui = GetComponent<Player2RingGameUI>();
+                if (ui != null)
                 {
-                    GetComponent<RingGameUI>().ShowHitFeedback("Close! Try again", new Color(1f, 0.6f, 0f)); // Orange
+                    ui.ShowHitFeedback("Close! Try again", new Color(1f, 0.6f, 0f)); // Orange
                 }
             }
             else
             {
-                Debug.Log("Miss! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
+                Debug.Log("Player 2 miss! You were " + distanceFromTarget.ToString("F2") + " units away. Tolerance is " + hitTolerance + " units.");
                 
                 // Update UI if available
-                if (GetComponent<RingGameUI>() != null)
+                Player2RingGameUI ui = GetComponent<Player2RingGameUI>();
+                if (ui != null)
                 {
-                    GetComponent<RingGameUI>().ShowHitFeedback("Miss! Try again", Color.red);
+                    ui.ShowHitFeedback("Miss! Try again", Color.red);
                 }
             }
         }
@@ -431,7 +426,7 @@ public class RingGameController : MonoBehaviour
         // This ensures we're using the exact same radius values
         return concentricRings.sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
     }
-    
+
     // Reset the game
     public void ResetGame()
     {
@@ -440,51 +435,51 @@ public class RingGameController : MonoBehaviour
         {
             cubeObject.SetActive(false);
         }
-        
+
         InitializeGame();
     }
-    
+
     // Coroutine to wait for rings to be initialized by ConcentricRings
     private System.Collections.IEnumerator WaitForRingsInitialization()
     {
         // Wait for the ConcentricRings to create the rings
         yield return new WaitForSeconds(0.2f);
-        
+
         // Get references to the rings
         rings = new GameObject[3];
-        
+
         // Use the rings array from ConcentricRings if available
         if (concentricRings.rings[0] != null)
         {
             for (int i = 0; i < 3; i++)
             {
                 rings[i] = concentricRings.rings[i];
-                
+
                 // Store original materials
                 if (rings[i] != null)
                 {
                     Renderer renderer = rings[i].GetComponent<Renderer>();
                     originalMaterials[i] = renderer.material;
-                    
+
                     // Create a new material instance to avoid modifying the original
                     ringMaterials[i] = new Material(originalMaterials[i]);
                     renderer.material = ringMaterials[i];
                 }
-                
+
                 // Log the ring radius for debugging
                 float ringRadius = GetRingRadius(i);
-                Debug.Log("Ring " + i + " radius: " + ringRadius);
+                Debug.Log("Player 2 Ring " + i + " radius: " + ringRadius);
             }
-            
+
             // Log sphere radius for debugging
-            Debug.Log("Sphere radius from ConcentricRings: " + concentricRings.sphereRadius);
-            
+            Debug.Log("Player 2 Sphere radius from ConcentricRings: " + concentricRings.sphereRadius);
+
             // Initialize the game once rings are ready
             InitializeGame();
         }
         else
         {
-            Debug.LogError("Rings not found in ConcentricRings component!");
+            Debug.LogError("Player 2: Rings not found in ConcentricRings component!");
         }
     }
 }

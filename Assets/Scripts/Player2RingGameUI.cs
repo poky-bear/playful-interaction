@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class RingGameUI : MonoBehaviour
+public class Player2RingGameUI : MonoBehaviour
 {
     [Header("UI References")]
     public Text instructionsText;
@@ -9,7 +9,7 @@ public class RingGameUI : MonoBehaviour
     public Text feedbackText; // For showing hit feedback
     
     [Header("Game References")]
-    public RingGameController gameController;
+    public Player2RingGameController gameController;
     
     private int completedRings = 0;
     
@@ -18,7 +18,11 @@ public class RingGameUI : MonoBehaviour
         // Find game controller if not assigned
         if (gameController == null)
         {
-            gameController = FindObjectOfType<RingGameController>();
+            gameController = GetComponent<Player2RingGameController>();
+            if (gameController == null)
+            {
+                gameController = FindObjectOfType<Player2RingGameController>();
+            }
         }
         
         UpdateUI();
@@ -49,10 +53,10 @@ public class RingGameUI : MonoBehaviour
     {
         if (instructionsText != null)
         {
-            instructionsText.text = "Player 1 Instructions:\n" +
-                "1. Use Arrow Keys to move\n" +
-                "2. Press SPACE to expand the dark circle\n" +
-                "3. Release SPACE when the circle reaches the bright ring\n" +
+            instructionsText.text = "Player 2 Instructions:\n" +
+                "1. Use WASD to move\n" +
+                "2. Press F to expand the dark circle\n" +
+                "3. Release F when the circle reaches the bright ring\n" +
                 "4. Complete all three rings in the random order\n" +
                 "5. Press R to reset the game";
         }
@@ -61,11 +65,11 @@ public class RingGameUI : MonoBehaviour
         {
             if (gameController != null && gameController.GameCompleted)
             {
-                statusText.text = "Congratulations Player 1! You've completed all rings!\nPress R to play again.";
+                statusText.text = "Congratulations Player 2! You've completed all rings!\nPress R to play again.";
             }
             else
             {
-                statusText.text = "Player 1 Rings completed: " + completedRings + " / 3";
+                statusText.text = "Player 2 Rings completed: " + completedRings + " / 3";
             }
         }
     }
@@ -76,7 +80,7 @@ public class RingGameUI : MonoBehaviour
         if (statusText != null)
         {
             // Use the success message from the game controller if available
-            string message = "Congratulations Player 1! You've completed all rings!\nPress R to play again.";
+            string message = "Congratulations Player 2! You've completed all rings!\nPress R to play again.";
             if (gameController != null && !string.IsNullOrEmpty(gameController.successMessage))
             {
                 message = gameController.successMessage + "\nPress R to play again.";
