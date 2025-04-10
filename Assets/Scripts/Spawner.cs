@@ -13,7 +13,26 @@ public class Spawner : MonoBehaviour {
     public GizmoType showSpawnRegion;
 
     void Awake () {
-        for (int i = 0; i < spawnCount; i++) {
+        // Wait a frame to ensure PlayerManager has registered all players
+        StartCoroutine(SpawnBoidsAfterDelay());
+    }
+    
+    private IEnumerator SpawnBoidsAfterDelay() {
+        // Wait for a frame to ensure all players are registered
+        yield return null;
+        
+        // Get the PlayerManager
+        PlayerManager playerManager = FindObjectOfType<PlayerManager>();
+        int boidsToSpawn = spawnCount;
+        
+        // If PlayerManager exists, use its boid count calculation
+        if (playerManager != null) {
+            boidsToSpawn = playerManager.GetTotalBoidCount();
+            Debug.Log("Spawning " + boidsToSpawn + " boids based on player count");
+        }
+        
+        // Spawn the boids
+        for (int i = 0; i < boidsToSpawn; i++) {
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
             Boid boid = Instantiate (prefab);
             boid.transform.position = pos;

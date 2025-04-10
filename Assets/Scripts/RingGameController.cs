@@ -28,13 +28,13 @@ public class RingGameController : MonoBehaviour
     public GameObject cubeObject;
     
     // Private variables
-    private GameObject expandingCircle;
-    private Material expandingCircleMaterial;
-    private float currentRadius = 0f;
-    private bool isExpanding = false;
-    private int[] ringOrder = new int[3];
-    private int currentRingIndex = 0;
-    private bool gameCompleted = false;
+    protected GameObject expandingCircle;
+    protected Material expandingCircleMaterial;
+    protected float currentRadius = 0f;
+    protected bool isExpanding = false;
+    protected int[] ringOrder = new int[3];
+    protected int currentRingIndex = 0;
+    protected bool gameCompleted = false;
     
     // Public properties for UI and other scripts
     public int CompletedRings { get { return currentRingIndex; } }
@@ -45,6 +45,20 @@ public class RingGameController : MonoBehaviour
 
     void Start()
     {
+        // Register this player with the PlayerManager
+        PlayerManager playerManager = FindObjectOfType<PlayerManager>();
+        if (playerManager != null)
+        {
+            playerManager.RegisterPlayer(gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("PlayerManager not found in scene. Creating one...");
+            GameObject managerObj = new GameObject("PlayerManager");
+            playerManager = managerObj.AddComponent<PlayerManager>();
+            playerManager.RegisterPlayer(gameObject);
+        }
+        
         // Find ConcentricRings component if not assigned
         if (concentricRings == null)
         {
@@ -308,6 +322,13 @@ public class RingGameController : MonoBehaviour
                 // Game completed!
                 Debug.Log(successMessage);
                 gameCompleted = true;
+                
+                // Register this player as completed with the PlayerManager
+                PlayerManager playerManager = FindObjectOfType<PlayerManager>();
+                if (playerManager != null)
+                {
+                    playerManager.RegisterCompletedPlayer(gameObject);
+                }
                 
                 // Hide the expanding circle
                 expandingCircle.SetActive(false);

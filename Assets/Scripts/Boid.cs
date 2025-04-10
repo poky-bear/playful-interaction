@@ -56,8 +56,33 @@ public class Boid : MonoBehaviour {
 
         // Only apply target following if target exists and is active
         if (target != null && target.gameObject.activeInHierarchy) {
-            Vector3 offsetToTarget = (target.position - position);
-            acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
+            // Check if this is a completed player and if we should limit boids following it
+            PlayerManager playerManager = FindObjectOfType<PlayerManager>();
+            bool shouldFollow = true;
+            
+            if (playerManager != null && playerManager.HasPlayerCompleted(target.gameObject)) {
+                // Get all boids in the scene
+                Boid[] allBoids = FindObjectsOfType<Boid>();
+                int followingCount = 0;
+                
+                // Count how many boids are already following this target
+                foreach (Boid b in allBoids) {
+                    if (b.target == target && Vector3.Distance(b.position, target.position) < settings.perceptionRadius * 2) {
+                        followingCount++;
+                        
+                        // If we've reached the limit and this isn't one of the followers, don't follow
+                        if (followingCount > playerManager.maxBoidsPerCompletedPlayer && b != this) {
+                            shouldFollow = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (shouldFollow) {
+                Vector3 offsetToTarget = (target.position - position);
+                acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
+            }
         }
 
         if (numPerceivedFlockmates != 0) {
