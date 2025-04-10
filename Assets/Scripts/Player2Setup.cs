@@ -39,12 +39,12 @@ public class Player2Setup : MonoBehaviour
         player2Cube.SetActive(false);
         
         // Set up the Player2RingGameController
-        Player2RingGameController controller = player2Sphere.GetComponent<Player2RingGameController>();
-        controller.concentricRings = rings;
-        controller.cubeObject = player2Cube;
+        Player2RingGameController ringController = player2Sphere.GetComponent<Player2RingGameController>();
+        ringController.concentricRings = rings;
+        ringController.cubeObject = player2Cube;
         
         // Create UI for Player 2
-        CreatePlayer2UI(controller);
+        CreatePlayer2UI(ringController);
         
         Debug.Log("Player 2 setup complete!");
     }
