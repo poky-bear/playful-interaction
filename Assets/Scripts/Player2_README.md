@@ -30,7 +30,7 @@ If you prefer to set up the second player manually:
 
 Player 2 uses different controls than Player 1:
 
-- **Movement**: IJKL keys (instead of arrow keys)
+- **Movement**: WASD keys (instead of arrow keys)
 - **Action**: F key (instead of spacebar)
 - **Reset**: R key (same as Player 1)
 
@@ -57,7 +57,7 @@ If you encounter issues with the second player:
 
 ## Script Overview
 
-- **Player2Controller.cs**: Controls sphere movement with WASD keys
+- **Player2Controller.cs**: Controls sphere movement with IJKL keys
 - **Player2RingGameController.cs**: Handles the core game logic for Player 2
 - **Player2RingGameUI.cs**: Manages the UI elements for Player 2
 - **Player2Setup.cs**: Editor script to automatically set up Player 2

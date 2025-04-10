@@ -54,7 +54,7 @@ public class Player2RingGameUI : MonoBehaviour
         if (instructionsText != null)
         {
             instructionsText.text = "Player 2 Instructions:\n" +
-                "1. Use IJKL to move\n" +
+                "1. Use WASD to move\n" +
                 "2. Press F to expand the dark circle\n" +
                 "3. Release F when the circle reaches the bright ring\n" +
                 "4. Complete all three rings in the random order\n" +
