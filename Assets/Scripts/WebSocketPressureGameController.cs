@@ -2,15 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class PressureGameController : MonoBehaviour
+public class WebSocketPressureGameController : MonoBehaviour
 {
-    // Connection type selection
-    public enum ConnectionType { Bluetooth, WiFi }
-    [SerializeField] public ConnectionType connectionType = ConnectionType.WiFi;
-    
-    // Reference to the ESP32 Managers
-    [SerializeField] public ESP32BluetoothManager bluetoothManager;
-    [SerializeField] public ESP32WiFiManager wifiManager;
+    // Reference to the ESP32 WebSocket Manager
+    [SerializeField] public ESP32WebSocketManager webSocketManager;
     
     // Ring game UI elements
     [SerializeField] public Image outerRing;
@@ -46,60 +41,24 @@ public class PressureGameController : MonoBehaviour
 
     void Start()
     {
-        // Initialize based on selected connection type
-        if (connectionType == ConnectionType.Bluetooth)
+        // If no WebSocket manager is assigned, try to find one
+        if (webSocketManager == null)
         {
-            InitializeBluetoothConnection();
-        }
-        else // WiFi
-        {
-            InitializeWiFiConnection();
-        }
-        
-        // Initialize ring game
-        InitializeRingGame();
-        
-        Debug.Log("PressureGameController initialized. Ready to receive pressure data.");
-    }
-    
-    void InitializeBluetoothConnection()
-    {
-        // If no bluetooth manager is assigned, try to find one
-        if (bluetoothManager == null)
-        {
-            bluetoothManager = FindObjectOfType<ESP32BluetoothManager>();
-            if (bluetoothManager == null)
+            webSocketManager = FindObjectOfType<ESP32WebSocketManager>();
+            if (webSocketManager == null)
             {
-                Debug.LogWarning("No ESP32BluetoothManager found in the scene. Switching to WiFi mode.");
-                connectionType = ConnectionType.WiFi;
-                InitializeWiFiConnection();
+                Debug.LogError("No ESP32WebSocketManager found in the scene. Please add one.");
                 return;
             }
         }
         
         // Subscribe to pressure data events
-        bluetoothManager.OnPressureDataReceived += OnPressureDataReceived;
-        Debug.Log("Bluetooth connection initialized.");
-    }
-    
-    void InitializeWiFiConnection()
-    {
-        // If no WiFi manager is assigned, try to find one
-        if (wifiManager == null)
-        {
-            wifiManager = FindObjectOfType<ESP32WiFiManager>();
-            if (wifiManager == null)
-            {
-                // Create a new WiFi manager if none exists
-                GameObject wifiObj = new GameObject("ESP32WiFiManager");
-                wifiManager = wifiObj.AddComponent<ESP32WiFiManager>();
-                Debug.Log("Created new ESP32WiFiManager.");
-            }
-        }
+        webSocketManager.OnPressureDataReceived += OnPressureDataReceived;
         
-        // Subscribe to pressure data events
-        wifiManager.OnPressureDataReceived += OnPressureDataReceived;
-        Debug.Log("WiFi connection initialized.");
+        // Initialize ring game
+        InitializeRingGame();
+        
+        Debug.Log("WebSocketPressureGameController initialized. Ready to receive pressure data.");
     }
     
     void InitializeRingGame()
@@ -274,14 +233,10 @@ public class PressureGameController : MonoBehaviour
 
     void OnDestroy()
     {
-        // Unsubscribe from pressure data events based on connection type
-        if (connectionType == ConnectionType.Bluetooth && bluetoothManager != null)
+        // Unsubscribe from pressure data events
+        if (webSocketManager != null)
         {
-            bluetoothManager.OnPressureDataReceived -= OnPressureDataReceived;
-        }
-        else if (connectionType == ConnectionType.WiFi && wifiManager != null)
-        {
-            wifiManager.OnPressureDataReceived -= OnPressureDataReceived;
+            webSocketManager.OnPressureDataReceived -= OnPressureDataReceived;
         }
     }
 }

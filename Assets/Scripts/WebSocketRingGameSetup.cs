@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class RingGameSetup : MonoBehaviour
+public class WebSocketRingGameSetup : MonoBehaviour
 {
     [SerializeField] private GameObject ringGamePrefab;
     
@@ -87,38 +87,24 @@ public class RingGameSetup : MonoBehaviour
         feedbackText.alignment = TextAnchor.MiddleCenter;
         feedbackText.text = "Apply pressure to stop the ring!";
         
-        // Add PressureGameController component
-        PressureGameController controller = container.AddComponent<PressureGameController>();
+        // Add WebSocketPressureGameController component
+        WebSocketPressureGameController controller = container.AddComponent<WebSocketPressureGameController>();
         controller.outerRing = outerRing.GetComponent<Image>();
         controller.innerRing = innerRing.GetComponent<Image>();
         controller.targetZone = targetZone.GetComponent<Image>();
         controller.scoreText = scoreText;
         controller.feedbackText = feedbackText;
         
-        // Set connection type to WiFi by default
-        controller.connectionType = PressureGameController.ConnectionType.WiFi;
-        
-        // Add ESP32WiFiManager if not already in the scene
-        ESP32WiFiManager wifiManager = FindObjectOfType<ESP32WiFiManager>();
-        if (wifiManager == null)
+        // Add ESP32WebSocketManager if not already in the scene
+        ESP32WebSocketManager webSocketManager = FindObjectOfType<ESP32WebSocketManager>();
+        if (webSocketManager == null)
         {
-            GameObject wifiObj = new GameObject("WiFiManager");
-            wifiManager = wifiObj.AddComponent<ESP32WiFiManager>();
+            GameObject webSocketObj = new GameObject("WebSocketManager");
+            webSocketManager = webSocketObj.AddComponent<ESP32WebSocketManager>();
         }
         
-        // Assign WiFi manager to controller
-        controller.wifiManager = wifiManager;
-        
-        // Also set up Bluetooth manager for backward compatibility
-        ESP32BluetoothManager bluetoothManager = FindObjectOfType<ESP32BluetoothManager>();
-        if (bluetoothManager == null)
-        {
-            GameObject bluetoothObj = new GameObject("BluetoothManager");
-            bluetoothManager = bluetoothObj.AddComponent<ESP32BluetoothManager>();
-        }
-        
-        // Assign bluetooth manager to controller
-        controller.bluetoothManager = bluetoothManager;
+        // Assign WebSocket manager to controller
+        controller.webSocketManager = webSocketManager;
     }
     
     private GameObject CreateUICircle(string name, Transform parent, float size, Color color)
