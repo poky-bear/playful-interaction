@@ -4,16 +4,16 @@ using UnityEngine.UI;
 public class ESP32WebSocketDemo : MonoBehaviour
 {
     // Reference to the ESP32 WebSocket Manager
-    [SerializeField] private ESP32WebSocketManager webSocketManager;
+    [SerializeField] public ESP32WebSocketManager webSocketManager;
     
     // UI Text to display pressure value
-    [SerializeField] private Text pressureText;
+    [SerializeField] public Text pressureText;
     
     // UI Slider to visualize pressure
-    [SerializeField] private Slider pressureSlider;
+    [SerializeField] public Slider pressureSlider;
     
     // GameObject that will be scaled based on pressure
-    [SerializeField] private GameObject pressureIndicator;
+    [SerializeField] public GameObject pressureIndicator;
     
     // Current pressure value
     private float currentPressure = 0f;
