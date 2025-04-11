@@ -49,16 +49,13 @@ public class ESP32BluetoothManager : MonoBehaviour
     {
         Debug.Log("Initializing Bluetooth...");
         
-        // Check if Bluetooth is available
-        if (!Application.HasUserAuthorization(UserAuthorization.Bluetooth))
-        {
-            yield return Application.RequestUserAuthorization(UserAuthorization.Bluetooth);
-            if (!Application.HasUserAuthorization(UserAuthorization.Bluetooth))
-            {
-                Debug.LogError("Bluetooth permission denied");
-                yield break;
-            }
-        }
+        // Note: Unity doesn't have built-in Bluetooth authorization
+        // In a real implementation, you would use a plugin that handles permissions
+        // For now, we'll simulate this with a log message
+        Debug.Log("Simulating Bluetooth permission request (would require a plugin in real implementation)");
+        
+        // Simulate a delay for permission request
+        yield return new WaitForSeconds(0.5f);
         
         // Start scanning for devices
         yield return StartCoroutine(ScanForDevice());
