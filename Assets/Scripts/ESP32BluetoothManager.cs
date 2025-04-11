@@ -4,6 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+// Simulated Bluetooth classes for Unity (these would be replaced by a real Bluetooth plugin)
+// These are just placeholders to avoid compilation errors
+public class SimulatedBluetoothDevice { }
+public class SimulatedBluetoothService { }
+public class SimulatedBluetoothCharacteristic { }
+
 public class ESP32BluetoothManager : MonoBehaviour
 {
     // Bluetooth device name of your ESP32C3
@@ -15,14 +21,14 @@ public class ESP32BluetoothManager : MonoBehaviour
     // Characteristic UUID for pressure data
     [SerializeField] private string pressureCharacteristicUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     
-    // Bluetooth device object
-    private BluetoothDevice bluetoothDevice;
+    // Bluetooth device object (simulated)
+    private SimulatedBluetoothDevice bluetoothDevice;
     
-    // Bluetooth service object
-    private BluetoothService bluetoothService;
+    // Bluetooth service object (simulated)
+    private SimulatedBluetoothService bluetoothService;
     
-    // Bluetooth characteristic for pressure data
-    private BluetoothCharacteristic pressureCharacteristic;
+    // Bluetooth characteristic for pressure data (simulated)
+    private SimulatedBluetoothCharacteristic pressureCharacteristic;
     
     // Flag to check if device is connected
     private bool isConnected = false;
