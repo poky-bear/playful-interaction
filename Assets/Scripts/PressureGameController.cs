@@ -5,12 +5,12 @@ using System.Collections;
 public class PressureGameController : MonoBehaviour
 {
     // Reference to the ESP32 Bluetooth Manager
-    [SerializeField] private ESP32BluetoothManager bluetoothManager;
+    [SerializeField] public ESP32BluetoothManager bluetoothManager;
     
     // Ring game UI elements
-    [SerializeField] private Image outerRing;
-    [SerializeField] private Image innerRing;
-    [SerializeField] private Image targetZone;
+    [SerializeField] public Image outerRing;
+    [SerializeField] public Image innerRing;
+    [SerializeField] public Image targetZone;
     
     // Ring game parameters
     [SerializeField] private float ringSpeed = 1.0f;
@@ -23,8 +23,8 @@ public class PressureGameController : MonoBehaviour
     [SerializeField] private float pressureThreshold = 30f;
     
     // Score UI
-    [SerializeField] private Text scoreText;
-    [SerializeField] private Text feedbackText;
+    [SerializeField] public Text scoreText;
+    [SerializeField] public Text feedbackText;
     
     // Current pressure value
     private float currentPressure = 0f;
