@@ -20,6 +20,22 @@ public class MultiplayerSetup : MonoBehaviour
         GameObject player1Sphere = GameObject.Find("Sphere");
         GameObject player2Sphere = GameObject.Find("Player2Sphere");
         
+        // Create the multiplayer ring object
+        GameObject multiplayerRingObject = new GameObject("MultiplayerRingObject");
+        multiplayerRingObject.transform.SetParent(multiplayerObject.transform);
+        
+        // Create the three rings
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            ring.name = "Ring" + i;
+            ring.transform.SetParent(multiplayerRingObject.transform);
+            ring.transform.localRotation = Quaternion.Euler(90, 0, 0); // Rotate to make it a horizontal ring
+        }
+        
+        // Assign the ring object to the multiplayer game
+        multiplayerGame.multiplayerRingObject = multiplayerRingObject;
+        
         if (player1Sphere == null)
         {
             Debug.LogError("Player 1 sphere not found! Make sure you have a GameObject named 'Sphere' in your scene.");
@@ -35,6 +51,18 @@ public class MultiplayerSetup : MonoBehaviour
         // Assign references
         multiplayerGame.player1Sphere = player1Sphere;
         multiplayerGame.player2Sphere = player2Sphere;
+        
+        // Create the expanding circle
+        GameObject expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        expandingCircle.name = "ExpandingCircle";
+        expandingCircle.transform.SetParent(multiplayerObject.transform);
+        expandingCircle.transform.localRotation = Quaternion.Euler(90, 0, 0); // Rotate to make it a horizontal circle
+        expandingCircle.SetActive(false);
+        
+        // Create a material for the expanding circle
+        Material expandingCircleMaterial = new Material(Shader.Find("Standard"));
+        expandingCircleMaterial.color = new Color(0.2f, 0.8f, 0.2f, 0.5f); // Semi-transparent green
+        expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
         
         // Create UI for multiplayer mode
         CreateMultiplayerUI(multiplayerGame);
