@@ -17,7 +17,7 @@ public class MultiplayerSetup : MonoBehaviour
         MultiplayerRingGame multiplayerGame = multiplayerObject.AddComponent<MultiplayerRingGame>();
         
         // Find player spheres
-        GameObject player1Sphere = GameObject.Find("Sphere");
+        GameObject player1Sphere = GameObject.Find("MainSphere");
         GameObject player2Sphere = GameObject.Find("Player2Sphere");
         
         if (player1Sphere == null)
@@ -79,7 +79,6 @@ public class MultiplayerSetup : MonoBehaviour
         GameObject instructionsObj = new GameObject("MultiplayerInstructions");
         instructionsObj.transform.SetParent(multiplayerPanel.transform, false);
         Text instructionsText = instructionsObj.AddComponent<Text>();
-        instructionsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         instructionsText.fontSize = 16;
         instructionsText.color = Color.white;
         instructionsText.alignment = TextAnchor.UpperLeft;
@@ -94,7 +93,6 @@ public class MultiplayerSetup : MonoBehaviour
         GameObject statusObj = new GameObject("MultiplayerStatus");
         statusObj.transform.SetParent(multiplayerPanel.transform, false);
         Text statusText = statusObj.AddComponent<Text>();
-        statusText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         statusText.fontSize = 20;
         statusText.color = Color.white;
         statusText.alignment = TextAnchor.UpperLeft;
@@ -109,7 +107,6 @@ public class MultiplayerSetup : MonoBehaviour
         GameObject feedbackObj = new GameObject("MultiplayerFeedback");
         feedbackObj.transform.SetParent(multiplayerPanel.transform, false);
         Text feedbackText = feedbackObj.AddComponent<Text>();
-        feedbackText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         feedbackText.fontSize = 24;
         feedbackText.color = Color.green;
         feedbackText.alignment = TextAnchor.UpperLeft;
