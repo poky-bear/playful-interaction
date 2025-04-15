@@ -12,8 +12,9 @@ public class MultiplayerRingGameUI : MonoBehaviour
     
     [Header("UI Settings")]
     public string defaultInstructions = "When players are close, press SPACE (Player 1) and F (Player 2) together to expand the ring!";
-    public string activatedInstructions = "Both players press and hold your buttons (SPACE & F) together, then release to match the purple ring!";
+    public string activatedInstructions = "Both players press and hold your buttons (SPACE & F) together, then release to match the purple ring! Both must succeed to advance!";
     public string completedMessage = "Congratulations! Both players completed the challenge together!";
+    public string syncInstructions = "You must synchronize your timing! Both players need to hit the target to advance.";
     
     [Header("References")]
     public MultiplayerRingGame gameController;
@@ -79,7 +80,16 @@ public class MultiplayerRingGameUI : MonoBehaviour
             
             if (instructionsText != null)
             {
-                instructionsText.text = activatedInstructions;
+                // Alternate between the main instructions and sync instructions
+                float time = Time.time % 10f;
+                if (time < 5f)
+                {
+                    instructionsText.text = activatedInstructions;
+                }
+                else
+                {
+                    instructionsText.text = syncInstructions;
+                }
             }
         }
         else

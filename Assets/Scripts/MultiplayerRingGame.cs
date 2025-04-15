@@ -45,6 +45,12 @@ public class MultiplayerRingGame : MonoBehaviour
     private bool player1Ready = false;
     private bool player2Ready = false;
     
+    // Variables for synchronized ring completion
+    private bool player1Success = false;
+    private bool player2Success = false;
+    private float player1Distance = 0f;
+    private float player2Distance = 0f;
+    
     // Public properties for UI
     public bool MultiplayerModeActive { get { return multiplayerModeActive; } }
     public bool GameCompleted { get { return gameCompleted; } }
@@ -244,9 +250,13 @@ public class MultiplayerRingGame : MonoBehaviour
         // Show the rings
         multiplayerRingObject.SetActive(true);
         
-        // Reset player ready states
+        // Reset player states
         player1Ready = false;
         player2Ready = false;
+        player1Success = false;
+        player2Success = false;
+        player1Distance = 0f;
+        player2Distance = 0f;
     }
     
     void UpdateMultiplayerGame()
@@ -363,55 +373,177 @@ public class MultiplayerRingGame : MonoBehaviour
         // Check if the expanding circle is close to the active ring
         float hitTolerance = 0.5f; // Tolerance for hitting the ring
         
-        if (distanceFromTarget < hitTolerance)
+        // Determine if this attempt was successful
+        bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
+        
+        // Track which player triggered this check
+        if (Input.GetKeyUp(KeyCode.Space))
         {
-            // Success! Move to the next ring
-            SetRingColor(ringOrder[currentRingIndex], Color.black);
-            currentRingIndex++;
+            player1Success = currentAttemptSuccessful;
+            player1Distance = distanceFromTarget;
+            player1Ready = false;
             
-            if (currentRingIndex >= ringOrder.Length)
+            Debug.Log("Player 1 hit result: " + (player1Success ? "Success" : "Fail") + 
+                      " (distance: " + player1Distance.ToString("F2") + ")");
+        }
+        else if (Input.GetKeyUp(KeyCode.F))
+        {
+            player2Success = currentAttemptSuccessful;
+            player2Distance = distanceFromTarget;
+            player2Ready = false;
+            
+            Debug.Log("Player 2 hit result: " + (player2Success ? "Success" : "Fail") + 
+                      " (distance: " + player2Distance.ToString("F2") + ")");
+        }
+        
+        // Check if both players have attempted the current ring
+        if (player1Distance > 0 && player2Distance > 0)
+        {
+            // Both players have attempted, check if both were successful
+            if (player1Success && player2Success)
             {
-                // Game completed!
-                Debug.Log("Multiplayer: " + successMessage);
-                gameCompleted = true;
+                // Both players succeeded! Move to the next ring
+                SetRingColor(ringOrder[currentRingIndex], Color.black);
+                currentRingIndex++;
                 
-                // Hide the expanding circle
-                expandingCircle.SetActive(false);
-                currentRadius = 0f;
-                
-                // Hide the rings
-                multiplayerRingObject.SetActive(false);
-                
-                // Show completion message
-                // You could add UI for this
+                if (currentRingIndex >= ringOrder.Length)
+                {
+                    // Game completed!
+                    Debug.Log("Multiplayer: " + successMessage);
+                    gameCompleted = true;
+                    
+                    // Hide the expanding circle
+                    expandingCircle.SetActive(false);
+                    currentRadius = 0f;
+                    
+                    // Hide the rings
+                    multiplayerRingObject.SetActive(false);
+                    
+                    // Show completion message
+                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                    if (ui != null)
+                    {
+                        ui.ShowGameCompleteMessage();
+                    }
+                }
+                else
+                {
+                    // Activate the next ring in the order
+                    SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+                    Debug.Log("Multiplayer good hit by both players! Moving to next ring: " + ringOrder[currentRingIndex]);
+                    
+                    // Reset the expanding circle for the next attempt
+                    expandingCircle.SetActive(false);
+                    currentRadius = 0f;
+                    
+                    // Reset player success tracking for the next ring
+                    player1Success = false;
+                    player2Success = false;
+                    player1Distance = 0f;
+                    player2Distance = 0f;
+                    
+                    // Update UI with success message
+                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                    if (ui != null)
+                    {
+                        ui.ShowHitFeedback("Great teamwork! Both players hit the target!", Color.green);
+                    }
+                }
             }
             else
             {
-                // Activate the next ring in the order
-                SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
-                Debug.Log("Multiplayer good hit! Moving to next ring: " + ringOrder[currentRingIndex]);
+                // At least one player failed
+                Debug.Log("Multiplayer: Player 1 " + (player1Success ? "succeeded" : "failed") + 
+                          " and Player 2 " + (player2Success ? "succeeded" : "failed") + 
+                          ". Both must succeed to advance.");
                 
-                // Reset the expanding circle for the next attempt
+                // Provide feedback on what happened
+                MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                if (ui != null)
+                {
+                    if (!player1Success && !player2Success)
+                    {
+                        ui.ShowHitFeedback("Both players missed. Try again together!", Color.red);
+                    }
+                    else if (!player1Success)
+                    {
+                        ui.ShowHitFeedback("Player 1 missed. Try again together!", new Color(1f, 0.6f, 0f));
+                    }
+                    else if (!player2Success)
+                    {
+                        ui.ShowHitFeedback("Player 2 missed. Try again together!", new Color(1f, 0.6f, 0f));
+                    }
+                }
+                
+                // Reset for another attempt
                 expandingCircle.SetActive(false);
                 currentRadius = 0f;
+                
+                // Reset player success tracking for another attempt at the same ring
+                player1Success = false;
+                player2Success = false;
+                player1Distance = 0f;
+                player2Distance = 0f;
             }
         }
         else
         {
+            // Only one player has attempted so far
             // Provide feedback on how close they were
-            if (distanceFromTarget < hitTolerance * 2)
+            if (currentAttemptSuccessful)
             {
-                Debug.Log("Multiplayer close! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                Debug.Log("Multiplayer: Good hit! Waiting for the other player...");
+                
+                // Update UI with waiting message
+                MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                if (ui != null)
+                {
+                    if (player1Success)
+                    {
+                        ui.ShowHitFeedback("Player 1 hit the target! Waiting for Player 2...", Color.green);
+                    }
+                    else if (player2Success)
+                    {
+                        ui.ShowHitFeedback("Player 2 hit the target! Waiting for Player 1...", Color.green);
+                    }
+                }
             }
             else
             {
-                Debug.Log("Multiplayer miss! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                if (distanceFromTarget < hitTolerance * 2)
+                {
+                    Debug.Log("Multiplayer close! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                    
+                    // Update UI with close message
+                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                    if (ui != null)
+                    {
+                        ui.ShowHitFeedback("Close! Try again together.", new Color(1f, 0.6f, 0f));
+                    }
+                }
+                else
+                {
+                    Debug.Log("Multiplayer miss! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                    
+                    // Update UI with miss message
+                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
+                    if (ui != null)
+                    {
+                        ui.ShowHitFeedback("Miss! Try again together.", Color.red);
+                    }
+                }
+                
+                // Reset the expanding circle for another attempt
+                expandingCircle.SetActive(false);
+                currentRadius = 0f;
+                
+                // Reset player success tracking for another attempt
+                player1Success = false;
+                player2Success = false;
+                player1Distance = 0f;
+                player2Distance = 0f;
             }
         }
-        
-        // Reset player ready states
-        player1Ready = false;
-        player2Ready = false;
     }
     
     private IEnumerator ShowHitFeedback(float distanceFromTarget)
@@ -490,6 +622,14 @@ public class MultiplayerRingGame : MonoBehaviour
         currentRadius = 0f;
         isExpanding = false;
         
+        // Reset player states
+        player1Ready = false;
+        player2Ready = false;
+        player1Success = false;
+        player2Success = false;
+        player1Distance = 0f;
+        player2Distance = 0f;
+        
         Debug.Log("Multiplayer mode deactivated!");
     }
     
@@ -544,5 +684,11 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         DeactivateMultiplayerMode();
         gameCompleted = false;
+        
+        // Reset player success tracking
+        player1Success = false;
+        player2Success = false;
+        player1Distance = 0f;
+        player2Distance = 0f;
     }
 }

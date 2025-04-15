@@ -10,9 +10,10 @@ This feature adds a cooperative multiplayer mode to the ring game where both pla
    - A set of purple rings appears between the two players.
    - Both players must press and hold their action buttons simultaneously (Space for Player 1, F for Player 2).
    - When both buttons are pressed, an expanding circle grows from the center.
-   - Both players must release their buttons at the same time to try to match the active purple ring.
-   - If successful, the next ring becomes active.
-   - Complete all three rings to win the challenge.
+   - Both players must release their buttons to try to match the active purple ring.
+   - **Synchronized Success**: Both players must successfully hit the target to advance to the next ring. If either player misses, both must try again.
+   - The game tracks each player's success individually and provides feedback on who hit or missed.
+   - Complete all three rings together to win the challenge.
 
 3. **Deactivation**: If players move too far apart, the multiplayer mode deactivates.
 
