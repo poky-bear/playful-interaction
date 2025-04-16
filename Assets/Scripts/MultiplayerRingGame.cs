@@ -124,9 +124,16 @@ public class MultiplayerRingGame : MonoBehaviour
         
         // Create rings
         rings = new GameObject[3];
+        float baseRadius = 2.0f; // Base radius for the first ring
+        float ringSpacing = 1.5f; // Spacing between rings
+        float ringThickness = 0.2f; // Make rings thicker for better visibility
+        
         for (int i = 0; i < 3; i++)
         {
-            // Use cylinder for rings instead of sphere for better visual appearance
+            // Calculate the radius for this ring
+            float radius = baseRadius + (i * ringSpacing);
+            
+            // Create a ring using a cylinder
             rings[i] = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             rings[i].name = "MultiplayerRing" + i;
             rings[i].transform.parent = multiplayerRingObject.transform;
@@ -134,15 +141,32 @@ public class MultiplayerRingGame : MonoBehaviour
             // Rotate to make it a horizontal ring
             rings[i].transform.localRotation = Quaternion.Euler(90, 0, 0);
             
-            // Make it thin (like a ring)
-            rings[i].transform.localScale = new Vector3(1, 0.05f, 1);
+            // Scale to create the ring shape
+            // The x and z scale determine the ring's radius (multiply by 2 since scale is radius * 2)
+            // The y scale determines the ring's thickness
+            rings[i].transform.localScale = new Vector3(radius * 2, ringThickness, radius * 2);
             
             // Remove collider as we don't need physics for the rings
             Destroy(rings[i].GetComponent<Collider>());
             
-            // Create material for the ring
+            // Create material for the ring with transparency
             Material ringMaterial = new Material(Shader.Find("Standard"));
-            ringMaterial.color = Color.black; // Start with black color
+            ringMaterial.SetFloat("_Mode", 3); // Transparent mode
+            ringMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            ringMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            ringMaterial.SetInt("_ZWrite", 0);
+            ringMaterial.DisableKeyword("_ALPHATEST_ON");
+            ringMaterial.EnableKeyword("_ALPHABLEND_ON");
+            ringMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            ringMaterial.renderQueue = 3000;
+            
+            // Set initial color to a semi-transparent dark color
+            Color inactiveColor = new Color(0.2f, 0.2f, 0.2f, 0.6f);
+            ringMaterial.color = inactiveColor;
+            
+            // Enable emission for better visibility
+            ringMaterial.EnableKeyword("_EMISSION");
+            ringMaterial.SetColor("_EmissionColor", inactiveColor * 0.3f);
             
             // Store the material
             originalMaterials[i] = ringMaterial;
@@ -152,8 +176,8 @@ public class MultiplayerRingGame : MonoBehaviour
             rings[i].GetComponent<Renderer>().material = ringMaterials[i];
         }
         
-        // Hide the rings initially
-        multiplayerRingObject.SetActive(false);
+        // Show the rings
+        multiplayerRingObject.SetActive(true);
     }
     
     void CreateExpandingCircles()
@@ -913,25 +937,57 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
         {
-            ringMaterials[ringIndex].color = color;
+            // Determine if this is the active ring (using the multiplayer color)
+            bool isActiveRing = (color == multiplayerRingColor);
             
-            // Also set emission for bright color
-            if (color != Color.black)
+            if (isActiveRing)
             {
+                // Make active ring more visible with higher opacity and stronger glow
+                ringMaterials[ringIndex].color = new Color(color.r, color.g, color.b, 0.9f);
                 ringMaterials[ringIndex].EnableKeyword("_EMISSION");
-                ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.5f);
+                ringMaterials[ringIndex].SetColor("_EmissionColor", color * 1.5f); // Stronger emission
+                
+                // Start a subtle pulsing effect for the active ring
+                StartCoroutine(PulseActiveRing(ringIndex));
+            }
+            else if (color == Color.black || color == new Color(0.1f, 0.1f, 0.1f, 1f))
+            {
+                // Inactive rings are semi-transparent and darker
+                ringMaterials[ringIndex].color = new Color(0.2f, 0.2f, 0.2f, 0.6f);
+                ringMaterials[ringIndex].EnableKeyword("_EMISSION");
+                ringMaterials[ringIndex].SetColor("_EmissionColor", new Color(0.2f, 0.2f, 0.2f) * 0.3f);
             }
             else
             {
-                ringMaterials[ringIndex].DisableKeyword("_EMISSION");
+                // For other colors (like during celebrations)
+                ringMaterials[ringIndex].color = new Color(color.r, color.g, color.b, 0.8f);
+                ringMaterials[ringIndex].EnableKeyword("_EMISSION");
+                ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.5f);
             }
+        }
+    }
+    
+    private IEnumerator PulseActiveRing(int ringIndex)
+    {
+        float pulseSpeed = 2f; // Adjust for faster/slower pulsing
+        float minEmission = 1.0f;
+        float maxEmission = 2.0f;
+        
+        while (ringIndex == ringOrder[currentRingIndex] && !gameCompleted) // Keep pulsing while this is the active ring
+        {
+            float emission = Mathf.Lerp(minEmission, maxEmission, 
+                (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f);
+                
+            ringMaterials[ringIndex].SetColor("_EmissionColor", multiplayerRingColor * emission);
+            
+            yield return null;
         }
     }
     
     float GetRingRadius(int ringIndex)
     {
         float baseRadius = 2.0f;
-        float ringSpacing = 1.0f;
+        float ringSpacing = 1.5f; // Match the spacing used in CreateMultiplayerRing
         return baseRadius + (ringIndex * ringSpacing);
     }
     
