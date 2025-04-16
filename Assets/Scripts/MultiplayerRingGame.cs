@@ -359,18 +359,31 @@ public class MultiplayerRingGame : MonoBehaviour
         // Find and hide any active individual expanding circles
         HideIndividualExpandingCircles();
         
+        // Create the rings if they don't exist
+        if (rings == null || rings[0] == null)
+        {
+            CreateMultiplayerRing();
+        }
+
         // Set up the rings with increasing sizes
         float baseRadius = 2.0f; // Base radius for the first ring
         float ringSpacing = 1.5f; // Increased spacing between rings for better visibility
         
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < rings.Length; i++)
         {
-            float radius = baseRadius + (i * ringSpacing);
-            // For cylinders, we need to set the x and z scale for the radius
-            rings[i].transform.localScale = new Vector3(radius * 2, 0.05f, radius * 2); // Make rings thinner
-            
-            // Set all rings to dark initially
-            SetRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
+            if (rings[i] != null)
+            {
+                float radius = baseRadius + (i * ringSpacing);
+                // For cylinders, we need to set the x and z scale for the radius
+                rings[i].transform.localScale = new Vector3(radius * 2, 0.05f, radius * 2); // Make rings thinner
+                
+                // Set all rings to dark initially
+                SetRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
+            }
+            else
+            {
+                Debug.LogError("Ring " + i + " is null in ActivateMultiplayerMode!");
+            }
         }
         
         // Generate random order for the rings
@@ -378,7 +391,14 @@ public class MultiplayerRingGame : MonoBehaviour
         currentRingIndex = 0;
         
         // Set the first ring to the multiplayer color with glow
-        SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+        if (ringOrder != null && currentRingIndex < ringOrder.Length)
+        {
+            SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+        }
+        else
+        {
+            Debug.LogError("Invalid ring order or current index in ActivateMultiplayerMode!");
+        }
         
         // Show the multiplayer rings
         multiplayerRingObject.SetActive(true);
