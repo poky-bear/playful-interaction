@@ -202,17 +202,29 @@ public class MultiplayerRingGame : MonoBehaviour
             
         if (gameCompleted)
             return;
+        
+        // Always check the distance between players
+        float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
             
         // Check if multiplayer mode is already active
         if (multiplayerModeActive)
         {
-            UpdateMultiplayerGame();
+            // Check if players have moved too far apart
+            if (distance > activationDistance * 1.5f)
+            {
+                // Players moved too far apart, deactivate multiplayer mode
+                DeactivateMultiplayerMode();
+                Debug.Log("Players moved too far apart. Distance: " + distance + ", Deactivating multiplayer mode.");
+            }
+            else
+            {
+                // Continue with multiplayer game
+                UpdateMultiplayerGame();
+            }
         }
         else
         {
-            // Check distance between players
-            float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
-            
+            // Check if players are close enough to activate multiplayer mode
             if (distance <= activationDistance)
             {
                 // Players are close, increment timer
@@ -382,6 +394,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player1Controller != null)
             {
                 player1Controller.enabled = false;
+                player1Controller.gameObject.SetActive(false);
                 Debug.Log("Disabled RingGameController on Player 1");
             }
         }
@@ -419,6 +432,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player2Controller != null)
             {
                 player2Controller.enabled = false;
+                player2Controller.gameObject.SetActive(false);
                 Debug.Log("Disabled Player2RingGameController on Player 2");
             }
         }
@@ -501,9 +515,6 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
             multiplayerRingObject.transform.position = midpoint;
-            
-            // Check if players have moved too far apart
-            CheckPlayerDistance();
         }
     }
     
@@ -891,6 +902,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player1Controller != null)
             {
                 player1Controller.enabled = true;
+                player1Controller.gameObject.SetActive(true);
                 Debug.Log("Re-enabled RingGameController on Player 1");
             }
         }
@@ -928,12 +940,73 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player2Controller != null)
             {
                 player2Controller.enabled = true;
+                player2Controller.gameObject.SetActive(true);
                 Debug.Log("Re-enabled Player2RingGameController on Player 2");
             }
         }
         else
         {
             Debug.LogWarning("Player 2 sphere is null, cannot reactivate rings");
+        }
+        
+        // Force a recreation of rings if they're not visible
+        ForceRecreateRingsIfNeeded();
+    }
+    
+    void ForceRecreateRingsIfNeeded()
+    {
+        // Check if Player 1's rings are active
+        if (player1Sphere != null)
+        {
+            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
+            if (player1Rings != null && player1Rings.rings != null)
+            {
+                bool anyRingActive = false;
+                foreach (GameObject ring in player1Rings.rings)
+                {
+                    if (ring != null && ring.activeSelf)
+                    {
+                        anyRingActive = true;
+                        break;
+                    }
+                }
+                
+                // If no rings are active, try to recreate them
+                if (!anyRingActive)
+                {
+                    Debug.Log("No active rings found for Player 1, attempting to recreate...");
+                    // Disable and re-enable the component to force it to recreate rings
+                    player1Rings.enabled = false;
+                    player1Rings.enabled = true;
+                }
+            }
+        }
+        
+        // Check if Player 2's rings are active
+        if (player2Sphere != null)
+        {
+            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
+            if (player2Rings != null && player2Rings.rings != null)
+            {
+                bool anyRingActive = false;
+                foreach (GameObject ring in player2Rings.rings)
+                {
+                    if (ring != null && ring.activeSelf)
+                    {
+                        anyRingActive = true;
+                        break;
+                    }
+                }
+                
+                // If no rings are active, try to recreate them
+                if (!anyRingActive)
+                {
+                    Debug.Log("No active rings found for Player 2, attempting to recreate...");
+                    // Disable and re-enable the component to force it to recreate rings
+                    player2Rings.enabled = false;
+                    player2Rings.enabled = true;
+                }
+            }
         }
     }
     
