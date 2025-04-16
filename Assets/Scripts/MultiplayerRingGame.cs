@@ -31,10 +31,6 @@ public class MultiplayerRingGame : MonoBehaviour
     private float proximityTimer = 0f;
     private bool multiplayerModeActive = false;
     private bool gameCompleted = false;
-    private GameObject expandingCircle;
-    private Material expandingCircleMaterial;
-    private float currentRadius = 0f;
-    private bool isExpanding = false;
     private int[] ringOrder = new int[3];
     private int currentRingIndex = 0;
     private GameObject[] rings;
@@ -44,6 +40,24 @@ public class MultiplayerRingGame : MonoBehaviour
     private Player2RingGameController player2Controller;
     private bool player1Ready = false;
     private bool player2Ready = false;
+    
+    // Player 1's expanding circle
+    private GameObject player1ExpandingCircle;
+    private Material player1ExpandingCircleMaterial;
+    private float player1CurrentRadius = 0f;
+    private bool player1IsExpanding = false;
+    
+    // Player 2's expanding circle
+    private GameObject player2ExpandingCircle;
+    private Material player2ExpandingCircleMaterial;
+    private float player2CurrentRadius = 0f;
+    private bool player2IsExpanding = false;
+    
+    // Legacy variables (kept for compatibility)
+    private GameObject expandingCircle;
+    private Material expandingCircleMaterial;
+    private float currentRadius = 0f;
+    private bool isExpanding = false;
     
     // Variables for synchronized ring completion
     private bool player1Success = false;
@@ -146,37 +160,73 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircle()
     {
-        // Create a sphere for the expanding circle
-        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        expandingCircle.name = "MultiplayerExpandingCircle";
+        // Create Player 1's expanding circle
+        player1ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        player1ExpandingCircle.name = "Player1ExpandingCircle";
         
         // Start with zero scale
-        expandingCircle.transform.localScale = Vector3.zero;
+        player1ExpandingCircle.transform.localScale = Vector3.zero;
         
         // Remove collider as we don't need physics for this
-        Destroy(expandingCircle.GetComponent<Collider>());
+        Destroy(player1ExpandingCircle.GetComponent<Collider>());
         
         // Create material for expanding circle with transparency
-        expandingCircleMaterial = new Material(Shader.Find("Standard"));
+        player1ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
         
         // Set up transparency
-        expandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
-        expandingCircleMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        expandingCircleMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        expandingCircleMaterial.SetInt("_ZWrite", 0);
-        expandingCircleMaterial.DisableKeyword("_ALPHATEST_ON");
-        expandingCircleMaterial.EnableKeyword("_ALPHABLEND_ON");
-        expandingCircleMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        expandingCircleMaterial.renderQueue = 3000;
+        player1ExpandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
+        player1ExpandingCircleMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        player1ExpandingCircleMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        player1ExpandingCircleMaterial.SetInt("_ZWrite", 0);
+        player1ExpandingCircleMaterial.DisableKeyword("_ALPHATEST_ON");
+        player1ExpandingCircleMaterial.EnableKeyword("_ALPHABLEND_ON");
+        player1ExpandingCircleMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        player1ExpandingCircleMaterial.renderQueue = 3000;
         
-        // Set a semi-transparent color
-        expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+        // Set a semi-transparent blue color
+        player1ExpandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.8f, 0.5f);
         
         // Apply the material to the sphere
-        expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
+        player1ExpandingCircle.GetComponent<Renderer>().material = player1ExpandingCircleMaterial;
         
         // Hide it initially
-        expandingCircle.SetActive(false);
+        player1ExpandingCircle.SetActive(false);
+        
+        // Create Player 2's expanding circle
+        player2ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        player2ExpandingCircle.name = "Player2ExpandingCircle";
+        
+        // Start with zero scale
+        player2ExpandingCircle.transform.localScale = Vector3.zero;
+        
+        // Remove collider as we don't need physics for this
+        Destroy(player2ExpandingCircle.GetComponent<Collider>());
+        
+        // Create material for expanding circle with transparency
+        player2ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
+        
+        // Set up transparency
+        player2ExpandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
+        player2ExpandingCircleMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        player2ExpandingCircleMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        player2ExpandingCircleMaterial.SetInt("_ZWrite", 0);
+        player2ExpandingCircleMaterial.DisableKeyword("_ALPHATEST_ON");
+        player2ExpandingCircleMaterial.EnableKeyword("_ALPHABLEND_ON");
+        player2ExpandingCircleMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        player2ExpandingCircleMaterial.renderQueue = 3000;
+        
+        // Set a semi-transparent red color
+        player2ExpandingCircleMaterial.color = new Color(0.8f, 0.1f, 0.1f, 0.5f);
+        
+        // Apply the material to the sphere
+        player2ExpandingCircle.GetComponent<Renderer>().material = player2ExpandingCircleMaterial;
+        
+        // Hide it initially
+        player2ExpandingCircle.SetActive(false);
+        
+        // For backward compatibility
+        expandingCircle = player1ExpandingCircle;
+        expandingCircleMaterial = player1ExpandingCircleMaterial;
     }
     
     void Update()
@@ -384,18 +434,21 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void UpdateMultiplayerGame()
     {
-        // Check for player inputs
+        // Calculate the midpoint between players (used for both circles)
+        Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+        
+        // Check for player 1 input
         if (Input.GetKeyDown(KeyCode.Space))
         {
             player1Ready = true;
-            // Start expanding circle immediately when spacebar is pressed in multiplayer mode
-            if (!isExpanding)
+            // Start player 1's expanding circle immediately when spacebar is pressed
+            if (!player1IsExpanding)
             {
-                StartExpanding();
+                StartPlayer1Expanding();
             }
             else
             {
-                CheckHit();
+                CheckPlayer1Hit();
             }
         }
         
@@ -404,17 +457,18 @@ public class MultiplayerRingGame : MonoBehaviour
             player1Ready = false;
         }
         
+        // Check for player 2 input
         if (Input.GetKeyDown(KeyCode.F))
         {
             player2Ready = true;
-            // Start expanding circle immediately when F key is pressed in multiplayer mode
-            if (!isExpanding)
+            // Start player 2's expanding circle immediately when F key is pressed
+            if (!player2IsExpanding)
             {
-                StartExpanding();
+                StartPlayer2Expanding();
             }
             else
             {
-                CheckHit();
+                CheckPlayer2Hit();
             }
         }
         
@@ -423,18 +477,39 @@ public class MultiplayerRingGame : MonoBehaviour
             player2Ready = false;
         }
         
-        // Update expanding circle if active
-        if (isExpanding)
+        // Update player 1's expanding circle if active
+        if (player1IsExpanding)
         {
             // Increase the radius based on time
-            currentRadius += 1.0f * Time.deltaTime;
+            player1CurrentRadius += 1.0f * Time.deltaTime;
             
             // Update the scale of the expanding circle
-            expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+            player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
             
             // Position at the midpoint between players
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            expandingCircle.transform.position = midpoint;
+            player1ExpandingCircle.transform.position = midpoint;
+        }
+        
+        // Update player 2's expanding circle if active
+        if (player2IsExpanding)
+        {
+            // Increase the radius based on time
+            player2CurrentRadius += 1.0f * Time.deltaTime;
+            
+            // Update the scale of the expanding circle
+            player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
+            
+            // Position at the midpoint between players
+            player2ExpandingCircle.transform.position = midpoint;
+        }
+        
+        // For backward compatibility
+        isExpanding = player1IsExpanding || player2IsExpanding;
+        currentRadius = player1CurrentRadius;
+        
+        // Always keep the rings centered between the players
+        if (multiplayerRingObject.activeSelf)
+        {
             multiplayerRingObject.transform.position = midpoint;
         }
         
@@ -466,28 +541,62 @@ public class MultiplayerRingGame : MonoBehaviour
         }
     }
     
-    void StartExpanding()
+    void StartPlayer1Expanding()
     {
-        isExpanding = true;
-        currentRadius = 0.1f; // Start with a small radius
+        player1IsExpanding = true;
+        player1CurrentRadius = 0.1f; // Start with a small radius
         
         // Position the expanding circle at the midpoint between players
         Vector3 player1Pos = player1Sphere.transform.position;
         Vector3 player2Pos = player2Sphere.transform.position;
         Vector3 midpoint = (player1Pos + player2Pos) / 2f;
-        expandingCircle.transform.position = midpoint;
+        player1ExpandingCircle.transform.position = midpoint;
         
-        // Set the expanding circle material to dark color
-        expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+        // Set the expanding circle material to blue color
+        player1ExpandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.8f, 0.5f);
         
         // Activate the expanding circle
-        expandingCircle.SetActive(true);
+        player1ExpandingCircle.SetActive(true);
         
         // Log detailed information about the expanding circle
-        Debug.Log("Started multiplayer expanding circle at midpoint: " + midpoint);
+        Debug.Log("Started Player 1's expanding circle at midpoint: " + midpoint);
         Debug.Log("Player 1 position: " + player1Pos + ", Player 2 position: " + player2Pos);
         Debug.Log("Distance between players: " + Vector3.Distance(player1Pos, player2Pos));
         
+        // For backward compatibility
+        isExpanding = true;
+        currentRadius = player1CurrentRadius;
+        expandingCircle = player1ExpandingCircle;
+    }
+    
+    void StartPlayer2Expanding()
+    {
+        player2IsExpanding = true;
+        player2CurrentRadius = 0.1f; // Start with a small radius
+        
+        // Position the expanding circle at the midpoint between players
+        Vector3 player1Pos = player1Sphere.transform.position;
+        Vector3 player2Pos = player2Sphere.transform.position;
+        Vector3 midpoint = (player1Pos + player2Pos) / 2f;
+        player2ExpandingCircle.transform.position = midpoint;
+        
+        // Set the expanding circle material to red color
+        player2ExpandingCircleMaterial.color = new Color(0.8f, 0.1f, 0.1f, 0.5f);
+        
+        // Activate the expanding circle
+        player2ExpandingCircle.SetActive(true);
+        
+        // Log detailed information about the expanding circle
+        Debug.Log("Started Player 2's expanding circle at midpoint: " + midpoint);
+        Debug.Log("Player 1 position: " + player1Pos + ", Player 2 position: " + player2Pos);
+        Debug.Log("Distance between players: " + Vector3.Distance(player1Pos, player2Pos));
+    }
+    
+    // For backward compatibility
+    void StartExpanding()
+    {
+        StartPlayer1Expanding();
+    }
         // Log which player initiated the expansion
         if (Input.GetKey(KeyCode.Space))
         {
@@ -499,21 +608,21 @@ public class MultiplayerRingGame : MonoBehaviour
         }
     }
     
-    void CheckHit()
+    void CheckPlayer1Hit()
     {
-        isExpanding = false;
+        player1IsExpanding = false;
         
         // Get the current active ring radius
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         
         // Calculate the distance from the midpoint to the expanding circle edge
         Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-        float distanceToCircleEdge = currentRadius / 2;
+        float distanceToCircleEdge = player1CurrentRadius / 2;
         
-        // Calculate how close the players were to the target
+        // Calculate how close the player was to the target
         float distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
         
-        Debug.Log("Multiplayer - Radius of target ring: " + activeRingRadius + 
+        Debug.Log("Player 1 - Radius of target ring: " + activeRingRadius + 
                 ", Radius of user ring: " + distanceToCircleEdge + 
                 ", total diff: " + distanceFromTarget);
         
@@ -526,26 +635,79 @@ public class MultiplayerRingGame : MonoBehaviour
         // Determine if this attempt was successful
         bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
         
-        // Track which player triggered this check
+        // Record player 1's result
+        player1Success = currentAttemptSuccessful;
+        player1Distance = distanceFromTarget;
+        player1Ready = false;
+        
+        Debug.Log("Player 1 hit result: " + (player1Success ? "Success" : "Fail") + 
+                  " (distance: " + player1Distance.ToString("F2") + ")");
+        
+        // Hide player 1's expanding circle
+        player1ExpandingCircle.SetActive(false);
+        
+        // Check if both players have attempted
+        CheckBothPlayersAttempted();
+    }
+    
+    void CheckPlayer2Hit()
+    {
+        player2IsExpanding = false;
+        
+        // Get the current active ring radius
+        float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
+        
+        // Calculate the distance from the midpoint to the expanding circle edge
+        Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+        float distanceToCircleEdge = player2CurrentRadius / 2;
+        
+        // Calculate how close the player was to the target
+        float distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
+        
+        Debug.Log("Player 2 - Radius of target ring: " + activeRingRadius + 
+                ", Radius of user ring: " + distanceToCircleEdge + 
+                ", total diff: " + distanceFromTarget);
+        
+        // Show visual feedback
+        StartCoroutine(ShowHitFeedback(distanceFromTarget));
+        
+        // Check if the expanding circle is close to the active ring
+        float hitTolerance = 0.5f; // Tolerance for hitting the ring
+        
+        // Determine if this attempt was successful
+        bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
+        
+        // Record player 2's result
+        player2Success = currentAttemptSuccessful;
+        player2Distance = distanceFromTarget;
+        player2Ready = false;
+        
+        Debug.Log("Player 2 hit result: " + (player2Success ? "Success" : "Fail") + 
+                  " (distance: " + player2Distance.ToString("F2") + ")");
+        
+        // Hide player 2's expanding circle
+        player2ExpandingCircle.SetActive(false);
+        
+        // Check if both players have attempted
+        CheckBothPlayersAttempted();
+    }
+    
+    // For backward compatibility
+    void CheckHit()
+    {
+        // Determine which player triggered this check
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            player1Success = currentAttemptSuccessful;
-            player1Distance = distanceFromTarget;
-            player1Ready = false;
-            
-            Debug.Log("Player 1 hit result: " + (player1Success ? "Success" : "Fail") + 
-                      " (distance: " + player1Distance.ToString("F2") + ")");
+            CheckPlayer1Hit();
         }
         else if (Input.GetKeyUp(KeyCode.F))
         {
-            player2Success = currentAttemptSuccessful;
-            player2Distance = distanceFromTarget;
-            player2Ready = false;
-            
-            Debug.Log("Player 2 hit result: " + (player2Success ? "Success" : "Fail") + 
-                      " (distance: " + player2Distance.ToString("F2") + ")");
+            CheckPlayer2Hit();
         }
-        
+    }
+    
+    void CheckBothPlayersAttempted()
+    {
         // Check if both players have attempted the current ring
         if (player1Distance > 0 && player2Distance > 0)
         {
@@ -562,7 +724,13 @@ public class MultiplayerRingGame : MonoBehaviour
                     Debug.Log("Multiplayer: " + successMessage);
                     gameCompleted = true;
                     
-                    // Hide the expanding circle
+                    // Hide the expanding circles
+                    player1ExpandingCircle.SetActive(false);
+                    player2ExpandingCircle.SetActive(false);
+                    player1CurrentRadius = 0f;
+                    player2CurrentRadius = 0f;
+                    
+                    // For backward compatibility
                     expandingCircle.SetActive(false);
                     currentRadius = 0f;
                     
