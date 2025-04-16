@@ -15,6 +15,11 @@ public class BoidManager : MonoBehaviour {
     public float splitDistance = 5f; // Distance at which the flock splits
     Boid[] boids;
 
+    // Colors for multiplayer mode
+    public Color unifiedFlockColor = new Color(0.8f, 0.4f, 0.8f, 1f); // Purple for unified flock
+    public Color player1Color = new Color(1f, 0.4f, 0.4f, 1f); // Red for player 1
+    public Color player2Color = new Color(0.4f, 0.4f, 1f, 1f); // Blue for player 2
+
     public void SetMultiplayerMode(bool active, Transform p1Target = null, Transform p2Target = null)
     {
         isMultiplayerMode = active;
@@ -23,6 +28,18 @@ public class BoidManager : MonoBehaviour {
             player1Target = p1Target;
             player2Target = p2Target;
             Debug.Log("BoidManager: Multiplayer mode activated with " + boids.Length + " boids");
+
+            // Set player colors
+            if (player1Target != null)
+            {
+                Renderer p1Renderer = player1Target.GetComponent<Renderer>();
+                if (p1Renderer != null) p1Renderer.material.color = player1Color;
+            }
+            if (player2Target != null)
+            {
+                Renderer p2Renderer = player2Target.GetComponent<Renderer>();
+                if (p2Renderer != null) p2Renderer.material.color = player2Color;
+            }
         }
         else
         {
@@ -30,9 +47,21 @@ public class BoidManager : MonoBehaviour {
             player1Target = target;
             player2Target = null;
             Debug.Log("BoidManager: Returning to single player mode");
+
+            // Reset player colors if possible
+            if (p1Target != null)
+            {
+                Renderer p1Renderer = p1Target.GetComponent<Renderer>();
+                if (p1Renderer != null) p1Renderer.material.color = Color.white;
+            }
+            if (p2Target != null)
+            {
+                Renderer p2Renderer = p2Target.GetComponent<Renderer>();
+                if (p2Renderer != null) p2Renderer.material.color = Color.white;
+            }
         }
 
-        // Update boid targets
+        // Update boid targets and colors
         if (boids != null)
         {
             foreach (Boid b in boids)
@@ -43,11 +72,14 @@ public class BoidManager : MonoBehaviour {
                     {
                         // In multiplayer mode, randomly assign boids to players
                         b.playerAssignment = (Random.value < 0.5f) ? 1 : 2;
+                        // Initial color will be unified since players start close together
+                        b.SetColour(unifiedFlockColor);
                     }
                     else
                     {
                         // In single player mode, all boids follow the main target
                         b.playerAssignment = 0;
+                        b.SetColour(Color.white);
                     }
                 }
             }
@@ -103,11 +135,33 @@ public class BoidManager : MonoBehaviour {
 
             boidBuffer.GetData (boidData);
 
+            // Calculate player distance if in multiplayer mode
+            float playerDistance = float.MaxValue;
+            if (isMultiplayerMode && player1Target != null && player2Target != null)
+            {
+                playerDistance = Vector3.Distance(player1Target.position, player2Target.position);
+            }
+
             for (int i = 0; i < boids.Length; i++) {
                 boids[i].avgFlockHeading = boidData[i].flockHeading;
                 boids[i].centreOfFlockmates = boidData[i].flockCentre;
                 boids[i].avgAvoidanceHeading = boidData[i].avoidanceHeading;
                 boids[i].numPerceivedFlockmates = boidData[i].numFlockmates;
+
+                // Update boid colors based on player distance
+                if (isMultiplayerMode)
+                {
+                    if (playerDistance <= splitDistance)
+                    {
+                        // Players are close, all boids same color
+                        boids[i].SetColour(unifiedFlockColor);
+                    }
+                    else
+                    {
+                        // Players are far apart, color based on assignment
+                        boids[i].SetColour(boids[i].playerAssignment == 1 ? player1Color : player2Color);
+                    }
+                }
 
                 boids[i].UpdateBoid ();
             }
