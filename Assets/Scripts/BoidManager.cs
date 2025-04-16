@@ -60,21 +60,7 @@ public class BoidManager : MonoBehaviour {
         foreach (Boid b in boids) {
             if (b != null) {
                 b.Initialize (settings, target);
-                // Assign half the boids to each player (for multiplayer mode)
-                b.playerAssignment = (Random.value < 0.5f) ? 1 : 2;
             }
-        }
-    }
-
-    public void SetMultiplayerMode(bool active, Transform p1Target = null, Transform p2Target = null) {
-        isMultiplayerMode = active;
-        if (active) {
-            player1Target = p1Target;
-            player2Target = p2Target;
-        } else {
-            // In single player mode, use the legacy target
-            player1Target = target;
-            player2Target = null;
         }
     }
 
