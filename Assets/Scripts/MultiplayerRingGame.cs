@@ -155,12 +155,9 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircle()
     {
-        // Create a cylinder for the expanding circle (looks more like a ring)
-        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        // Create a sphere for the expanding circle
+        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         expandingCircle.name = "MultiplayerExpandingCircle";
-        
-        // Rotate to make it a horizontal circle
-        expandingCircle.transform.localRotation = Quaternion.Euler(90, 0, 0);
         
         // Start with zero scale
         expandingCircle.transform.localScale = Vector3.zero;
@@ -191,7 +188,7 @@ public class MultiplayerRingGame : MonoBehaviour
         // Set a semi-transparent color
         expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
         
-        // Apply the material to the cylinder
+        // Apply the material to the sphere
         expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
         
         // Hide it initially
@@ -436,58 +433,67 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void UpdateMultiplayerGame()
     {
-        // Check for player inputs
+        // Check for space bar press (Player 1)
         if (Input.GetKeyDown(KeyCode.Space))
         {
             player1Ready = true;
-            // Start expanding circle immediately when spacebar is pressed in multiplayer mode
-            if (!isExpanding)
-            {
-                StartExpanding();
-            }
-            else
-            {
-                CheckHit();
-            }
+            // Start expanding circle when spacebar is pressed
+            StartExpanding();
         }
         
+        // Check for space bar release
         if (Input.GetKeyUp(KeyCode.Space))
         {
             player1Ready = false;
+            // When space bar is released, hide the expanding circle
+            if (isExpanding)
+            {
+                // Hide the expanding circle
+                expandingCircle.SetActive(false);
+                isExpanding = false;
+            }
         }
         
+        // Check for F key press (Player 2)
         if (Input.GetKeyDown(KeyCode.F))
         {
             player2Ready = true;
-            // Start expanding circle immediately when F key is pressed in multiplayer mode
-            if (!isExpanding)
-            {
-                StartExpanding();
-            }
-            else
-            {
-                CheckHit();
-            }
+            // Start expanding circle when F key is pressed
+            StartExpanding();
         }
         
+        // Check for F key release
         if (Input.GetKeyUp(KeyCode.F))
         {
             player2Ready = false;
+            // When F key is released, hide the expanding circle
+            if (isExpanding)
+            {
+                // Hide the expanding circle
+                expandingCircle.SetActive(false);
+                isExpanding = false;
+            }
         }
         
         // Update expanding circle if active
-        if (isExpanding)
+        if (isExpanding && (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.F)))
         {
             // Increase the radius based on time
             currentRadius += 1.0f * Time.deltaTime;
             
-            // Update the scale of the expanding circle (thin cylinder for ring appearance)
-            expandingCircle.transform.localScale = new Vector3(currentRadius * 2, 0.05f, currentRadius * 2);
+            // Update the scale of the expanding circle (sphere)
+            expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
             
             // Position at the midpoint between players
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
             expandingCircle.transform.position = midpoint;
             multiplayerRingObject.transform.position = midpoint;
+        }
+        else if (isExpanding && !Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F))
+        {
+            // If neither key is pressed but expanding is still active, hide the circle
+            expandingCircle.SetActive(false);
+            isExpanding = false;
         }
         
         // Always keep the rings centered between the players
@@ -497,12 +503,7 @@ public class MultiplayerRingGame : MonoBehaviour
             multiplayerRingObject.transform.position = midpoint;
             
             // Check if players have moved too far apart
-            float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
-            if (distance > activationDistance * 1.5f)
-            {
-                // Players moved too far apart, deactivate multiplayer mode
-                DeactivateMultiplayerMode();
-            }
+            CheckPlayerDistance();
         }
     }
     
@@ -529,8 +530,8 @@ public class MultiplayerRingGame : MonoBehaviour
         Vector3 midpoint = (player1Pos + player2Pos) / 2f;
         expandingCircle.transform.position = midpoint;
         
-        // Set initial scale for the cylinder (thin ring)
-        expandingCircle.transform.localScale = new Vector3(currentRadius * 2, 0.05f, currentRadius * 2);
+        // Set initial scale for the sphere
+        expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
         
         // Set the expanding circle material to dark color with transparency
         expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
@@ -793,8 +794,8 @@ public class MultiplayerRingGame : MonoBehaviour
             
             expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
             
-            // Keep the circle at the same size during feedback (thin cylinder for ring appearance)
-            expandingCircle.transform.localScale = new Vector3(feedbackRadius * 2, 0.05f, feedbackRadius * 2);
+            // Keep the circle at the same size during feedback (sphere)
+            expandingCircle.transform.localScale = new Vector3(feedbackRadius, feedbackRadius, feedbackRadius);
             
             // Ensure the circle stays centered between the players
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
@@ -817,6 +818,18 @@ public class MultiplayerRingGame : MonoBehaviour
         expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
     }
     
+    void CheckPlayerDistance()
+    {
+        // Check if players have moved too far apart
+        float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
+        if (distance > activationDistance * 1.5f)
+        {
+            // Players moved too far apart, deactivate multiplayer mode
+            DeactivateMultiplayerMode();
+            Debug.Log("Players moved too far apart. Distance: " + distance + ", Deactivating multiplayer mode.");
+        }
+    }
+    
     void DeactivateMultiplayerMode()
     {
         multiplayerModeActive = false;
@@ -830,6 +843,9 @@ public class MultiplayerRingGame : MonoBehaviour
         currentRadius = 0f;
         isExpanding = false;
         
+        // Reactivate the original rings around both spheres
+        ReactivateOriginalRings();
+        
         // Reset player states
         player1Ready = false;
         player2Ready = false;
@@ -837,9 +853,6 @@ public class MultiplayerRingGame : MonoBehaviour
         player2Success = false;
         player1Distance = 0f;
         player2Distance = 0f;
-        
-        // Reactivate the original rings around both spheres
-        ReactivateOriginalRings();
         
         Debug.Log("Multiplayer mode deactivated!");
     }
