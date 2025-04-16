@@ -32,6 +32,7 @@ public class Boid : MonoBehaviour {
     // Multiplayer support
     [HideInInspector]
     public int playerAssignment = 0; // 0 = unassigned, 1 = player1, 2 = player2
+    private BoidManager boidManager; // Reference to the manager for multiplayer info
 
     void Awake () {
         material = transform.GetComponentInChildren<MeshRenderer> ().material;
@@ -41,6 +42,12 @@ public class Boid : MonoBehaviour {
     public void Initialize (BoidSettings settings, Transform target) {
         this.target = target;
         this.settings = settings;
+
+        // Get reference to BoidManager
+        boidManager = FindObjectOfType<BoidManager>();
+        if (boidManager == null) {
+            Debug.LogWarning("No BoidManager found in scene. Multiplayer features will be disabled.");
+        }
 
         position = cachedTransform.position;
         forward = cachedTransform.forward;
@@ -58,34 +65,30 @@ public class Boid : MonoBehaviour {
     public void UpdateBoid () {
         Vector3 acceleration = Vector3.zero;
 
-        // Get the BoidManager to check multiplayer status
-        BoidManager manager = FindObjectOfType<BoidManager>();
-        Transform currentTarget = target; // Default to legacy target
+        Transform currentTarget = target;
 
-        if (manager != null) {
-            // Check if we're in multiplayer mode with valid targets
-            if (manager.player1Target != null && manager.player2Target != null) {
-                float distance = Vector3.Distance(manager.player1Target.position, manager.player2Target.position);
-                
-                if (distance <= 5f) { // Use the same splitDistance as BoidManager
-                    // Players are close, use midpoint as target
-                    Vector3 midpoint = (manager.player1Target.position + manager.player2Target.position) / 2f;
-                    Vector3 offsetToTarget = (midpoint - position);
-                    acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
-                } else {
-                    // Players are far apart, follow assigned player
-                    Transform assignedTarget = (playerAssignment == 1) ? manager.player1Target : manager.player2Target;
-                    if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
-                        Vector3 offsetToTarget = (assignedTarget.position - position);
-                        acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
-                    }
-                }
+        // Handle multiplayer targeting if BoidManager is available
+        if (boidManager != null && boidManager.player1Target != null && boidManager.player2Target != null) {
+            float distance = Vector3.Distance(boidManager.player1Target.position, boidManager.player2Target.position);
+            
+            if (distance <= boidManager.splitDistance) {
+                // Players are close, use midpoint as target
+                Vector3 midpoint = (boidManager.player1Target.position + boidManager.player2Target.position) / 2f;
+                Vector3 offsetToTarget = (midpoint - position);
+                acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
             } else {
-                // Legacy single-player targeting
-                if (target != null && target.gameObject.activeInHierarchy) {
-                    Vector3 offsetToTarget = (target.position - position);
+                // Players are far apart, follow assigned player
+                Transform assignedTarget = (playerAssignment == 1) ? boidManager.player1Target : boidManager.player2Target;
+                if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
+                    Vector3 offsetToTarget = (assignedTarget.position - position);
                     acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
                 }
+            }
+        } else {
+            // Legacy single-player targeting
+            if (target != null && target.gameObject.activeInHierarchy) {
+                Vector3 offsetToTarget = (target.position - position);
+                acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
             }
         }
 

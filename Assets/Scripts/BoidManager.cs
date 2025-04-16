@@ -8,12 +8,51 @@ public class BoidManager : MonoBehaviour {
 
     public BoidSettings settings;
     public ComputeShader compute;
-     public Transform target;  // Reference to the target object (legacy)
+    public Transform target;  // Reference to the target object (legacy)
     public Transform player1Target; // Reference to player 1
     public Transform player2Target; // Reference to player 2
     private bool isMultiplayerMode = false;
-    private float splitDistance = 5f; // Distance at which the flock splits
+    public float splitDistance = 5f; // Distance at which the flock splits
     Boid[] boids;
+
+    public void SetMultiplayerMode(bool active, Transform p1Target = null, Transform p2Target = null)
+    {
+        isMultiplayerMode = active;
+        if (active)
+        {
+            player1Target = p1Target;
+            player2Target = p2Target;
+            Debug.Log("BoidManager: Multiplayer mode activated with " + boids.Length + " boids");
+        }
+        else
+        {
+            // In single player mode, use the legacy target
+            player1Target = target;
+            player2Target = null;
+            Debug.Log("BoidManager: Returning to single player mode");
+        }
+
+        // Update boid targets
+        if (boids != null)
+        {
+            foreach (Boid b in boids)
+            {
+                if (b != null)
+                {
+                    if (active)
+                    {
+                        // In multiplayer mode, randomly assign boids to players
+                        b.playerAssignment = (Random.value < 0.5f) ? 1 : 2;
+                    }
+                    else
+                    {
+                        // In single player mode, all boids follow the main target
+                        b.playerAssignment = 0;
+                    }
+                }
+            }
+        }
+    }
 
     void Start () {
         // Find and initialize all boids
