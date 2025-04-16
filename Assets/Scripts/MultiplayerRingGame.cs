@@ -31,10 +31,14 @@ public class MultiplayerRingGame : MonoBehaviour
     private float proximityTimer = 0f;
     private bool multiplayerModeActive = false;
     private bool gameCompleted = false;
-    private GameObject expandingCircle = null;
-    private Material expandingCircleMaterial;
-    private float currentRadius = 0f;
-    private bool isExpanding = false;
+    private GameObject player1ExpandingCircle = null;
+    private GameObject player2ExpandingCircle = null;
+    private Material player1ExpandingCircleMaterial;
+    private Material player2ExpandingCircleMaterial;
+    private float player1CurrentRadius = 0f;
+    private float player2CurrentRadius = 0f;
+    private bool player1IsExpanding = false;
+    private bool player2IsExpanding = false;
     private int[] ringOrder = new int[3];
     private int currentRingIndex = 0;
     private GameObject[] rings;
@@ -102,9 +106,8 @@ public class MultiplayerRingGame : MonoBehaviour
             }
         }
         
-        // We'll create the multiplayer ring object and expanding circle only when needed
-        // (when players get close enough to each other)
-        // This prevents them from appearing at the start of multiplayer mode
+        // Create expanding circles
+        CreateExpandingCircles();
     }
     
     void CreateMultiplayerRing()
@@ -153,46 +156,47 @@ public class MultiplayerRingGame : MonoBehaviour
         multiplayerRingObject.SetActive(false);
     }
     
-    void CreateExpandingCircle()
+    void CreateExpandingCircles()
     {
-        // Create a sphere for the expanding circle
-        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        expandingCircle.name = "MultiplayerExpandingCircle";
+        // Create Player 1's expanding circle
+        player1ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        player1ExpandingCircle.name = "Player1ExpandingCircle";
+        player1ExpandingCircle.transform.localScale = Vector3.zero;
+        player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+        Destroy(player1ExpandingCircle.GetComponent<Collider>());
         
-        // Start with zero scale
-        expandingCircle.transform.localScale = Vector3.zero;
+        // Create material for Player 1's expanding circle
+        player1ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
+        SetupTransparentMaterial(player1ExpandingCircleMaterial);
+        player1ExpandingCircleMaterial.color = new Color(1f, 0.8f, 0.2f, 0.5f); // Yellow tint
+        player1ExpandingCircle.GetComponent<Renderer>().material = player1ExpandingCircleMaterial;
+        player1ExpandingCircle.SetActive(false);
         
-        // Position at the midpoint between players if they exist
-        if (player1Sphere != null && player2Sphere != null)
-        {
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            expandingCircle.transform.position = midpoint;
-        }
+        // Create Player 2's expanding circle
+        player2ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        player2ExpandingCircle.name = "Player2ExpandingCircle";
+        player2ExpandingCircle.transform.localScale = Vector3.zero;
+        player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        Destroy(player2ExpandingCircle.GetComponent<Collider>());
         
-        // Remove collider as we don't need physics for this
-        Destroy(expandingCircle.GetComponent<Collider>());
-        
-        // Create material for expanding circle with transparency
-        expandingCircleMaterial = new Material(Shader.Find("Standard"));
-        
-        // Set up transparency
-        expandingCircleMaterial.SetFloat("_Mode", 3); // Transparent mode
-        expandingCircleMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        expandingCircleMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        expandingCircleMaterial.SetInt("_ZWrite", 0);
-        expandingCircleMaterial.DisableKeyword("_ALPHATEST_ON");
-        expandingCircleMaterial.EnableKeyword("_ALPHABLEND_ON");
-        expandingCircleMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        expandingCircleMaterial.renderQueue = 3000;
-        
-        // Set a semi-transparent color
-        expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
-        
-        // Apply the material to the sphere
-        expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
-        
-        // Hide it initially
-        expandingCircle.SetActive(false);
+        // Create material for Player 2's expanding circle
+        player2ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
+        SetupTransparentMaterial(player2ExpandingCircleMaterial);
+        player2ExpandingCircleMaterial.color = new Color(0.2f, 0.8f, 1f, 0.5f); // Blue tint
+        player2ExpandingCircle.GetComponent<Renderer>().material = player2ExpandingCircleMaterial;
+        player2ExpandingCircle.SetActive(false);
+    }
+    
+    void SetupTransparentMaterial(Material material)
+    {
+        material.SetFloat("_Mode", 3); // Transparent mode
+        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetInt("_ZWrite", 0);
+        material.DisableKeyword("_ALPHATEST_ON");
+        material.EnableKeyword("_ALPHABLEND_ON");
+        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        material.renderQueue = 3000;
     }
     
     void Update()
@@ -245,6 +249,71 @@ public class MultiplayerRingGame : MonoBehaviour
         }
     }
     
+    void UpdateMultiplayerGame()
+    {
+        // Check for space bar press (Player 1)
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            player1Ready = true;
+            // Start expanding circle when spacebar is pressed
+            StartPlayer1Expanding();
+        }
+        
+        // Check for space bar release
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            player1Ready = false;
+            // When space bar is released, check hit for Player 1
+            if (player1IsExpanding)
+            {
+                CheckPlayer1Hit();
+            }
+        }
+        
+        // Check for F key press (Player 2)
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            player2Ready = true;
+            // Start expanding circle when F key is pressed
+            StartPlayer2Expanding();
+        }
+        
+        // Check for F key release
+        if (Input.GetKeyUp(KeyCode.F))
+        {
+            player2Ready = false;
+            // When F key is released, check hit for Player 2
+            if (player2IsExpanding)
+            {
+                CheckPlayer2Hit();
+            }
+        }
+        
+        // Update expanding circles if active
+        if (player1IsExpanding || player2IsExpanding)
+        {
+            // Update Player 1's expanding circle
+            if (player1IsExpanding)
+            {
+                player1CurrentRadius += 1.0f * Time.deltaTime;
+                player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
+                player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+            }
+            
+            // Update Player 2's expanding circle
+            if (player2IsExpanding)
+            {
+                player2CurrentRadius += 1.0f * Time.deltaTime;
+                player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
+                player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+            }
+            
+            // Keep the multiplayer ring object at the midpoint
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            multiplayerRingObject.transform.position = midpoint;
+        }
+    }
+    
     void ActivateMultiplayerMode()
     {
         multiplayerModeActive = true;
@@ -259,16 +328,9 @@ public class MultiplayerRingGame : MonoBehaviour
             CreateMultiplayerRing();
         }
         
-        // Create expanding circle for multiplayer mode if not created yet
-        if (expandingCircle == null)
-        {
-            CreateExpandingCircle();
-        }
-        
         // Position the multiplayer rings at the midpoint between the two players
         Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
         multiplayerRingObject.transform.position = midpoint;
-        expandingCircle.transform.position = midpoint;
         
         // Find and hide any active individual expanding circles
         HideIndividualExpandingCircles();
@@ -306,7 +368,6 @@ public class MultiplayerRingGame : MonoBehaviour
         player2Distance = 0f;
     }
     
-    // Deactivate the original rings around both spheres
     void HideIndividualExpandingCircles()
     {
         // Find and hide Player 1's expanding circle
@@ -440,344 +501,182 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             Debug.LogWarning("Player 2 sphere is null, cannot deactivate rings");
         }
+    }
+    
+    void ReactivateOriginalRings()
+    {
+        Debug.Log("Reactivating original rings...");
+        
+        // Reactivate Player 1's rings
+        if (player1Sphere != null)
+        {
+            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
+            if (player1Rings != null)
+            {
+                player1Rings.enabled = true;
+                if (player1Rings.rings != null)
+                {
+                    foreach (GameObject ring in player1Rings.rings)
+                    {
+                        if (ring != null)
+                        {
+                            ring.SetActive(true);
+                        }
+                    }
+                }
+            }
+            
+            // Re-enable the RingGameController
+            if (player1Controller != null)
+            {
+                player1Controller.enabled = true;
+            }
+        }
+        
+        // Reactivate Player 2's rings
+        if (player2Sphere != null)
+        {
+            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
+            if (player2Rings != null)
+            {
+                player2Rings.enabled = true;
+                if (player2Rings.rings != null)
+                {
+                    foreach (GameObject ring in player2Rings.rings)
+                    {
+                        if (ring != null)
+                        {
+                            ring.SetActive(true);
+                        }
+                    }
+                }
+            }
+            
+            // Re-enable the Player2RingGameController
+            if (player2Controller != null)
+            {
+                player2Controller.enabled = true;
+            }
+        }
+    }
+    
+    void DeactivateMultiplayerMode()
+    {
+        multiplayerModeActive = false;
+        Debug.Log("Multiplayer mode deactivated!");
+        
+        // Hide the multiplayer rings
+        if (multiplayerRingObject != null)
+        {
+            multiplayerRingObject.SetActive(false);
+        }
         
         // Also hide any individual expanding circles
         HideIndividualExpandingCircles();
+        
+        // Reactivate original rings
+        ReactivateOriginalRings();
     }
     
-    void UpdateMultiplayerGame()
+    void StartPlayer1Expanding()
     {
-        // Check for space bar press (Player 1)
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            player1Ready = true;
-            // Start expanding circle when spacebar is pressed
-            StartExpanding();
-        }
+        player1IsExpanding = true;
+        player1CurrentRadius = 0.1f; // Start with a small radius
         
-        // Check for space bar release
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            player1Ready = false;
-            // When space bar is released, hide the expanding circle
-            if (isExpanding)
-            {
-                // Hide the expanding circle
-                expandingCircle.SetActive(false);
-                isExpanding = false;
-            }
-        }
-        
-        // Check for F key press (Player 2)
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            player2Ready = true;
-            // Start expanding circle when F key is pressed
-            StartExpanding();
-        }
-        
-        // Check for F key release
-        if (Input.GetKeyUp(KeyCode.F))
-        {
-            player2Ready = false;
-            // When F key is released, hide the expanding circle
-            if (isExpanding)
-            {
-                // Hide the expanding circle
-                expandingCircle.SetActive(false);
-                isExpanding = false;
-            }
-        }
-        
-        // Update expanding circle if active
-        if (isExpanding && (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.F)))
-        {
-            // Increase the radius based on time
-            currentRadius += 1.0f * Time.deltaTime;
-            
-            // Update the scale of the expanding circle (sphere)
-            expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
-            
-            // Position at the midpoint between players
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            expandingCircle.transform.position = midpoint;
-            multiplayerRingObject.transform.position = midpoint;
-        }
-        else if (isExpanding && !Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F))
-        {
-            // If neither key is pressed but expanding is still active, hide the circle
-            expandingCircle.SetActive(false);
-            isExpanding = false;
-        }
-        
-        // Always keep the rings centered between the players
-        if (multiplayerRingObject.activeSelf)
-        {
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            multiplayerRingObject.transform.position = midpoint;
-        }
-    }
-    
-    void CheckBothPlayersReady()
-    {
-        // This method is now only used for synchronization purposes
-        // The expanding circle now starts when either player presses their key
-        if (player1Ready && player2Ready)
-        {
-            // Both players are pressing their action buttons
-            // This could be used for special actions in the future
-            Debug.Log("Both players are ready simultaneously!");
-        }
-    }
-    
-    void StartExpanding()
-    {
-        isExpanding = true;
-        currentRadius = 0.1f; // Start with a small radius
-        
-        // Position the expanding circle at the midpoint between players
-        Vector3 player1Pos = player1Sphere.transform.position;
-        Vector3 player2Pos = player2Sphere.transform.position;
-        Vector3 midpoint = (player1Pos + player2Pos) / 2f;
-        expandingCircle.transform.position = midpoint;
+        // Position the expanding circle at Player 1's position
+        player1ExpandingCircle.transform.position = player1Sphere.transform.position;
         
         // Set initial scale for the sphere
-        expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+        player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
         
-        // Set the expanding circle material to dark color with transparency
-        expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+        // Set the expanding circle material to Player 1's color (yellow tint)
+        player1ExpandingCircleMaterial.color = new Color(1f, 0.8f, 0.2f, 0.5f);
         
         // Activate the expanding circle
-        expandingCircle.SetActive(true);
+        player1ExpandingCircle.SetActive(true);
         
-        // Log detailed information about the expanding circle
-        Debug.Log("Started multiplayer expanding circle at midpoint: " + midpoint);
-        Debug.Log("Player 1 position: " + player1Pos + ", Player 2 position: " + player2Pos);
-        Debug.Log("Distance between players: " + Vector3.Distance(player1Pos, player2Pos));
-        
-        // Log which player initiated the expansion
-        if (Input.GetKey(KeyCode.Space))
-        {
-            Debug.Log("Expansion initiated by Player 1 (Space key)");
-        }
-        else if (Input.GetKey(KeyCode.F))
-        {
-            Debug.Log("Expansion initiated by Player 2 (F key)");
-        }
+        Debug.Log("Started Player 1's expanding circle");
     }
     
-    void CheckHit()
+    void StartPlayer2Expanding()
     {
-        isExpanding = false;
+        player2IsExpanding = true;
+        player2CurrentRadius = 0.1f; // Start with a small radius
         
-        // Get the current active ring radius
+        // Position the expanding circle at Player 2's position
+        player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        
+        // Set initial scale for the sphere
+        player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
+        
+        // Set the expanding circle material to Player 2's color (blue tint)
+        player2ExpandingCircleMaterial.color = new Color(0.2f, 0.8f, 1f, 0.5f);
+        
+        // Activate the expanding circle
+        player2ExpandingCircle.SetActive(true);
+        
+        Debug.Log("Started Player 2's expanding circle");
+    }
+    
+    void CheckPlayer1Hit()
+    {
+        player1IsExpanding = false;
+        float distanceFromSphereToCircleEdge = player1CurrentRadius / 2;
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
-        
-        // Calculate the distance from the midpoint to the expanding circle edge
-        Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-        float distanceToCircleEdge = currentRadius / 2;
-        
-        // Calculate how close the players were to the target
-        float distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
-        
-        Debug.Log("Multiplayer - Radius of target ring: " + activeRingRadius + 
-                ", Radius of user ring: " + distanceToCircleEdge + 
-                ", total diff: " + distanceFromTarget);
+        float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         
         // Show visual feedback
-        StartCoroutine(ShowHitFeedback(distanceFromTarget));
+        StartCoroutine(ShowHitFeedback(player1ExpandingCircle, player1ExpandingCircleMaterial, distanceFromTarget, player1CurrentRadius));
         
-        // Check if the expanding circle is close to the active ring
-        float hitTolerance = 0.5f; // Tolerance for hitting the ring
-        
-        // Determine if this attempt was successful
-        bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
-        
-        // Track which player triggered this check
-        if (Input.GetKeyUp(KeyCode.Space))
+        // Check if hit was successful
+        if (distanceFromTarget < 0.5f) // Using a fixed tolerance
         {
-            player1Success = currentAttemptSuccessful;
-            player1Distance = distanceFromTarget;
-            player1Ready = false;
-            
-            Debug.Log("Player 1 hit result: " + (player1Success ? "Success" : "Fail") + 
-                      " (distance: " + player1Distance.ToString("F2") + ")");
-        }
-        else if (Input.GetKeyUp(KeyCode.F))
-        {
-            player2Success = currentAttemptSuccessful;
-            player2Distance = distanceFromTarget;
-            player2Ready = false;
-            
-            Debug.Log("Player 2 hit result: " + (player2Success ? "Success" : "Fail") + 
-                      " (distance: " + player2Distance.ToString("F2") + ")");
-        }
-        
-        // Check if both players have attempted the current ring
-        if (player1Distance > 0 && player2Distance > 0)
-        {
-            // Both players have attempted, check if both were successful
-            if (player1Success && player2Success)
-            {
-                // Both players succeeded! Move to the next ring
-                SetRingColor(ringOrder[currentRingIndex], Color.black);
-                currentRingIndex++;
-                
-                if (currentRingIndex >= ringOrder.Length)
-                {
-                    // Game completed!
-                    Debug.Log("Multiplayer: " + successMessage);
-                    gameCompleted = true;
-                    
-                    // Hide the expanding circle
-                    expandingCircle.SetActive(false);
-                    currentRadius = 0f;
-                    
-                    // Hide the multiplayer rings
-                    multiplayerRingObject.SetActive(false);
-                    
-                    // Keep the original rings deactivated
-                    // (We don't call ReactivateOriginalRings() here)
-                    
-                    // Show completion message
-                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                    if (ui != null)
-                    {
-                        ui.ShowGameCompleteMessage();
-                    }
-                }
-                else
-                {
-                    // Activate the next ring in the order
-                    SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
-                    Debug.Log("Multiplayer good hit by both players! Moving to next ring: " + ringOrder[currentRingIndex]);
-                    
-                    // Reset the expanding circle for the next attempt
-                    expandingCircle.SetActive(false);
-                    currentRadius = 0f;
-                    
-                    // Reset player success tracking for the next ring
-                    player1Success = false;
-                    player2Success = false;
-                    player1Distance = 0f;
-                    player2Distance = 0f;
-                    
-                    // Update UI with success message
-                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                    if (ui != null)
-                    {
-                        ui.ShowHitFeedback("Great teamwork! Both players hit the target!", Color.green);
-                    }
-                }
-            }
-            else
-            {
-                // At least one player failed
-                Debug.Log("Multiplayer: Player 1 " + (player1Success ? "succeeded" : "failed") + 
-                          " and Player 2 " + (player2Success ? "succeeded" : "failed") + 
-                          ". Both must succeed to advance.");
-                
-                // Provide feedback on what happened
-                MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                if (ui != null)
-                {
-                    if (!player1Success && !player2Success)
-                    {
-                        ui.ShowHitFeedback("Both players missed. Try again together!", Color.red);
-                    }
-                    else if (!player1Success)
-                    {
-                        ui.ShowHitFeedback("Player 1 missed. Try again together!", new Color(1f, 0.6f, 0f));
-                    }
-                    else if (!player2Success)
-                    {
-                        ui.ShowHitFeedback("Player 2 missed. Try again together!", new Color(1f, 0.6f, 0f));
-                    }
-                }
-                
-                // Reset for another attempt
-                expandingCircle.SetActive(false);
-                currentRadius = 0f;
-                
-                // Reset player success tracking for another attempt at the same ring
-                player1Success = false;
-                player2Success = false;
-                player1Distance = 0f;
-                player2Distance = 0f;
-            }
+            player1Success = true;
+            Debug.Log("Player 1 hit the target!");
+            CheckBothPlayersSuccess();
         }
         else
         {
-            // Only one player has attempted so far
-            // Provide feedback on how close they were
-            if (currentAttemptSuccessful)
-            {
-                Debug.Log("Multiplayer: Good hit! Waiting for the other player...");
-                
-                // Update UI with waiting message
-                MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                if (ui != null)
-                {
-                    if (player1Success)
-                    {
-                        ui.ShowHitFeedback("Player 1 hit the target! Waiting for Player 2...", Color.green);
-                    }
-                    else if (player2Success)
-                    {
-                        ui.ShowHitFeedback("Player 2 hit the target! Waiting for Player 1...", Color.green);
-                    }
-                }
-            }
-            else
-            {
-                if (distanceFromTarget < hitTolerance * 2)
-                {
-                    Debug.Log("Multiplayer close! You were " + distanceFromTarget.ToString("F2") + " units away.");
-                    
-                    // Update UI with close message
-                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                    if (ui != null)
-                    {
-                        ui.ShowHitFeedback("Close! Try again together.", new Color(1f, 0.6f, 0f));
-                    }
-                }
-                else
-                {
-                    Debug.Log("Multiplayer miss! You were " + distanceFromTarget.ToString("F2") + " units away.");
-                    
-                    // Update UI with miss message
-                    MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
-                    if (ui != null)
-                    {
-                        ui.ShowHitFeedback("Miss! Try again together.", Color.red);
-                    }
-                }
-                
-                // Reset the expanding circle for another attempt
-                expandingCircle.SetActive(false);
-                currentRadius = 0f;
-                
-                // Reset player success tracking for another attempt
-                player1Success = false;
-                player2Success = false;
-                player1Distance = 0f;
-                player2Distance = 0f;
-            }
+            player1Success = false;
+            Debug.Log("Player 1 missed. Distance from target: " + distanceFromTarget);
         }
     }
     
-    private IEnumerator ShowHitFeedback(float distanceFromTarget)
+    void CheckPlayer2Hit()
+    {
+        player2IsExpanding = false;
+        float distanceFromSphereToCircleEdge = player2CurrentRadius / 2;
+        float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
+        float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
+        
+        // Show visual feedback
+        StartCoroutine(ShowHitFeedback(player2ExpandingCircle, player2ExpandingCircleMaterial, distanceFromTarget, player2CurrentRadius));
+        
+        // Check if hit was successful
+        if (distanceFromTarget < 0.5f) // Using a fixed tolerance
+        {
+            player2Success = true;
+            Debug.Log("Player 2 hit the target!");
+            CheckBothPlayersSuccess();
+        }
+        else
+        {
+            player2Success = false;
+            Debug.Log("Player 2 missed. Distance from target: " + distanceFromTarget);
+        }
+    }
+
+    private IEnumerator ShowHitFeedback(GameObject circle, Material material, float distanceFromTarget, float currentRadius)
     {
         // Keep the expanding circle visible for feedback
         Color feedbackColor;
-        float hitTolerance = 0.5f;
         
-        if (distanceFromTarget < hitTolerance)
+        if (distanceFromTarget < 0.5f) // Using fixed tolerance
         {
             // Good hit - green
             feedbackColor = Color.green;
         }
-        else if (distanceFromTarget < hitTolerance * 2)
+        else if (distanceFromTarget < 1.0f) // Double tolerance for "close"
         {
             // Close - orange
             feedbackColor = new Color(1f, 0.6f, 0f);
@@ -789,223 +688,52 @@ public class MultiplayerRingGame : MonoBehaviour
         }
         
         // Set the color with transparency
-        expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, 0.5f);
+        material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, 0.5f);
         
         // Flash the expanding circle
         float duration = 0.5f;
         float time = 0;
-        
-        // Save the current radius for the feedback animation
-        float feedbackRadius = currentRadius;
         
         while (time < duration)
         {
             time += Time.deltaTime;
             float alpha = Mathf.Lerp(0.5f, 0.1f, time / duration);
             
-            expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
+            material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
             
-            // Keep the circle at the same size during feedback (sphere)
-            expandingCircle.transform.localScale = new Vector3(feedbackRadius, feedbackRadius, feedbackRadius);
-            
-            // Ensure the circle stays centered between the players
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            expandingCircle.transform.position = midpoint;
+            // Keep the circle at the same size during feedback
+            circle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
             
             yield return null;
         }
         
-        // Only hide the expanding circle if we're not moving to the next ring
-        if (distanceFromTarget >= hitTolerance)
+        // Hide the circle after feedback
+        circle.SetActive(false);
+    }
+
+    void CheckBothPlayersSuccess()
+    {
+        if (player1Success && player2Success)
         {
-            // Hide the expanding circle
-            expandingCircle.SetActive(false);
+            // Both players hit the target, move to next ring
+            SetRingColor(ringOrder[currentRingIndex], Color.black);
+            currentRingIndex++;
             
-            // Reset the expanding circle for the next attempt
-            currentRadius = 0f;
-        }
-        
-        // Reset the expanding circle material color back to dark
-        expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
-    }
-    
-    void CheckPlayerDistance()
-    {
-        // Check if players have moved too far apart
-        float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
-        if (distance > activationDistance * 1.5f)
-        {
-            // Players moved too far apart, deactivate multiplayer mode
-            DeactivateMultiplayerMode();
-            Debug.Log("Players moved too far apart. Distance: " + distance + ", Deactivating multiplayer mode.");
-        }
-    }
-    
-    void DeactivateMultiplayerMode()
-    {
-        multiplayerModeActive = false;
-        proximityTimer = 0f;
-        
-        // Hide the multiplayer rings
-        multiplayerRingObject.SetActive(false);
-        
-        // Hide the expanding circle
-        expandingCircle.SetActive(false);
-        currentRadius = 0f;
-        isExpanding = false;
-        
-        // Reactivate the original rings around both spheres
-        ReactivateOriginalRings();
-        
-        // Reset player states
-        player1Ready = false;
-        player2Ready = false;
-        player1Success = false;
-        player2Success = false;
-        player1Distance = 0f;
-        player2Distance = 0f;
-        
-        Debug.Log("Multiplayer mode deactivated!");
-    }
-    
-    // Reactivate the original rings around both spheres
-    void ReactivateOriginalRings()
-    {
-        Debug.Log("Reactivating original rings after multiplayer mode...");
-        
-        // Reactivate Player 1's rings
-        if (player1Sphere != null)
-        {
-            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
-            if (player1Rings != null && player1Rings.rings != null)
+            if (currentRingIndex >= ringOrder.Length)
             {
-                // Re-enable the ConcentricRings component first
-                player1Rings.enabled = true;
-                
-                int reactivatedCount = 0;
-                foreach (GameObject ring in player1Rings.rings)
-                {
-                    if (ring != null)
-                    {
-                        ring.SetActive(true);
-                        reactivatedCount++;
-                    }
-                }
-                Debug.Log("Reactivated " + reactivatedCount + " rings for Player 1");
+                // Game completed!
+                Debug.Log(successMessage);
+                gameCompleted = true;
             }
             else
             {
-                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
-            }
-            
-            // Re-enable the RingGameController
-            if (player1Controller != null)
-            {
-                player1Controller.enabled = true;
-                // No need to activate the gameObject as it should already be active (it's the player sphere)
-                Debug.Log("Re-enabled RingGameController on Player 1");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("Player 1 sphere is null, cannot reactivate rings");
-        }
-        
-        // Reactivate Player 2's rings
-        if (player2Sphere != null)
-        {
-            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
-            if (player2Rings != null && player2Rings.rings != null)
-            {
-                // Re-enable the ConcentricRings component first
-                player2Rings.enabled = true;
+                // Activate the next ring
+                SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+                Debug.Log("Both players succeeded! Moving to next ring: " + ringOrder[currentRingIndex]);
                 
-                int reactivatedCount = 0;
-                foreach (GameObject ring in player2Rings.rings)
-                {
-                    if (ring != null)
-                    {
-                        ring.SetActive(true);
-                        reactivatedCount++;
-                    }
-                }
-                Debug.Log("Reactivated " + reactivatedCount + " rings for Player 2");
-            }
-            else
-            {
-                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 2 sphere");
-            }
-            
-            // Re-enable the Player2RingGameController
-            if (player2Controller != null)
-            {
-                player2Controller.enabled = true;
-                // No need to activate the gameObject as it should already be active (it's the player sphere)
-                Debug.Log("Re-enabled Player2RingGameController on Player 2");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("Player 2 sphere is null, cannot reactivate rings");
-        }
-        
-        // Force a recreation of rings if they're not visible
-        ForceRecreateRingsIfNeeded();
-    }
-    
-    void ForceRecreateRingsIfNeeded()
-    {
-        // Check if Player 1's rings are active
-        if (player1Sphere != null)
-        {
-            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
-            if (player1Rings != null && player1Rings.rings != null)
-            {
-                bool anyRingActive = false;
-                foreach (GameObject ring in player1Rings.rings)
-                {
-                    if (ring != null && ring.activeSelf)
-                    {
-                        anyRingActive = true;
-                        break;
-                    }
-                }
-                
-                // If no rings are active, try to recreate them
-                if (!anyRingActive)
-                {
-                    Debug.Log("No active rings found for Player 1, attempting to recreate...");
-                    // Disable and re-enable the component to force it to recreate rings
-                    player1Rings.enabled = false;
-                    player1Rings.enabled = true;
-                }
-            }
-        }
-        
-        // Check if Player 2's rings are active
-        if (player2Sphere != null)
-        {
-            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
-            if (player2Rings != null && player2Rings.rings != null)
-            {
-                bool anyRingActive = false;
-                foreach (GameObject ring in player2Rings.rings)
-                {
-                    if (ring != null && ring.activeSelf)
-                    {
-                        anyRingActive = true;
-                        break;
-                    }
-                }
-                
-                // If no rings are active, try to recreate them
-                if (!anyRingActive)
-                {
-                    Debug.Log("No active rings found for Player 2, attempting to recreate...");
-                    // Disable and re-enable the component to force it to recreate rings
-                    player2Rings.enabled = false;
-                    player2Rings.enabled = true;
-                }
+                // Reset success flags
+                player1Success = false;
+                player2Success = false;
             }
         }
     }
@@ -1017,7 +745,7 @@ public class MultiplayerRingGame : MonoBehaviour
             ringMaterials[ringIndex].color = color;
             
             // Also set emission for bright color
-            if (color == multiplayerRingColor)
+            if (color != Color.black)
             {
                 ringMaterials[ringIndex].EnableKeyword("_EMISSION");
                 ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.5f);
@@ -1031,13 +759,9 @@ public class MultiplayerRingGame : MonoBehaviour
     
     float GetRingRadius(int ringIndex)
     {
-        // Calculate ring radius based on the ring's scale
-        if (rings[ringIndex] != null)
-        {
-            return rings[ringIndex].transform.localScale.x / 2f;
-        }
-        
-        return 0f;
+        float baseRadius = 2.0f;
+        float ringSpacing = 1.0f;
+        return baseRadius + (ringIndex * ringSpacing);
     }
     
     int[] GenerateRandomOrder()
@@ -1062,13 +786,13 @@ public class MultiplayerRingGame : MonoBehaviour
         // Deactivate multiplayer mode and reactivate original rings
         DeactivateMultiplayerMode();
         gameCompleted = false;
-        
+
         // Reset player success tracking
         player1Success = false;
         player2Success = false;
         player1Distance = 0f;
         player2Distance = 0f;
-        
+
         // Make sure the original rings are reactivated
         ReactivateOriginalRings();
     }
