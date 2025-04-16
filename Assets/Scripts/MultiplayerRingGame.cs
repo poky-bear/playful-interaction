@@ -247,8 +247,11 @@ public class MultiplayerRingGame : MonoBehaviour
         // Set the first ring to the multiplayer color
         SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
         
-        // Show the rings
+        // Show the multiplayer rings
         multiplayerRingObject.SetActive(true);
+        
+        // Deactivate the original rings around both spheres
+        DeactivateOriginalRings();
         
         // Reset player states
         player1Ready = false;
@@ -257,6 +260,66 @@ public class MultiplayerRingGame : MonoBehaviour
         player2Success = false;
         player1Distance = 0f;
         player2Distance = 0f;
+    }
+    
+    // Deactivate the original rings around both spheres
+    void DeactivateOriginalRings()
+    {
+        Debug.Log("Deactivating original rings for multiplayer mode...");
+        
+        // Deactivate Player 1's rings
+        if (player1Sphere != null)
+        {
+            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
+            if (player1Rings != null && player1Rings.rings != null)
+            {
+                int deactivatedCount = 0;
+                foreach (GameObject ring in player1Rings.rings)
+                {
+                    if (ring != null)
+                    {
+                        ring.SetActive(false);
+                        deactivatedCount++;
+                    }
+                }
+                Debug.Log("Deactivated " + deactivatedCount + " rings for Player 1");
+            }
+            else
+            {
+                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player 1 sphere is null, cannot deactivate rings");
+        }
+        
+        // Deactivate Player 2's rings
+        if (player2Sphere != null)
+        {
+            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
+            if (player2Rings != null && player2Rings.rings != null)
+            {
+                int deactivatedCount = 0;
+                foreach (GameObject ring in player2Rings.rings)
+                {
+                    if (ring != null)
+                    {
+                        ring.SetActive(false);
+                        deactivatedCount++;
+                    }
+                }
+                Debug.Log("Deactivated " + deactivatedCount + " rings for Player 2");
+            }
+            else
+            {
+                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 2 sphere");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player 2 sphere is null, cannot deactivate rings");
+        }
     }
     
     void UpdateMultiplayerGame()
@@ -416,8 +479,11 @@ public class MultiplayerRingGame : MonoBehaviour
                     expandingCircle.SetActive(false);
                     currentRadius = 0f;
                     
-                    // Hide the rings
+                    // Hide the multiplayer rings
                     multiplayerRingObject.SetActive(false);
+                    
+                    // Keep the original rings deactivated
+                    // (We don't call ReactivateOriginalRings() here)
                     
                     // Show completion message
                     MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
@@ -630,7 +696,70 @@ public class MultiplayerRingGame : MonoBehaviour
         player1Distance = 0f;
         player2Distance = 0f;
         
+        // Reactivate the original rings around both spheres
+        ReactivateOriginalRings();
+        
         Debug.Log("Multiplayer mode deactivated!");
+    }
+    
+    // Reactivate the original rings around both spheres
+    void ReactivateOriginalRings()
+    {
+        Debug.Log("Reactivating original rings after multiplayer mode...");
+        
+        // Reactivate Player 1's rings
+        if (player1Sphere != null)
+        {
+            ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
+            if (player1Rings != null && player1Rings.rings != null)
+            {
+                int reactivatedCount = 0;
+                foreach (GameObject ring in player1Rings.rings)
+                {
+                    if (ring != null)
+                    {
+                        ring.SetActive(true);
+                        reactivatedCount++;
+                    }
+                }
+                Debug.Log("Reactivated " + reactivatedCount + " rings for Player 1");
+            }
+            else
+            {
+                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player 1 sphere is null, cannot reactivate rings");
+        }
+        
+        // Reactivate Player 2's rings
+        if (player2Sphere != null)
+        {
+            ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
+            if (player2Rings != null && player2Rings.rings != null)
+            {
+                int reactivatedCount = 0;
+                foreach (GameObject ring in player2Rings.rings)
+                {
+                    if (ring != null)
+                    {
+                        ring.SetActive(true);
+                        reactivatedCount++;
+                    }
+                }
+                Debug.Log("Reactivated " + reactivatedCount + " rings for Player 2");
+            }
+            else
+            {
+                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 2 sphere");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player 2 sphere is null, cannot reactivate rings");
+        }
     }
     
     void SetRingColor(int ringIndex, Color color)
@@ -682,6 +811,7 @@ public class MultiplayerRingGame : MonoBehaviour
     // Public method to reset the game
     public void ResetGame()
     {
+        // Deactivate multiplayer mode and reactivate original rings
         DeactivateMultiplayerMode();
         gameCompleted = false;
         
@@ -690,5 +820,8 @@ public class MultiplayerRingGame : MonoBehaviour
         player2Success = false;
         player1Distance = 0f;
         player2Distance = 0f;
+        
+        // Make sure the original rings are reactivated
+        ReactivateOriginalRings();
     }
 }
