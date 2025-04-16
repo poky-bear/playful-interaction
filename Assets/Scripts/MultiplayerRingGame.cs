@@ -112,13 +112,27 @@ public class MultiplayerRingGame : MonoBehaviour
         // Create a parent object for the multiplayer rings
         multiplayerRingObject = new GameObject("MultiplayerRings");
         
+        // Position at the midpoint between players if they exist
+        if (player1Sphere != null && player2Sphere != null)
+        {
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            multiplayerRingObject.transform.position = midpoint;
+        }
+        
         // Create rings
         rings = new GameObject[3];
         for (int i = 0; i < 3; i++)
         {
-            rings[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            // Use cylinder for rings instead of sphere for better visual appearance
+            rings[i] = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             rings[i].name = "MultiplayerRing" + i;
             rings[i].transform.parent = multiplayerRingObject.transform;
+            
+            // Rotate to make it a horizontal ring
+            rings[i].transform.localRotation = Quaternion.Euler(90, 0, 0);
+            
+            // Make it thin (like a ring)
+            rings[i].transform.localScale = new Vector3(1, 0.05f, 1);
             
             // Remove collider as we don't need physics for the rings
             Destroy(rings[i].GetComponent<Collider>());
@@ -141,12 +155,22 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircle()
     {
-        // Create a sphere for the expanding circle
-        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        // Create a cylinder for the expanding circle (looks more like a ring)
+        expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         expandingCircle.name = "MultiplayerExpandingCircle";
+        
+        // Rotate to make it a horizontal circle
+        expandingCircle.transform.localRotation = Quaternion.Euler(90, 0, 0);
         
         // Start with zero scale
         expandingCircle.transform.localScale = Vector3.zero;
+        
+        // Position at the midpoint between players if they exist
+        if (player1Sphere != null && player2Sphere != null)
+        {
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            expandingCircle.transform.position = midpoint;
+        }
         
         // Remove collider as we don't need physics for this
         Destroy(expandingCircle.GetComponent<Collider>());
@@ -167,7 +191,7 @@ public class MultiplayerRingGame : MonoBehaviour
         // Set a semi-transparent color
         expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
         
-        // Apply the material to the sphere
+        // Apply the material to the cylinder
         expandingCircle.GetComponent<Renderer>().material = expandingCircleMaterial;
         
         // Hide it initially
@@ -217,6 +241,9 @@ public class MultiplayerRingGame : MonoBehaviour
         multiplayerModeActive = true;
         Debug.Log("Multiplayer mode activated!");
         
+        // First, deactivate the original rings around both spheres
+        DeactivateOriginalRings();
+        
         // Create multiplayer ring object if not assigned
         if (multiplayerRingObject == null)
         {
@@ -229,9 +256,10 @@ public class MultiplayerRingGame : MonoBehaviour
             CreateExpandingCircle();
         }
         
-        // Position the multiplayer rings between the two players
+        // Position the multiplayer rings at the midpoint between the two players
         Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
         multiplayerRingObject.transform.position = midpoint;
+        expandingCircle.transform.position = midpoint;
         
         // Find and hide any active individual expanding circles
         HideIndividualExpandingCircles();
@@ -243,8 +271,8 @@ public class MultiplayerRingGame : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             float radius = baseRadius + (i * ringSpacing);
+            // For cylinders, we need to set the x and z scale for the radius
             rings[i].transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2); // Make rings thin
-            rings[i].transform.position = midpoint;
             
             // Set all rings to dark initially
             SetRingColor(i, Color.black);
@@ -259,9 +287,6 @@ public class MultiplayerRingGame : MonoBehaviour
         
         // Show the multiplayer rings
         multiplayerRingObject.SetActive(true);
-        
-        // Deactivate the original rings around both spheres
-        DeactivateOriginalRings();
         
         // Reset player states
         player1Ready = false;
@@ -347,10 +372,20 @@ public class MultiplayerRingGame : MonoBehaviour
                     }
                 }
                 Debug.Log("Deactivated " + deactivatedCount + " rings for Player 1");
+                
+                // Also disable the ConcentricRings component to prevent it from reactivating the rings
+                player1Rings.enabled = false;
             }
             else
             {
                 Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
+            }
+            
+            // Also disable the RingGameController to prevent it from interfering with multiplayer mode
+            if (player1Controller != null)
+            {
+                player1Controller.enabled = false;
+                Debug.Log("Disabled RingGameController on Player 1");
             }
         }
         else
@@ -374,10 +409,20 @@ public class MultiplayerRingGame : MonoBehaviour
                     }
                 }
                 Debug.Log("Deactivated " + deactivatedCount + " rings for Player 2");
+                
+                // Also disable the ConcentricRings component to prevent it from reactivating the rings
+                player2Rings.enabled = false;
             }
             else
             {
                 Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 2 sphere");
+            }
+            
+            // Also disable the Player2RingGameController to prevent it from interfering with multiplayer mode
+            if (player2Controller != null)
+            {
+                player2Controller.enabled = false;
+                Debug.Log("Disabled Player2RingGameController on Player 2");
             }
         }
         else
@@ -436,8 +481,8 @@ public class MultiplayerRingGame : MonoBehaviour
             // Increase the radius based on time
             currentRadius += 1.0f * Time.deltaTime;
             
-            // Update the scale of the expanding circle
-            expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+            // Update the scale of the expanding circle (thin cylinder for ring appearance)
+            expandingCircle.transform.localScale = new Vector3(currentRadius * 2, 0.05f, currentRadius * 2);
             
             // Position at the midpoint between players
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
@@ -484,7 +529,10 @@ public class MultiplayerRingGame : MonoBehaviour
         Vector3 midpoint = (player1Pos + player2Pos) / 2f;
         expandingCircle.transform.position = midpoint;
         
-        // Set the expanding circle material to dark color
+        // Set initial scale for the cylinder (thin ring)
+        expandingCircle.transform.localScale = new Vector3(currentRadius * 2, 0.05f, currentRadius * 2);
+        
+        // Set the expanding circle material to dark color with transparency
         expandingCircleMaterial.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
         
         // Activate the expanding circle
@@ -745,8 +793,8 @@ public class MultiplayerRingGame : MonoBehaviour
             
             expandingCircleMaterial.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
             
-            // Keep the circle at the same size during feedback
-            expandingCircle.transform.localScale = new Vector3(feedbackRadius, feedbackRadius, feedbackRadius);
+            // Keep the circle at the same size during feedback (thin cylinder for ring appearance)
+            expandingCircle.transform.localScale = new Vector3(feedbackRadius * 2, 0.05f, feedbackRadius * 2);
             
             // Ensure the circle stays centered between the players
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
@@ -807,6 +855,9 @@ public class MultiplayerRingGame : MonoBehaviour
             ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
             if (player1Rings != null && player1Rings.rings != null)
             {
+                // Re-enable the ConcentricRings component first
+                player1Rings.enabled = true;
+                
                 int reactivatedCount = 0;
                 foreach (GameObject ring in player1Rings.rings)
                 {
@@ -822,6 +873,13 @@ public class MultiplayerRingGame : MonoBehaviour
             {
                 Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
             }
+            
+            // Re-enable the RingGameController
+            if (player1Controller != null)
+            {
+                player1Controller.enabled = true;
+                Debug.Log("Re-enabled RingGameController on Player 1");
+            }
         }
         else
         {
@@ -834,6 +892,9 @@ public class MultiplayerRingGame : MonoBehaviour
             ConcentricRings player2Rings = player2Sphere.GetComponent<ConcentricRings>();
             if (player2Rings != null && player2Rings.rings != null)
             {
+                // Re-enable the ConcentricRings component first
+                player2Rings.enabled = true;
+                
                 int reactivatedCount = 0;
                 foreach (GameObject ring in player2Rings.rings)
                 {
@@ -848,6 +909,13 @@ public class MultiplayerRingGame : MonoBehaviour
             else
             {
                 Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 2 sphere");
+            }
+            
+            // Re-enable the Player2RingGameController
+            if (player2Controller != null)
+            {
+                player2Controller.enabled = true;
+                Debug.Log("Re-enabled Player2RingGameController on Player 2");
             }
         }
         else
