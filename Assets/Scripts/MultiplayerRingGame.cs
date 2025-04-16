@@ -64,6 +64,8 @@ public class MultiplayerRingGame : MonoBehaviour
     private bool player2Success = false;
     private float player1Distance = 0f;
     private float player2Distance = 0f;
+    private float distanceFromTarget = 0f;
+    private float hitTolerance = 0.5f; // Tolerance for hitting the ring
     
     // Public properties for UI
     public bool MultiplayerModeActive { get { return multiplayerModeActive; } }
@@ -618,24 +620,23 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceToCircleEdge = player1CurrentRadius / 2;
         
         // Calculate how close the player was to the target
-        float distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
+        this.distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
         
         Debug.Log("Player 1 - Radius of target ring: " + activeRingRadius + 
                 ", Radius of user ring: " + distanceToCircleEdge + 
-                ", total diff: " + distanceFromTarget);
+                ", total diff: " + this.distanceFromTarget);
         
         // Show visual feedback
-        StartCoroutine(ShowHitFeedback(distanceFromTarget));
+        StartCoroutine(ShowHitFeedback(this.distanceFromTarget));
         
-        // Check if the expanding circle is close to the active ring
-        float hitTolerance = 0.5f; // Tolerance for hitting the ring
+        // Use the class-level hitTolerance variable
         
         // Determine if this attempt was successful
-        bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
+        bool currentAttemptSuccessful = (this.distanceFromTarget < this.hitTolerance);
         
         // Record player 1's result
         player1Success = currentAttemptSuccessful;
-        player1Distance = distanceFromTarget;
+        player1Distance = this.distanceFromTarget;
         player1Ready = false;
         
         Debug.Log("Player 1 hit result: " + (player1Success ? "Success" : "Fail") + 
@@ -660,24 +661,23 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceToCircleEdge = player2CurrentRadius / 2;
         
         // Calculate how close the player was to the target
-        float distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
+        this.distanceFromTarget = Mathf.Abs(distanceToCircleEdge - activeRingRadius);
         
         Debug.Log("Player 2 - Radius of target ring: " + activeRingRadius + 
                 ", Radius of user ring: " + distanceToCircleEdge + 
-                ", total diff: " + distanceFromTarget);
+                ", total diff: " + this.distanceFromTarget);
         
         // Show visual feedback
-        StartCoroutine(ShowHitFeedback(distanceFromTarget));
+        StartCoroutine(ShowHitFeedback(this.distanceFromTarget));
         
-        // Check if the expanding circle is close to the active ring
-        float hitTolerance = 0.5f; // Tolerance for hitting the ring
+        // Use the class-level hitTolerance variable
         
         // Determine if this attempt was successful
-        bool currentAttemptSuccessful = (distanceFromTarget < hitTolerance);
+        bool currentAttemptSuccessful = (this.distanceFromTarget < this.hitTolerance);
         
         // Record player 2's result
         player2Success = currentAttemptSuccessful;
-        player2Distance = distanceFromTarget;
+        player2Distance = this.distanceFromTarget;
         player2Ready = false;
         
         Debug.Log("Player 2 hit result: " + (player2Success ? "Success" : "Fail") + 
@@ -829,9 +829,9 @@ public class MultiplayerRingGame : MonoBehaviour
             }
             else
             {
-                if (distanceFromTarget < hitTolerance * 2)
+                if (this.distanceFromTarget < this.hitTolerance * 2)
                 {
-                    Debug.Log("Multiplayer close! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                    Debug.Log("Multiplayer close! You were " + this.distanceFromTarget.ToString("F2") + " units away.");
                     
                     // Update UI with close message
                     MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
@@ -842,7 +842,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Multiplayer miss! You were " + distanceFromTarget.ToString("F2") + " units away.");
+                    Debug.Log("Multiplayer miss! You were " + this.distanceFromTarget.ToString("F2") + " units away.");
                     
                     // Update UI with miss message
                     MultiplayerRingGameUI ui = FindObjectOfType<MultiplayerRingGameUI>();
@@ -869,7 +869,6 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         // Keep the expanding circle visible for feedback
         Color feedbackColor;
-        float hitTolerance = 0.5f;
         
         if (distanceFromTarget < hitTolerance)
         {
@@ -915,7 +914,7 @@ public class MultiplayerRingGame : MonoBehaviour
         }
         
         // Only hide the expanding circle if we're not moving to the next ring
-        if (distanceFromTarget >= hitTolerance)
+        if (this.distanceFromTarget >= this.hitTolerance)
         {
             // Hide the expanding circle
             expandingCircle.SetActive(false);
