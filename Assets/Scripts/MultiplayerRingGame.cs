@@ -328,7 +328,15 @@ public class MultiplayerRingGame : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             player1Ready = true;
-            CheckBothPlayersReady();
+            // Start expanding circle immediately when spacebar is pressed in multiplayer mode
+            if (!isExpanding)
+            {
+                StartExpanding();
+            }
+            else
+            {
+                CheckHit();
+            }
         }
         
         if (Input.GetKeyUp(KeyCode.Space))
@@ -339,7 +347,15 @@ public class MultiplayerRingGame : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F))
         {
             player2Ready = true;
-            CheckBothPlayersReady();
+            // Start expanding circle immediately when F key is pressed in multiplayer mode
+            if (!isExpanding)
+            {
+                StartExpanding();
+            }
+            else
+            {
+                CheckHit();
+            }
         }
         
         if (Input.GetKeyUp(KeyCode.F))
@@ -380,17 +396,13 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CheckBothPlayersReady()
     {
+        // This method is now only used for synchronization purposes
+        // The expanding circle now starts when either player presses their key
         if (player1Ready && player2Ready)
         {
             // Both players are pressing their action buttons
-            if (!isExpanding)
-            {
-                StartExpanding();
-            }
-            else
-            {
-                CheckHit();
-            }
+            // This could be used for special actions in the future
+            Debug.Log("Both players are ready simultaneously!");
         }
     }
     
@@ -400,7 +412,9 @@ public class MultiplayerRingGame : MonoBehaviour
         currentRadius = 0.1f; // Start with a small radius
         
         // Position the expanding circle at the midpoint between players
-        Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+        Vector3 player1Pos = player1Sphere.transform.position;
+        Vector3 player2Pos = player2Sphere.transform.position;
+        Vector3 midpoint = (player1Pos + player2Pos) / 2f;
         expandingCircle.transform.position = midpoint;
         
         // Set the expanding circle material to dark color
@@ -409,7 +423,20 @@ public class MultiplayerRingGame : MonoBehaviour
         // Activate the expanding circle
         expandingCircle.SetActive(true);
         
-        Debug.Log("Started multiplayer expanding circle");
+        // Log detailed information about the expanding circle
+        Debug.Log("Started multiplayer expanding circle at midpoint: " + midpoint);
+        Debug.Log("Player 1 position: " + player1Pos + ", Player 2 position: " + player2Pos);
+        Debug.Log("Distance between players: " + Vector3.Distance(player1Pos, player2Pos));
+        
+        // Log which player initiated the expansion
+        if (Input.GetKey(KeyCode.Space))
+        {
+            Debug.Log("Expansion initiated by Player 1 (Space key)");
+        }
+        else if (Input.GetKey(KeyCode.F))
+        {
+            Debug.Log("Expansion initiated by Player 2 (F key)");
+        }
     }
     
     void CheckHit()
