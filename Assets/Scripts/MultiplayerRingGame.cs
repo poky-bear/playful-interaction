@@ -335,25 +335,25 @@ public class MultiplayerRingGame : MonoBehaviour
         // Find and hide any active individual expanding circles
         HideIndividualExpandingCircles();
         
-        // Set up the rings
+        // Set up the rings with increasing sizes
         float baseRadius = 2.0f; // Base radius for the first ring
-        float ringSpacing = 1.0f; // Spacing between rings
+        float ringSpacing = 1.5f; // Increased spacing between rings for better visibility
         
         for (int i = 0; i < 3; i++)
         {
             float radius = baseRadius + (i * ringSpacing);
             // For cylinders, we need to set the x and z scale for the radius
-            rings[i].transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2); // Make rings thin
+            rings[i].transform.localScale = new Vector3(radius * 2, 0.05f, radius * 2); // Make rings thinner
             
             // Set all rings to dark initially
-            SetRingColor(i, Color.black);
+            SetRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
         }
         
         // Generate random order for the rings
         ringOrder = GenerateRandomOrder();
         currentRingIndex = 0;
         
-        // Set the first ring to the multiplayer color
+        // Set the first ring to the multiplayer color with glow
         SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
         
         // Show the multiplayer rings
@@ -366,6 +366,15 @@ public class MultiplayerRingGame : MonoBehaviour
         player2Success = false;
         player1Distance = 0f;
         player2Distance = 0f;
+        
+        // Log the ring order for debugging
+        string ringOrderStr = "Ring order: ";
+        for (int i = 0; i < ringOrder.Length; i++)
+        {
+            ringOrderStr += ringOrder[i].ToString() + (i < ringOrder.Length - 1 ? " -> " : "");
+        }
+        Debug.Log(ringOrderStr);
+        Debug.Log("Current active ring: " + ringOrder[currentRingIndex] + " (radius: " + GetRingRadius(ringOrder[currentRingIndex]) + ")");
     }
     
     void HideIndividualExpandingCircles()
@@ -624,21 +633,37 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceFromSphereToCircleEdge = player1CurrentRadius / 2;
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
+        float tolerance = 0.3f; // Tighter tolerance for more precise gameplay
         
         // Show visual feedback
         StartCoroutine(ShowHitFeedback(player1ExpandingCircle, player1ExpandingCircleMaterial, distanceFromTarget, player1CurrentRadius));
         
         // Check if hit was successful
-        if (distanceFromTarget < 0.5f) // Using a fixed tolerance
+        if (distanceFromTarget < tolerance)
         {
             player1Success = true;
-            Debug.Log("Player 1 hit the target!");
+            Debug.Log("Player 1 hit the target perfectly! Distance: " + distanceFromTarget.ToString("F2"));
+            
+            if (player2Success)
+            {
+                Debug.Log("Both players have hit the target!");
+            }
+            else
+            {
+                Debug.Log("Waiting for Player 2 to hit the target...");
+            }
+            
             CheckBothPlayersSuccess();
+        }
+        else if (distanceFromTarget < tolerance * 2)
+        {
+            player1Success = false;
+            Debug.Log("Player 1 was close! Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
         }
         else
         {
             player1Success = false;
-            Debug.Log("Player 1 missed. Distance from target: " + distanceFromTarget);
+            Debug.Log("Player 1 missed. Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
         }
     }
     
@@ -648,21 +673,37 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceFromSphereToCircleEdge = player2CurrentRadius / 2;
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
+        float tolerance = 0.3f; // Tighter tolerance for more precise gameplay
         
         // Show visual feedback
         StartCoroutine(ShowHitFeedback(player2ExpandingCircle, player2ExpandingCircleMaterial, distanceFromTarget, player2CurrentRadius));
         
         // Check if hit was successful
-        if (distanceFromTarget < 0.5f) // Using a fixed tolerance
+        if (distanceFromTarget < tolerance)
         {
             player2Success = true;
-            Debug.Log("Player 2 hit the target!");
+            Debug.Log("Player 2 hit the target perfectly! Distance: " + distanceFromTarget.ToString("F2"));
+            
+            if (player1Success)
+            {
+                Debug.Log("Both players have hit the target!");
+            }
+            else
+            {
+                Debug.Log("Waiting for Player 1 to hit the target...");
+            }
+            
             CheckBothPlayersSuccess();
+        }
+        else if (distanceFromTarget < tolerance * 2)
+        {
+            player2Success = false;
+            Debug.Log("Player 2 was close! Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
         }
         else
         {
             player2Success = false;
-            Debug.Log("Player 2 missed. Distance from target: " + distanceFromTarget);
+            Debug.Log("Player 2 missed. Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
         }
     }
 
@@ -670,44 +711,69 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         // Keep the expanding circle visible for feedback
         Color feedbackColor;
+        float tolerance = 0.3f;
         
-        if (distanceFromTarget < 0.5f) // Using fixed tolerance
+        if (distanceFromTarget < tolerance)
         {
-            // Good hit - green
-            feedbackColor = Color.green;
+            // Perfect hit - bright green with glow
+            feedbackColor = new Color(0f, 1f, 0.2f);
+            material.EnableKeyword("_EMISSION");
+            material.SetColor("_EmissionColor", feedbackColor * 0.5f);
         }
-        else if (distanceFromTarget < 1.0f) // Double tolerance for "close"
+        else if (distanceFromTarget < tolerance * 2)
         {
-            // Close - orange
+            // Close - orange with slight glow
             feedbackColor = new Color(1f, 0.6f, 0f);
+            material.EnableKeyword("_EMISSION");
+            material.SetColor("_EmissionColor", feedbackColor * 0.3f);
         }
         else
         {
-            // Miss - red
-            feedbackColor = Color.red;
+            // Miss - red, no glow
+            feedbackColor = new Color(1f, 0.2f, 0.2f);
+            material.DisableKeyword("_EMISSION");
         }
         
-        // Set the color with transparency
-        material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, 0.5f);
+        // Initial flash with high opacity
+        material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, 0.8f);
         
-        // Flash the expanding circle
-        float duration = 0.5f;
+        // Pulse effect
+        float pulseDuration = 0.75f;
         float time = 0;
         
-        while (time < duration)
+        while (time < pulseDuration)
         {
             time += Time.deltaTime;
-            float alpha = Mathf.Lerp(0.5f, 0.1f, time / duration);
+            
+            // Create a pulsing effect
+            float pulse = Mathf.Sin(time * 10f) * 0.2f + 0.8f; // Oscillate between 0.6 and 1.0
+            float alpha = Mathf.Lerp(0.8f, 0.2f, time / pulseDuration) * pulse;
             
             material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
             
-            // Keep the circle at the same size during feedback
-            circle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+            // Keep the circle at the same size but add slight pulsing
+            float scalePulse = 1f + (pulse - 0.8f) * 0.1f;
+            circle.transform.localScale = new Vector3(currentRadius * scalePulse, currentRadius * scalePulse, currentRadius * scalePulse);
             
             yield return null;
         }
         
-        // Hide the circle after feedback
+        // Fade out quickly
+        float fadeOutDuration = 0.25f;
+        time = 0;
+        
+        while (time < fadeOutDuration)
+        {
+            time += Time.deltaTime;
+            float alpha = Mathf.Lerp(0.2f, 0f, time / fadeOutDuration);
+            
+            material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
+            
+            yield return null;
+        }
+        
+        // Disable emission and hide the circle
+        material.DisableKeyword("_EMISSION");
         circle.SetActive(false);
     }
 
@@ -715,27 +781,132 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         if (player1Success && player2Success)
         {
-            // Both players hit the target, move to next ring
-            SetRingColor(ringOrder[currentRingIndex], Color.black);
-            currentRingIndex++;
-            
-            if (currentRingIndex >= ringOrder.Length)
-            {
-                // Game completed!
-                Debug.Log(successMessage);
-                gameCompleted = true;
-            }
-            else
-            {
-                // Activate the next ring
-                SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
-                Debug.Log("Both players succeeded! Moving to next ring: " + ringOrder[currentRingIndex]);
-                
-                // Reset success flags
-                player1Success = false;
-                player2Success = false;
-            }
+            // Both players hit the target, celebrate and move to next ring
+            StartCoroutine(CelebrateBothPlayersSuccess());
         }
+    }
+    
+    private IEnumerator CelebrateBothPlayersSuccess()
+    {
+        // Create a bright success color for the completed ring
+        Color successColor = new Color(0f, 1f, 0.5f, 1f); // Bright green
+        
+        // Flash the completed ring
+        float flashDuration = 1.0f;
+        float time = 0;
+        
+        while (time < flashDuration)
+        {
+            time += Time.deltaTime;
+            float pulse = Mathf.Sin(time * 15f) * 0.5f + 0.5f; // Faster pulse
+            Color pulseColor = Color.Lerp(successColor, Color.white, pulse);
+            
+            // Make the completed ring flash
+            ringMaterials[ringOrder[currentRingIndex]].color = pulseColor;
+            ringMaterials[ringOrder[currentRingIndex]].EnableKeyword("_EMISSION");
+            ringMaterials[ringOrder[currentRingIndex]].SetColor("_EmissionColor", pulseColor);
+            
+            yield return null;
+        }
+        
+        // Set the completed ring to a dark color
+        SetRingColor(ringOrder[currentRingIndex], new Color(0.1f, 0.1f, 0.1f, 1f));
+        
+        // Move to the next ring
+        currentRingIndex++;
+        
+        if (currentRingIndex >= ringOrder.Length)
+        {
+            // Game completed!
+            Debug.Log(successMessage);
+            gameCompleted = true;
+            
+            // Final celebration
+            StartCoroutine(CelebrateGameCompletion());
+        }
+        else
+        {
+            // Activate the next ring with a smooth transition
+            StartCoroutine(ActivateNextRing());
+        }
+        
+        // Reset success flags
+        player1Success = false;
+        player2Success = false;
+    }
+    
+    private IEnumerator ActivateNextRing()
+    {
+        // Fade in the next active ring
+        float fadeDuration = 0.5f;
+        float time = 0;
+        
+        while (time < fadeDuration)
+        {
+            time += Time.deltaTime;
+            float t = time / fadeDuration;
+            
+            // Lerp from black to the multiplayer color
+            Color currentColor = Color.Lerp(Color.black, multiplayerRingColor, t);
+            ringMaterials[ringOrder[currentRingIndex]].color = currentColor;
+            
+            // Gradually enable emission
+            ringMaterials[ringOrder[currentRingIndex]].EnableKeyword("_EMISSION");
+            ringMaterials[ringOrder[currentRingIndex]].SetColor("_EmissionColor", currentColor * t * 0.5f);
+            
+            yield return null;
+        }
+        
+        // Ensure final color is set
+        SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+        Debug.Log("Next active ring: " + ringOrder[currentRingIndex] + " (radius: " + GetRingRadius(ringOrder[currentRingIndex]) + ")");
+    }
+    
+    private IEnumerator CelebrateGameCompletion()
+    {
+        // Make all rings glow in celebration
+        float celebrationDuration = 2.0f;
+        float time = 0;
+        
+        while (time < celebrationDuration)
+        {
+            time += Time.deltaTime;
+            
+            // Create a rainbow effect
+            for (int i = 0; i < rings.Length; i++)
+            {
+                float hue = (time * 0.5f + i * 0.33f) % 1f;
+                Color celebrationColor = Color.HSVToRGB(hue, 0.8f, 1f);
+                
+                ringMaterials[i].color = celebrationColor;
+                ringMaterials[i].EnableKeyword("_EMISSION");
+                ringMaterials[i].SetColor("_EmissionColor", celebrationColor * 0.7f);
+            }
+            
+            yield return null;
+        }
+        
+        // Fade out all rings
+        time = 0;
+        float fadeOutDuration = 1.0f;
+        
+        while (time < fadeOutDuration)
+        {
+            time += Time.deltaTime;
+            float alpha = 1f - (time / fadeOutDuration);
+            
+            for (int i = 0; i < rings.Length; i++)
+            {
+                Color currentColor = ringMaterials[i].color;
+                ringMaterials[i].color = new Color(currentColor.r, currentColor.g, currentColor.b, alpha);
+                ringMaterials[i].SetColor("_EmissionColor", currentColor * alpha * 0.7f);
+            }
+            
+            yield return null;
+        }
+        
+        // Hide the rings
+        multiplayerRingObject.SetActive(false);
     }
     
     void SetRingColor(int ringIndex, Color color)
