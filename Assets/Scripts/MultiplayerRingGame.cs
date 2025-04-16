@@ -511,13 +511,6 @@ public class MultiplayerRingGame : MonoBehaviour
         if (multiplayerRingObject.activeSelf)
         {
             multiplayerRingObject.transform.position = midpoint;
-        }
-        
-        // Always keep the rings centered between the players
-        if (multiplayerRingObject.activeSelf)
-        {
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-            multiplayerRingObject.transform.position = midpoint;
             
             // Check if players have moved too far apart
             float distance = Vector3.Distance(player1Sphere.transform.position, player2Sphere.transform.position);
@@ -595,16 +588,21 @@ public class MultiplayerRingGame : MonoBehaviour
     // For backward compatibility
     void StartExpanding()
     {
-        StartPlayer1Expanding();
-    }
         // Log which player initiated the expansion
         if (Input.GetKey(KeyCode.Space))
         {
             Debug.Log("Expansion initiated by Player 1 (Space key)");
+            StartPlayer1Expanding();
         }
         else if (Input.GetKey(KeyCode.F))
         {
             Debug.Log("Expansion initiated by Player 2 (F key)");
+            StartPlayer2Expanding();
+        }
+        else
+        {
+            // Default to player 1 if no key is detected
+            StartPlayer1Expanding();
         }
     }
     
