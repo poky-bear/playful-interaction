@@ -394,7 +394,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player1Controller != null)
             {
                 player1Controller.enabled = false;
-                player1Controller.gameObject.SetActive(false);
+                // Don't deactivate the gameObject as it's the player sphere itself
                 Debug.Log("Disabled RingGameController on Player 1");
             }
         }
@@ -432,7 +432,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player2Controller != null)
             {
                 player2Controller.enabled = false;
-                player2Controller.gameObject.SetActive(false);
+                // Don't deactivate the gameObject as it's the player sphere itself
                 Debug.Log("Disabled Player2RingGameController on Player 2");
             }
         }
@@ -902,7 +902,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player1Controller != null)
             {
                 player1Controller.enabled = true;
-                player1Controller.gameObject.SetActive(true);
+                // No need to activate the gameObject as it should already be active (it's the player sphere)
                 Debug.Log("Re-enabled RingGameController on Player 1");
             }
         }
@@ -940,7 +940,7 @@ public class MultiplayerRingGame : MonoBehaviour
             if (player2Controller != null)
             {
                 player2Controller.enabled = true;
-                player2Controller.gameObject.SetActive(true);
+                // No need to activate the gameObject as it should already be active (it's the player sphere)
                 Debug.Log("Re-enabled Player2RingGameController on Player 2");
             }
         }
