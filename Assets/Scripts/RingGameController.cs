@@ -214,16 +214,29 @@ public class RingGameController : MonoBehaviour
             }
             return;
         }
-            
-        // Handle spacebar input
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            StartExpanding();
-        }
         
-        if (Input.GetKeyUp(KeyCode.Space))
+        // Check if multiplayer mode is active
+        MultiplayerRingGame multiplayerGame = FindObjectOfType<MultiplayerRingGame>();
+        bool isMultiplayerActive = multiplayerGame != null && multiplayerGame.MultiplayerModeActive;
+        
+        // Only handle individual player input if multiplayer mode is NOT active
+        if (!isMultiplayerActive)
         {
-            CheckHit();
+            // Handle spacebar input
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                StartExpanding();
+            }
+            
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                CheckHit();
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Log that we're ignoring the individual player input due to multiplayer mode
+            Debug.Log("Player 1: Ignoring individual circle expansion because multiplayer mode is active");
         }
         
         // Update expanding circle

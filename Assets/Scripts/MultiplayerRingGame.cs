@@ -226,6 +226,9 @@ public class MultiplayerRingGame : MonoBehaviour
         Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
         multiplayerRingObject.transform.position = midpoint;
         
+        // Find and hide any active individual expanding circles
+        HideIndividualExpandingCircles();
+        
         // Set up the rings
         float baseRadius = 2.0f; // Base radius for the first ring
         float ringSpacing = 1.0f; // Spacing between rings
@@ -263,6 +266,60 @@ public class MultiplayerRingGame : MonoBehaviour
     }
     
     // Deactivate the original rings around both spheres
+    void HideIndividualExpandingCircles()
+    {
+        // Find and hide Player 1's expanding circle
+        GameObject player1ExpandingCircle = GameObject.Find("ExpandingCircle");
+        if (player1ExpandingCircle != null)
+        {
+            player1ExpandingCircle.SetActive(false);
+            Debug.Log("Hid Player 1's expanding circle");
+        }
+        
+        // Find and hide Player 2's expanding circle (it might have a different name)
+        GameObject player2ExpandingCircle = null;
+        
+        // Try to find it through the Player2RingGameController
+        Player2RingGameController player2Controller = player2Sphere.GetComponent<Player2RingGameController>();
+        if (player2Controller != null)
+        {
+            // Look for a child object with "Expanding" in the name
+            foreach (Transform child in player2Controller.transform)
+            {
+                if (child.name.Contains("Expanding"))
+                {
+                    player2ExpandingCircle = child.gameObject;
+                    break;
+                }
+            }
+        }
+        
+        // If we couldn't find it that way, try a more general search
+        if (player2ExpandingCircle == null)
+        {
+            // Try to find any other expanding circles
+            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.name.Contains("Expanding") && obj != player1ExpandingCircle)
+                {
+                    player2ExpandingCircle = obj;
+                    break;
+                }
+            }
+        }
+        
+        if (player2ExpandingCircle != null)
+        {
+            player2ExpandingCircle.SetActive(false);
+            Debug.Log("Hid Player 2's expanding circle: " + player2ExpandingCircle.name);
+        }
+        else
+        {
+            Debug.Log("Could not find Player 2's expanding circle");
+        }
+    }
+    
     void DeactivateOriginalRings()
     {
         Debug.Log("Deactivating original rings for multiplayer mode...");
@@ -320,6 +377,9 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             Debug.LogWarning("Player 2 sphere is null, cannot deactivate rings");
         }
+        
+        // Also hide any individual expanding circles
+        HideIndividualExpandingCircles();
     }
     
     void UpdateMultiplayerGame()

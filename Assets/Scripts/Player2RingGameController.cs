@@ -214,16 +214,29 @@ public class Player2RingGameController : MonoBehaviour
             }
             return;
         }
-            
-        // Handle F key input instead of spacebar
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            StartExpanding();
-        }
         
-        if (Input.GetKeyUp(KeyCode.F))
+        // Check if multiplayer mode is active
+        MultiplayerRingGame multiplayerGame = FindObjectOfType<MultiplayerRingGame>();
+        bool isMultiplayerActive = multiplayerGame != null && multiplayerGame.MultiplayerModeActive;
+        
+        // Only handle individual player input if multiplayer mode is NOT active
+        if (!isMultiplayerActive)
         {
-            CheckHit();
+            // Handle F key input instead of spacebar
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                StartExpanding();
+            }
+            
+            if (Input.GetKeyUp(KeyCode.F))
+            {
+                CheckHit();
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.F))
+        {
+            // Log that we're ignoring the individual player input due to multiplayer mode
+            Debug.Log("Player 2: Ignoring individual circle expansion because multiplayer mode is active");
         }
         
         // Update expanding circle
