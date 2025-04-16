@@ -87,6 +87,8 @@ public class ConcentricRings : MonoBehaviour
         // Add a collider (optional)
         MeshCollider meshCollider = ring.AddComponent<MeshCollider>();
         meshCollider.sharedMesh = meshFilter.mesh;
+        meshCollider.convex = true; // Required for triggers
+        meshCollider.isTrigger = true; // Make it a trigger collider so it doesn't block movement
         
         return ring;
     }

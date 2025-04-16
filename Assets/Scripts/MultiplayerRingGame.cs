@@ -145,9 +145,11 @@ public class MultiplayerRingGame : MonoBehaviour
             // Generate torus mesh
             meshFilter.mesh = CreateTorusMesh(radius, ringThickness * 0.5f); // Half thickness for better proportions
             
-            // Add collider for interaction
+            // Add collider for interaction (as trigger)
             MeshCollider meshCollider = rings[i].AddComponent<MeshCollider>();
             meshCollider.sharedMesh = meshFilter.mesh;
+            meshCollider.convex = true; // Required for triggers
+            meshCollider.isTrigger = true; // Make it a trigger collider so it doesn't block movement
             
             // Create material for the ring with transparency
             Material ringMaterial = new Material(Shader.Find("Standard"));
