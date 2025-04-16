@@ -25,13 +25,13 @@ public class MultiplayerRingGame : MonoBehaviour
     public GameObject player2Sphere;
     
     [Tooltip("Reference to the multiplayer ring object")]
-    public GameObject multiplayerRingObject;
+    public GameObject multiplayerRingObject = null;
     
     // Private variables
     private float proximityTimer = 0f;
     private bool multiplayerModeActive = false;
     private bool gameCompleted = false;
-    private GameObject expandingCircle;
+    private GameObject expandingCircle = null;
     private Material expandingCircleMaterial;
     private float currentRadius = 0f;
     private bool isExpanding = false;
@@ -102,14 +102,9 @@ public class MultiplayerRingGame : MonoBehaviour
             }
         }
         
-        // Create multiplayer ring object if not assigned
-        if (multiplayerRingObject == null)
-        {
-            CreateMultiplayerRing();
-        }
-        
-        // Create expanding circle for multiplayer mode
-        CreateExpandingCircle();
+        // We'll create the multiplayer ring object and expanding circle only when needed
+        // (when players get close enough to each other)
+        // This prevents them from appearing at the start of multiplayer mode
     }
     
     void CreateMultiplayerRing()
@@ -221,6 +216,18 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         multiplayerModeActive = true;
         Debug.Log("Multiplayer mode activated!");
+        
+        // Create multiplayer ring object if not assigned
+        if (multiplayerRingObject == null)
+        {
+            CreateMultiplayerRing();
+        }
+        
+        // Create expanding circle for multiplayer mode if not created yet
+        if (expandingCircle == null)
+        {
+            CreateExpandingCircle();
+        }
         
         // Position the multiplayer rings between the two players
         Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;

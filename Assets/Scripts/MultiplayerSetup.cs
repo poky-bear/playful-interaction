@@ -36,6 +36,9 @@ public class MultiplayerSetup : MonoBehaviour
         // Assign the ring object to the multiplayer game
         multiplayerGame.multiplayerRingObject = multiplayerRingObject;
         
+        // Make sure the rings are initially hidden
+        multiplayerRingObject.SetActive(false);
+        
         if (player1Sphere == null)
         {
             Debug.LogError("Player 1 sphere not found! Make sure you have a GameObject named 'Sphere' in your scene.");
