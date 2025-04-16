@@ -301,6 +301,15 @@ public class MultiplayerRingGame : MonoBehaviour
         // Check if multiplayer mode is already active
         if (multiplayerModeActive)
         {
+            // Calculate the midpoint between players
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            
+            // Update the position of the multiplayer rings to stay centered
+            if (multiplayerRingObject != null)
+            {
+                multiplayerRingObject.transform.position = midpoint;
+            }
+            
             // Check if players have moved too far apart
             if (distance > activationDistance * 1.5f)
             {
@@ -399,8 +408,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 player2ExpandingCircle.transform.position = midpoint;
             }
             
-            // Keep the multiplayer ring object at the midpoint
-            multiplayerRingObject.transform.position = midpoint;
+            // Position updates are handled in the main Update function
         }
     }
     
