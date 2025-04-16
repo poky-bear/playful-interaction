@@ -8,22 +8,50 @@ public class BoidManager : MonoBehaviour {
 
     public BoidSettings settings;
     public ComputeShader compute;
-     public Transform target;  // Reference to the target object
+     public Transform target;  // Reference to the target object (legacy)
+    public Transform player1Target; // Reference to player 1
+    public Transform player2Target; // Reference to player 2
+    private bool isMultiplayerMode = false;
+    private float splitDistance = 5f; // Distance at which the flock splits
     Boid[] boids;
 
     void Start () {
-        // Ensure we have a valid target
-        if (target == null) {
-            Debug.LogWarning("BoidManager: No target assigned. Boids will only follow flocking rules.");
-        }
-
         // Find and initialize all boids
         boids = FindObjectsOfType<Boid> ();
         foreach (Boid b in boids) {
             if (b != null) {
                 b.Initialize (settings, target);
+                // Assign half the boids to each player (for multiplayer mode)
+                b.playerAssignment = (Random.value < 0.5f) ? 1 : 2;
             }
         }
+    }
+
+    public void SetMultiplayerMode(bool active, Transform p1Target = null, Transform p2Target = null) {
+        isMultiplayerMode = active;
+        if (active) {
+            player1Target = p1Target;
+            player2Target = p2Target;
+        } else {
+            // In single player mode, use the legacy target
+            player1Target = target;
+            player2Target = null;
+        }
+    }
+
+    private Vector3 GetFlockCenter() {
+        if (!isMultiplayerMode || player1Target == null || player2Target == null) {
+            return target != null ? target.position : Vector3.zero;
+        }
+
+        float distance = Vector3.Distance(player1Target.position, player2Target.position);
+        if (distance <= splitDistance) {
+            // Players are close, use midpoint
+            return (player1Target.position + player2Target.position) / 2f;
+        }
+        
+        // Players are far apart, boids should follow their assigned player
+        return Vector3.zero; // This is a placeholder, actual targeting is done per boid
     }
 
     void Update () {

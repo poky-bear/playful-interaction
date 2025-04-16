@@ -48,6 +48,16 @@ public class MultiplayerRingGame : MonoBehaviour
     private Player2RingGameController player2Controller;
     private bool player1Ready = false;
     private bool player2Ready = false;
+
+    private void SetupBoidTargets()
+    {
+        BoidManager boidManager = FindObjectOfType<BoidManager>();
+        if (boidManager != null)
+        {
+            boidManager.SetMultiplayerMode(true, player1Sphere.transform, player2Sphere.transform);
+            Debug.Log("Boids now following both players in multiplayer mode");
+        }
+    }
     
     // Variables for synchronized ring completion
     private bool player1Success = false;
@@ -704,6 +714,17 @@ public class MultiplayerRingGame : MonoBehaviour
         // Also hide any individual expanding circles
         HideIndividualExpandingCircles();
         
+        // Reset boid targets to single player mode if game is completed
+        if (gameCompleted)
+        {
+            BoidManager boidManager = FindObjectOfType<BoidManager>();
+            if (boidManager != null)
+            {
+                boidManager.SetMultiplayerMode(false);
+                Debug.Log("Boids returning to single player mode");
+            }
+        }
+        
         // Reactivate original rings
         ReactivateOriginalRings();
     }
@@ -1005,6 +1026,9 @@ public class MultiplayerRingGame : MonoBehaviour
     
     private IEnumerator CelebrateGameCompletion()
     {
+        // Set up boid targets for multiplayer mode
+        SetupBoidTargets();
+
         // Make all rings glow in celebration
         float celebrationDuration = 2.0f;
         float time = 0;

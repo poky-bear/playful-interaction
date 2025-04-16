@@ -28,6 +28,10 @@ public class Boid : MonoBehaviour {
     Material material;
     Transform cachedTransform;
     Transform target;
+    
+    // Multiplayer support
+    [HideInInspector]
+    public int playerAssignment = 0; // 0 = unassigned, 1 = player1, 2 = player2
 
     void Awake () {
         material = transform.GetComponentInChildren<MeshRenderer> ().material;
@@ -54,10 +58,35 @@ public class Boid : MonoBehaviour {
     public void UpdateBoid () {
         Vector3 acceleration = Vector3.zero;
 
-        // Only apply target following if target exists and is active
-        if (target != null && target.gameObject.activeInHierarchy) {
-            Vector3 offsetToTarget = (target.position - position);
-            acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
+        // Get the BoidManager to check multiplayer status
+        BoidManager manager = FindObjectOfType<BoidManager>();
+        Transform currentTarget = target; // Default to legacy target
+
+        if (manager != null) {
+            // Check if we're in multiplayer mode with valid targets
+            if (manager.player1Target != null && manager.player2Target != null) {
+                float distance = Vector3.Distance(manager.player1Target.position, manager.player2Target.position);
+                
+                if (distance <= 5f) { // Use the same splitDistance as BoidManager
+                    // Players are close, use midpoint as target
+                    Vector3 midpoint = (manager.player1Target.position + manager.player2Target.position) / 2f;
+                    Vector3 offsetToTarget = (midpoint - position);
+                    acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                } else {
+                    // Players are far apart, follow assigned player
+                    Transform assignedTarget = (playerAssignment == 1) ? manager.player1Target : manager.player2Target;
+                    if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
+                        Vector3 offsetToTarget = (assignedTarget.position - position);
+                        acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                    }
+                }
+            } else {
+                // Legacy single-player targeting
+                if (target != null && target.gameObject.activeInHierarchy) {
+                    Vector3 offsetToTarget = (target.position - position);
+                    acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                }
+            }
         }
 
         if (numPerceivedFlockmates != 0) {
