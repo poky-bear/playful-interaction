@@ -133,21 +133,21 @@ public class MultiplayerRingGame : MonoBehaviour
             // Calculate the radius for this ring
             float radius = baseRadius + (i * ringSpacing);
             
-            // Create a ring using a cylinder
-            rings[i] = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            rings[i].name = "MultiplayerRing" + i;
+            // Create a ring using a torus mesh
+            rings[i] = new GameObject("MultiplayerRing" + i);
             rings[i].transform.parent = multiplayerRingObject.transform;
+            rings[i].transform.localPosition = Vector3.zero;
             
-            // Rotate to make it a horizontal ring
-            rings[i].transform.localRotation = Quaternion.Euler(90, 0, 0);
+            // Add mesh components
+            MeshFilter meshFilter = rings[i].AddComponent<MeshFilter>();
+            MeshRenderer meshRenderer = rings[i].AddComponent<MeshRenderer>();
             
-            // Scale to create the ring shape
-            // The x and z scale determine the ring's radius (multiply by 2 since scale is radius * 2)
-            // The y scale determines the ring's thickness
-            rings[i].transform.localScale = new Vector3(radius * 2, ringThickness, radius * 2);
+            // Generate torus mesh
+            meshFilter.mesh = CreateTorusMesh(radius, ringThickness * 0.5f); // Half thickness for better proportions
             
-            // Remove collider as we don't need physics for the rings
-            Destroy(rings[i].GetComponent<Collider>());
+            // Add collider for interaction
+            MeshCollider meshCollider = rings[i].AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = meshFilter.mesh;
             
             // Create material for the ring with transparency
             Material ringMaterial = new Material(Shader.Find("Standard"));
@@ -221,6 +221,70 @@ public class MultiplayerRingGame : MonoBehaviour
         material.EnableKeyword("_ALPHABLEND_ON");
         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         material.renderQueue = 3000;
+    }
+
+    Mesh CreateTorusMesh(float radius, float tubeRadius)
+    {
+        Mesh mesh = new Mesh();
+        
+        int tubularSegments = 32;
+        int radialSegments = 16;
+        
+        int numVertices = (tubularSegments + 1) * (radialSegments + 1);
+        Vector3[] vertices = new Vector3[numVertices];
+        Vector2[] uv = new Vector2[numVertices];
+        int[] triangles = new int[tubularSegments * radialSegments * 6];
+        
+        // Generate vertices
+        for (int i = 0; i <= tubularSegments; i++)
+        {
+            float u = (float)i / tubularSegments * 2f * Mathf.PI;
+            
+            for (int j = 0; j <= radialSegments; j++)
+            {
+                float v = (float)j / radialSegments * 2f * Mathf.PI;
+                
+                float x = (radius + tubeRadius * Mathf.Cos(v)) * Mathf.Cos(u);
+                float y = (radius + tubeRadius * Mathf.Cos(v)) * Mathf.Sin(u);
+                float z = tubeRadius * Mathf.Sin(v);
+                
+                int vertIndex = i * (radialSegments + 1) + j;
+                
+                vertices[vertIndex] = new Vector3(x, z, y); // Adjust for Unity's coordinate system
+                uv[vertIndex] = new Vector2((float)i / tubularSegments, (float)j / radialSegments);
+            }
+        }
+        
+        // Generate triangles
+        int index = 0;
+        for (int i = 0; i < tubularSegments; i++)
+        {
+            for (int j = 0; j < radialSegments; j++)
+            {
+                int a = i * (radialSegments + 1) + j;
+                int b = i * (radialSegments + 1) + j + 1;
+                int c = (i + 1) * (radialSegments + 1) + j + 1;
+                int d = (i + 1) * (radialSegments + 1) + j;
+                
+                // First triangle
+                triangles[index++] = a;
+                triangles[index++] = b;
+                triangles[index++] = d;
+                
+                // Second triangle
+                triangles[index++] = b;
+                triangles[index++] = c;
+                triangles[index++] = d;
+            }
+        }
+        
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        
+        return mesh;
     }
     
     void Update()
@@ -373,9 +437,7 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             if (rings[i] != null)
             {
-                float radius = baseRadius + (i * ringSpacing);
-                // For cylinders, we need to set the x and z scale for the radius
-                rings[i].transform.localScale = new Vector3(radius * 2, 0.05f, radius * 2); // Make rings thinner
+                // No need to scale the rings as they are created with the correct size
                 
                 // Set all rings to dark initially
                 SetRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
