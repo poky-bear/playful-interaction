@@ -809,7 +809,7 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             // Only one player has attempted so far
             // Provide feedback on how close they were
-            if (currentAttemptSuccessful)
+            if (player1Success || player2Success)
             {
                 Debug.Log("Multiplayer: Good hit! Waiting for the other player...");
                 
