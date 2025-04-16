@@ -463,34 +463,37 @@ public class MultiplayerRingGame : MonoBehaviour
         if (player1Sphere != null)
         {
             ConcentricRings player1Rings = player1Sphere.GetComponent<ConcentricRings>();
-            if (player1Rings != null && player1Rings.rings != null)
+            if (player1Rings != null)
             {
-                int deactivatedCount = 0;
-                foreach (GameObject ring in player1Rings.rings)
-                {
-                    if (ring != null)
-                    {
-                        ring.SetActive(false);
-                        deactivatedCount++;
-                    }
-                }
-                Debug.Log("Deactivated " + deactivatedCount + " rings for Player 1");
-                
-                // Also disable the ConcentricRings component to prevent it from reactivating the rings
+                // Disable the component itself
                 player1Rings.enabled = false;
+                
+                if (player1Rings.rings != null)
+                {
+                    int deactivatedCount = 0;
+                    foreach (GameObject ring in player1Rings.rings)
+                    {
+                        if (ring != null)
+                        {
+                            ring.SetActive(false);
+                            deactivatedCount++;
+                        }
+                    }
+                    Debug.Log("Deactivated " + deactivatedCount + " rings for Player 1");
+                }
             }
-            else
-            {
-                Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
-            }
-            
-            // Also disable the RingGameController to prevent it from interfering with multiplayer mode
-            if (player1Controller != null)
-            {
-                player1Controller.enabled = false;
-                // Don't deactivate the gameObject as it's the player sphere itself
-                Debug.Log("Disabled RingGameController on Player 1");
-            }
+        }
+        else
+        {
+            Debug.LogWarning("Could not find ConcentricRings component or rings array on Player 1 sphere");
+        }
+        
+        // Also disable the RingGameController to prevent it from interfering with multiplayer mode
+        if (player1Controller != null)
+        {
+            player1Controller.enabled = false;
+            // Don't deactivate the gameObject as it's the player sphere itself
+            Debug.Log("Disabled RingGameController on Player 1");
         }
         else
         {
