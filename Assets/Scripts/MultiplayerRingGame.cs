@@ -380,12 +380,15 @@ public class MultiplayerRingGame : MonoBehaviour
         // Update expanding circles if active
         if (player1IsExpanding || player2IsExpanding)
         {
+            // Calculate the midpoint between players
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+
             // Update Player 1's expanding circle
             if (player1IsExpanding)
             {
                 player1CurrentRadius += 1.0f * Time.deltaTime;
                 player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
-                player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+                player1ExpandingCircle.transform.position = midpoint;
             }
             
             // Update Player 2's expanding circle
@@ -393,11 +396,10 @@ public class MultiplayerRingGame : MonoBehaviour
             {
                 player2CurrentRadius += 1.0f * Time.deltaTime;
                 player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
-                player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+                player2ExpandingCircle.transform.position = midpoint;
             }
             
             // Keep the multiplayer ring object at the midpoint
-            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
             multiplayerRingObject.transform.position = midpoint;
         }
     }
@@ -701,8 +703,18 @@ public class MultiplayerRingGame : MonoBehaviour
         player1IsExpanding = true;
         player1CurrentRadius = 0.1f; // Start with a small radius
         
-        // Position the expanding circle at Player 1's position
-        player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+        // Position the expanding circle based on game mode
+        if (multiplayerModeActive)
+        {
+            // In multiplayer mode, start from the midpoint
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            player1ExpandingCircle.transform.position = midpoint;
+        }
+        else
+        {
+            // In single player mode, start from player's position
+            player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+        }
         
         // Set initial scale for the sphere
         player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
@@ -713,7 +725,7 @@ public class MultiplayerRingGame : MonoBehaviour
         // Activate the expanding circle
         player1ExpandingCircle.SetActive(true);
         
-        Debug.Log("Started Player 1's expanding circle");
+        Debug.Log("Started Player 1's expanding circle" + (multiplayerModeActive ? " in multiplayer mode" : ""));
     }
     
     void StartPlayer2Expanding()
@@ -721,8 +733,18 @@ public class MultiplayerRingGame : MonoBehaviour
         player2IsExpanding = true;
         player2CurrentRadius = 0.1f; // Start with a small radius
         
-        // Position the expanding circle at Player 2's position
-        player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        // Position the expanding circle based on game mode
+        if (multiplayerModeActive)
+        {
+            // In multiplayer mode, start from the midpoint
+            Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            player2ExpandingCircle.transform.position = midpoint;
+        }
+        else
+        {
+            // In single player mode, start from player's position
+            player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        }
         
         // Set initial scale for the sphere
         player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
@@ -733,7 +755,7 @@ public class MultiplayerRingGame : MonoBehaviour
         // Activate the expanding circle
         player2ExpandingCircle.SetActive(true);
         
-        Debug.Log("Started Player 2's expanding circle");
+        Debug.Log("Started Player 2's expanding circle" + (multiplayerModeActive ? " in multiplayer mode" : ""));
     }
     
     void CheckPlayer1Hit()
