@@ -37,6 +37,7 @@ public class UDPReceiver : MonoBehaviour {
     public Text ConnectButton;
 
     public void startReceiveThread() {
+        Debug.Log("attempting start");
         stopReceiverThread();
         if(receivePort > 0) {
             receivingData = true;
