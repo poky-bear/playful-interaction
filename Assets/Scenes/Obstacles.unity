@@ -482,7 +482,7 @@ MonoBehaviour:
   player1Sphere: {fileID: 192253960}
   player2Sphere: {fileID: 164288105}
   multiplayerRingObject: {fileID: 43894036}
-  transitionManager: {fileID: 0}
+  transitionManager: {fileID: 1234567891}
 --- !u!4 &87719456
 Transform:
   m_ObjectHideFlags: 0
@@ -498,8 +498,60 @@ Transform:
   m_Children:
   - {fileID: 43894037}
   - {fileID: 1408104300}
+  - {fileID: 1234567890}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1234567889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1234567890}
+  - component: {fileID: 1234567891}
+  m_Layer: 0
+  m_Name: GameModeTransitionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1234567890
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234567889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 87719456}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1234567891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234567889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19ebc9840ca9a61408ed6ab81119e49b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings:
+    initialWaitTime: 10
+    speedTransitionDuration: 5
+    maxSpeedIncrease: 10
+    cornerOffset: 10
+  boidSettings: {fileID: 11400000, guid: 1234567890abcdef1234567890abcdef, type: 2}
+  conePrefab: {fileID: 1000000000, guid: 1234567890abcdef1234567890abcdef, type: 3}
 --- !u!1 &105942392
 GameObject:
   m_ObjectHideFlags: 0
