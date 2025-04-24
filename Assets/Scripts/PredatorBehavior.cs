@@ -82,17 +82,14 @@ public class PredatorBehavior : MonoBehaviour
             return;
         }
         
-        // Calculate target position (center between players if both in range)
+        // Calculate target position based on closest player
         Vector3 targetPos;
-        bool bothInRange = distToPlayer1 < attractionRadius && distToPlayer2 < attractionRadius;
+        bool player1InRange = distToPlayer1 < attractionRadius;
+        bool player2InRange = distToPlayer2 < attractionRadius;
         
-        if (bothInRange) {
-            // Use the midpoint between players as target
-            targetPos = (player1Pos + player2Pos) / 2f;
-        } else if (distToPlayer1 < attractionRadius) {
-            targetPos = player1Pos;
-        } else if (distToPlayer2 < attractionRadius) {
-            targetPos = player2Pos;
+        if (player1InRange || player2InRange) {
+            // Target the closest player if at least one is in range
+            targetPos = (distToPlayer1 <= distToPlayer2) ? player1Pos : player2Pos;
         } else {
             // If no players in range, maintain current velocity
             targetPos = transform.position + velocity;
