@@ -22,8 +22,12 @@ public class GameModeTransitionManager : MonoBehaviour
 
     [Header("References")]
     public BoidSettings boidSettings;
-    [Tooltip("The cube prefab to spawn in corners")]
-    public GameObject cubePrefab;
+
+    [Header("Cube Settings")]
+    [Tooltip("Scale of the spawned cube")]
+    public Vector3 cubeScale = new Vector3(0.5f, 1f, 0.5f);
+    [Tooltip("Color of the spawned cube")]
+    public Color cubeColor = Color.white;
 
     private BoidManager boidManager;
     private float originalMinSpeed;
@@ -128,12 +132,6 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void SpawnCube()
     {
-        if (cubePrefab == null)
-        {
-            Debug.LogError("[Transition] Cannot spawn cube: cubePrefab is not assigned!");
-            return;
-        }
-
         // Pick a random corner
         int randomCorner = Random.Range(0, cornerPositions.Length);
         Vector3 spawnPosition = cornerPositions[randomCorner];
@@ -141,11 +139,27 @@ public class GameModeTransitionManager : MonoBehaviour
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
         Debug.Log($"[Transition] Spawning cube in {cornerNames[randomCorner]} corner at position {spawnPosition}");
 
-        // Instantiate and orient the cube
-        GameObject cube = Instantiate(cubePrefab, spawnPosition, Quaternion.identity);
+        // Create a cube primitive
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        
         if (cube != null)
         {
+            // Set position and scale
+            cube.transform.position = spawnPosition;
+            cube.transform.localScale = cubeScale;
+            
+            // Make the cube look at the center
             cube.transform.LookAt(Vector3.zero);
+            
+            // Set the color
+            Renderer cubeRenderer = cube.GetComponent<Renderer>();
+            if (cubeRenderer != null)
+            {
+                Material cubeMaterial = new Material(Shader.Find("Standard"));
+                cubeMaterial.color = cubeColor;
+                cubeRenderer.material = cubeMaterial;
+            }
+            
             Debug.Log($"[Transition] Cube spawned successfully and oriented towards center");
         }
         else
