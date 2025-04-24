@@ -22,7 +22,8 @@ public class GameModeTransitionManager : MonoBehaviour
 
     [Header("References")]
     public BoidSettings boidSettings;
-    public GameObject conePrefab;
+    [Tooltip("The cube prefab to spawn in corners")]
+    public GameObject cubePrefab;
 
     private BoidManager boidManager;
     private float originalMinSpeed;
@@ -118,18 +119,18 @@ public class GameModeTransitionManager : MonoBehaviour
         boidSettings.minSpeed = originalMinSpeed;
         boidSettings.maxSpeed = originalMaxSpeed;
 
-        // Spawn cone
-        SpawnCone();
+        // Spawn cube
+        SpawnCube();
 
         Debug.Log("[Transition] Transition sequence complete");
         isTransitioning = false;
     }
 
-    private void SpawnCone()
+    private void SpawnCube()
     {
-        if (conePrefab == null)
+        if (cubePrefab == null)
         {
-            Debug.LogError("[Transition] Cannot spawn cone: conePrefab is not assigned!");
+            Debug.LogError("[Transition] Cannot spawn cube: cubePrefab is not assigned!");
             return;
         }
 
@@ -138,19 +139,18 @@ public class GameModeTransitionManager : MonoBehaviour
         Vector3 spawnPosition = cornerPositions[randomCorner];
         
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
-        Debug.Log($"[Transition] Spawning cone in {cornerNames[randomCorner]} corner at position {spawnPosition}");
+        Debug.Log($"[Transition] Spawning cube in {cornerNames[randomCorner]} corner at position {spawnPosition}");
 
-        // Instantiate and orient the cone
-        GameObject cone = Instantiate(conePrefab, spawnPosition, Quaternion.identity);
-        if (cone != null)
+        // Instantiate and orient the cube
+        GameObject cube = Instantiate(cubePrefab, spawnPosition, Quaternion.identity);
+        if (cube != null)
         {
-            cone.transform.LookAt(Vector3.zero);
-            cone.transform.Rotate(90f, 0f, 0f);
-            Debug.Log($"[Transition] Cone spawned successfully and oriented towards center");
+            cube.transform.LookAt(Vector3.zero);
+            Debug.Log($"[Transition] Cube spawned successfully and oriented towards center");
         }
         else
         {
-            Debug.LogError("[Transition] Failed to spawn cone!");
+            Debug.LogError("[Transition] Failed to spawn cube!");
         }
     }
 }
