@@ -4,19 +4,25 @@ public class PredatorBehavior : MonoBehaviour
 {
     [Header("Movement Settings")]
     [Tooltip("Base movement speed")]
-    public float moveSpeed = 3.5f;  // Slightly slower than player speed
+    public float moveSpeed = 3f;  // Slower than player speed
     
     [Tooltip("Distance at which predator starts orbiting")]
-    public float orbitStartDistance = 5f;  // When to start orbiting
+    public float orbitStartDistance = 6f;  // Start orbiting further away
     
     [Tooltip("How fast the predator orbits around the target")]
-    public float orbitSpeed = 180f;  // Degrees per second - faster orbit
+    public float orbitSpeed = 120f;  // Degrees per second
     
     [Tooltip("How quickly the predator closes in on the target")]
-    public float closingSpeed = 0.8f;  // Units per second - aggressive closing
+    public float closingSpeed = 0.2f;  // Units per second - slower closing
     
     [Tooltip("Minimum distance before considering it a 'hit'")]
     public float hitDistance = 0.5f;  // Distance to count as touching
+    
+    [Tooltip("Number of complete orbits before starting to close in")]
+    public float requiredOrbits = 1.5f;  // Must complete this many orbits first
+    
+    private float totalRotation = 0f;  // Track total rotation for orbit counting
+    private bool canStartClosing = false;  // Only close in after completing orbits
     
     [Header("References")]
     public GameObject player1;
@@ -90,12 +96,21 @@ public class PredatorBehavior : MonoBehaviour
             else
             {
                 // Orbital attack mode
-                // Update orbit angle - faster when closer to target
-                float speedMultiplier = 1f + ((orbitStartDistance - distanceToTarget) / orbitStartDistance);
-                orbitAngle += (orbitSpeed * speedMultiplier) * Time.deltaTime;
+                // Update orbit angle - slightly faster when closer to target
+                float speedMultiplier = 1f + ((orbitStartDistance - distanceToTarget) / orbitStartDistance) * 0.5f;
+                float deltaAngle = (orbitSpeed * speedMultiplier) * Time.deltaTime;
+                orbitAngle += deltaAngle;
                 if (orbitAngle >= 360f) orbitAngle -= 360f;
                 
-                // Calculate current orbit radius and desired position
+                // Track total rotation for orbit counting
+                totalRotation += deltaAngle;
+                if (totalRotation >= 360f * requiredOrbits && !canStartClosing)
+                {
+                    canStartClosing = true;
+                    Debug.Log($"[Predator] Completed {requiredOrbits} orbits, beginning to close in");
+                }
+                
+                // Calculate orbit position
                 float currentRadius = distanceToTarget;
                 float radian = orbitAngle * Mathf.Deg2Rad;
                 Vector3 orbitOffset = new Vector3(
@@ -104,13 +119,19 @@ public class PredatorBehavior : MonoBehaviour
                     Mathf.Sin(radian) * currentRadius
                 );
                 
-                // Calculate next position, moving both around and towards the target
+                // Calculate next position
                 Vector3 orbitPosition = targetPos + orbitOffset;
-                Vector3 nextPos = Vector3.MoveTowards(
-                    orbitPosition, 
-                    targetPos, 
-                    closingSpeed * Time.deltaTime
-                );
+                Vector3 nextPos = orbitPosition;
+                
+                // Only start closing in after completing required orbits
+                if (canStartClosing)
+                {
+                    nextPos = Vector3.MoveTowards(
+                        orbitPosition, 
+                        targetPos, 
+                        closingSpeed * Time.deltaTime
+                    );
+                }
                 
                 // Move to the calculated position
                 transform.position = Vector3.MoveTowards(
@@ -119,8 +140,14 @@ public class PredatorBehavior : MonoBehaviour
                     moveSpeed * Time.deltaTime
                 );
                 
-                // Always look at target during orbital attack
-                transform.LookAt(targetPos);
+                // Look slightly ahead in the orbit for smoother movement
+                float lookAheadAngle = radian + (15f * Mathf.Deg2Rad);
+                Vector3 lookAheadPoint = targetPos + new Vector3(
+                    Mathf.Cos(lookAheadAngle) * currentRadius,
+                    0f,
+                    Mathf.Sin(lookAheadAngle) * currentRadius
+                );
+                transform.LookAt(lookAheadPoint);
                 
                 if (Time.frameCount % 60 == 0)
                 {
@@ -148,9 +175,11 @@ public class PredatorBehavior : MonoBehaviour
         if (newTarget != currentTarget)
         {
             currentTarget = newTarget;
-            // Reset orbit radius when switching targets to start the circling pattern again
+            // Reset orbit tracking when switching targets
             currentOrbitRadius = orbitStartDistance;
-            Debug.Log($"[Predator] Switching target to {currentTarget.name}, starting orbit at radius {currentOrbitRadius:F1}");
+            totalRotation = 0f;
+            canStartClosing = false;
+            Debug.Log($"[Predator] Switching target to {currentTarget.name}, resetting orbit pattern");
         }
     }
     
