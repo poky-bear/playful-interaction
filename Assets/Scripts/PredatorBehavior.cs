@@ -26,11 +26,20 @@ public class PredatorBehavior : MonoBehaviour
     
     private void Start()
     {
+        if (player1 == null || player2 == null)
+        {
+            Debug.LogError("[Predator] Player references not set! Player1: " + (player1 != null) + ", Player2: " + (player2 != null));
+            return;
+        }
+
+        Debug.Log($"[Predator] Initialized with Player1: {player1.name}, Player2: {player2.name}");
+        
         // Find the nearest player and set initial orbit radius
         UpdateTargetPlayer();
         if (currentTarget != null)
         {
             currentOrbitRadius = Vector3.Distance(transform.position, currentTarget.transform.position);
+            Debug.Log($"[Predator] Initial orbit radius: {currentOrbitRadius}");
         }
         
         Debug.Log($"[Predator] Starting to track players. Initial target: {(currentTarget != null ? currentTarget.name : "none")}");
@@ -51,6 +60,7 @@ public class PredatorBehavior : MonoBehaviour
         {
             // Calculate orbit position
             Vector3 targetPos = currentTarget.transform.position;
+            Vector3 startPos = transform.position;
             
             // Update orbit angle
             orbitAngle += orbitSpeed * Time.deltaTime;
@@ -65,6 +75,7 @@ public class PredatorBehavior : MonoBehaviour
             );
             
             // Gradually reduce orbit radius
+            float oldRadius = currentOrbitRadius;
             currentOrbitRadius = Mathf.Max(minOrbitDistance, currentOrbitRadius - (closingSpeed * Time.deltaTime));
             
             // Set position and look at target
@@ -75,6 +86,16 @@ public class PredatorBehavior : MonoBehaviour
                 moveSpeed * Time.deltaTime
             );
             transform.LookAt(targetPos);
+
+            // Log movement details every few frames
+            if (Time.frameCount % 60 == 0)  // Log once per second at 60 fps
+            {
+                Debug.Log($"[Predator] Movement - Target: {currentTarget.name}, " +
+                         $"Distance: {Vector3.Distance(transform.position, targetPos):F2}, " +
+                         $"Orbit Radius: {currentOrbitRadius:F2}, " +
+                         $"Speed: {moveSpeed:F2}, " +
+                         $"Movement: {(transform.position - startPos).magnitude:F2}");
+            }
         }
     }
     

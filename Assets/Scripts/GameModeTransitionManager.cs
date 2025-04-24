@@ -22,8 +22,9 @@ public class GameModeTransitionManager : MonoBehaviour
 
     [Header("References")]
     public BoidSettings boidSettings;
-    public GameObject player1;
-    public GameObject player2;
+    private GameObject player1;
+    private GameObject player2;
+    private MultiplayerRingGame multiplayerController;
 
     [Header("Predator Settings")]
     [Tooltip("Scale of the predator cube")]
@@ -57,6 +58,24 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void Start()
     {
+        // Get references
+        multiplayerController = GetComponent<MultiplayerRingGame>();
+        if (multiplayerController == null)
+        {
+            Debug.LogError("[Transition] MultiplayerRingGame component not found!");
+            return;
+        }
+
+        // Get player references
+        player1 = multiplayerController.player1Sphere;
+        player2 = multiplayerController.player2Sphere;
+
+        if (player1 == null || player2 == null)
+        {
+            Debug.LogError("[Transition] Player references not set in MultiplayerRingGame!");
+            return;
+        }
+
         // Find BoidManager if not assigned
         if (boidManager == null)
         {
