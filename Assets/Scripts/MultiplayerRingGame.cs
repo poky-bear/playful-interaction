@@ -27,6 +27,9 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("Reference to the multiplayer ring object")]
     public GameObject multiplayerRingObject = null;
     
+    [Tooltip("Reference to the game mode transition manager")]
+    public GameModeTransitionManager transitionManager;
+    
     // Private variables
     private float proximityTimer = 0f;
     private bool multiplayerModeActive = false;
@@ -985,6 +988,15 @@ public class MultiplayerRingGame : MonoBehaviour
             
             // Final celebration
             StartCoroutine(CelebrateGameCompletion());
+            
+            // Start the transition to the next game mode
+            if (transitionManager != null)
+            {
+                transitionManager.StartTransition();
+            }
+            else
+            {
+                Debug.LogWarning("TransitionManager not assigned to MultiplayerRingGame!");
         }
         else
         {
