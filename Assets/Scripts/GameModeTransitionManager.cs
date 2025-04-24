@@ -3,50 +3,79 @@ using System.Collections;
 
 public class GameModeTransitionManager : MonoBehaviour
 {
-    [Header("Boid Settings")]
-    public BoidSettings boidSettings;
-    public float speedIncreaseRate = 2f; // Units per second
-    public float maxSpeedIncrease = 10f; // Maximum additional speed
+    [System.Serializable]
+    public class TransitionSettings
+    {
+        [Header("Timing")]
+        public float initialWaitTime = 10f;
+        public float speedTransitionDuration = 5f;
 
-    [Header("Cone Settings")]
+        [Header("Speed Settings")]
+        public float maxSpeedIncrease = 10f;
+
+        [Header("Spawn Settings")]
+        public float cornerOffset = 10f;
+    }
+
+    [Header("Settings")]
+    public TransitionSettings settings = new TransitionSettings();
+
+    [Header("References")]
+    public BoidSettings boidSettings;
     public GameObject conePrefab;
-    private Vector3[] cornerPositions;
-    private float cornerOffset = 10f; // Distance from center to spawn corners
 
     private BoidManager boidManager;
     private float originalMinSpeed;
     private float originalMaxSpeed;
-    private bool isTransitioning = false;
+    private bool isTransitioning;
+    private Vector3[] cornerPositions;
 
-    void Start()
+    private void Awake()
     {
-        boidManager = FindObjectOfType<BoidManager>();
+        // Initialize corner positions
+        cornerPositions = new Vector3[4]
+        {
+            new Vector3(settings.cornerOffset, 0, settings.cornerOffset),   // Front Right
+            new Vector3(settings.cornerOffset, 0, -settings.cornerOffset),  // Back Right
+            new Vector3(-settings.cornerOffset, 0, settings.cornerOffset),  // Front Left
+            new Vector3(-settings.cornerOffset, 0, -settings.cornerOffset)  // Back Left
+        };
+    }
+
+    private void Start()
+    {
+        // Find BoidManager if not assigned
+        if (boidManager == null)
+        {
+            boidManager = FindObjectOfType<BoidManager>();
+        }
+
+        // Get BoidSettings from BoidManager if not assigned
         if (boidSettings == null && boidManager != null)
         {
             boidSettings = boidManager.settings;
         }
 
-        if (boidSettings != null)
+        if (boidSettings == null)
         {
-            originalMinSpeed = boidSettings.minSpeed;
-            originalMaxSpeed = boidSettings.maxSpeed;
+            Debug.LogError("BoidSettings not found! Please assign BoidSettings in the inspector or ensure BoidManager exists in the scene.");
+            return;
         }
 
-        // Calculate corner positions
-        cornerPositions = new Vector3[4]
-        {
-            new Vector3(cornerOffset, 0, cornerOffset),   // Front Right
-            new Vector3(cornerOffset, 0, -cornerOffset),  // Back Right
-            new Vector3(-cornerOffset, 0, cornerOffset),  // Front Left
-            new Vector3(-cornerOffset, 0, -cornerOffset)  // Back Left
-        };
+        // Store original speeds
+        originalMinSpeed = boidSettings.minSpeed;
+        originalMaxSpeed = boidSettings.maxSpeed;
     }
 
     public void StartTransition()
     {
-        if (!isTransitioning)
+        if (!isTransitioning && boidSettings != null)
         {
             StartCoroutine(TransitionSequence());
+        }
+        else if (boidSettings == null)
+        {
+            Debug.LogError("Cannot start transition: BoidSettings is null!");
         }
     }
 
@@ -54,17 +83,20 @@ public class GameModeTransitionManager : MonoBehaviour
     {
         isTransitioning = true;
 
-        // Wait for 10 seconds
-        yield return new WaitForSeconds(10f);
+        // Initial wait
+        yield return new WaitForSeconds(settings.initialWaitTime);
 
-        // Gradually increase boid speed over 5 seconds
-        float elapsedTime = 0f;
+        // Store initial speeds
         float initialMinSpeed = boidSettings.minSpeed;
         float initialMaxSpeed = boidSettings.maxSpeed;
 
-        while (elapsedTime < 5f)
+        // Gradually increase speed
+        float elapsedTime = 0f;
+        while (elapsedTime < settings.speedTransitionDuration)
         {
-            float speedIncrease = (elapsedTime / 5f) * maxSpeedIncrease;
+            float t = elapsedTime / settings.speedTransitionDuration;
+            float speedIncrease = t * settings.maxSpeedIncrease;
+            
             boidSettings.minSpeed = initialMinSpeed + speedIncrease;
             boidSettings.maxSpeed = initialMaxSpeed + speedIncrease;
             
@@ -72,11 +104,11 @@ public class GameModeTransitionManager : MonoBehaviour
             yield return null;
         }
 
-        // Reset speeds to original values
+        // Reset speeds
         boidSettings.minSpeed = originalMinSpeed;
         boidSettings.maxSpeed = originalMaxSpeed;
 
-        // Spawn cone in random corner
+        // Spawn cone
         SpawnCone();
 
         isTransitioning = false;
@@ -84,23 +116,22 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void SpawnCone()
     {
-        if (conePrefab != null)
+        if (conePrefab == null)
         {
-            // Pick a random corner
-            int randomCorner = Random.Range(0, 4);
-            Vector3 spawnPosition = cornerPositions[randomCorner];
-
-            // Instantiate the cone
-            GameObject cone = Instantiate(conePrefab, spawnPosition, Quaternion.identity);
-            
-            // Point the cone towards the center
-            cone.transform.LookAt(Vector3.zero);
-            // Adjust rotation to point upward
-            cone.transform.Rotate(90f, 0f, 0f);
+            Debug.LogError("Cannot spawn cone: conePrefab is not assigned!");
+            return;
         }
-        else
+
+        // Pick a random corner
+        int randomCorner = Random.Range(0, cornerPositions.Length);
+        Vector3 spawnPosition = cornerPositions[randomCorner];
+
+        // Instantiate and orient the cone
+        GameObject cone = Instantiate(conePrefab, spawnPosition, Quaternion.identity);
+        if (cone != null)
         {
-            Debug.LogError("Cone prefab not assigned to GameModeTransitionManager!");
+            cone.transform.LookAt(Vector3.zero);
+            cone.transform.Rotate(90f, 0f, 0f);
         }
     }
 }

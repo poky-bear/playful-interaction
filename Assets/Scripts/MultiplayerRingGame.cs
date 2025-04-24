@@ -997,6 +997,7 @@ public class MultiplayerRingGame : MonoBehaviour
             else
             {
                 Debug.LogWarning("TransitionManager not assigned to MultiplayerRingGame!");
+            }
         }
         else
         {
