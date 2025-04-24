@@ -42,7 +42,7 @@ public class PredatorRingGame : MonoBehaviour
     private bool player2IsExpanding = false;
     private bool player1Ready = false;
     private bool player2Ready = false;
-    private float expandSpeed = 5f;
+    private float expandSpeed = 1.0f; // Match RingGameController's expansion speed
     private float maxRadius = 5f;
     
     void Start()
@@ -113,32 +113,26 @@ public class PredatorRingGame : MonoBehaviour
         if (player1IsExpanding)
         {
             player1CurrentRadius += expandSpeed * Time.deltaTime;
-            if (player1CurrentRadius > maxRadius)
-            {
-                player1CurrentRadius = 0f;
-                player1IsExpanding = false;
-                player1ExpandingCircle.SetActive(false);
-            }
-            player1ExpandingCircle.transform.localScale = Vector3.one * player1CurrentRadius * 2f;
+            player1ExpandingCircle.transform.localScale = Vector3.one * player1CurrentRadius;
+            player1ExpandingCircle.transform.position = player1Sphere.transform.position;
         }
         
         if (player2IsExpanding)
         {
             player2CurrentRadius += expandSpeed * Time.deltaTime;
-            if (player2CurrentRadius > maxRadius)
-            {
-                player2CurrentRadius = 0f;
-                player2IsExpanding = false;
-                player2ExpandingCircle.SetActive(false);
-            }
-            player2ExpandingCircle.transform.localScale = Vector3.one * player2CurrentRadius * 2f;
+            player2ExpandingCircle.transform.localScale = Vector3.one * player2CurrentRadius;
+            player2ExpandingCircle.transform.position = player2Sphere.transform.position;
         }
         
-        // Update expanding circle positions
-        if (player1ExpandingCircle != null)
+        // Always keep circles centered on players, even when not expanding
+        if (player1ExpandingCircle.activeSelf)
+        {
             player1ExpandingCircle.transform.position = player1Sphere.transform.position;
-        if (player2ExpandingCircle != null)
+        }
+        if (player2ExpandingCircle.activeSelf)
+        {
             player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        }
     }
     
     void SpawnNewRings()
@@ -310,16 +304,18 @@ public class PredatorRingGame : MonoBehaviour
     
     void StartPlayer1Expanding()
     {
-        player1CurrentRadius = 0f;
+        player1CurrentRadius = 0.1f; // Start with small radius like RingGameController
         player1IsExpanding = true;
         player1ExpandingCircle.SetActive(true);
+        player1ExpandingCircle.transform.position = player1Sphere.transform.position;
     }
     
     void StartPlayer2Expanding()
     {
-        player2CurrentRadius = 0f;
+        player2CurrentRadius = 0.1f; // Start with small radius like RingGameController
         player2IsExpanding = true;
         player2ExpandingCircle.SetActive(true);
+        player2ExpandingCircle.transform.position = player2Sphere.transform.position;
     }
     
     void CheckPlayer1Hit()
