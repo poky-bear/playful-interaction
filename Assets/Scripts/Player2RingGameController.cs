@@ -43,37 +43,6 @@ public class Player2RingGameController : MonoBehaviour
     private Material[] originalMaterials = new Material[3];
     private Material[] ringMaterials = new Material[3];
 
-    private IEnumerator WaitForRingsInitialization()
-    {
-        // Wait for ConcentricRings to be ready
-        while (concentricRings == null || concentricRings.rings == null || concentricRings.rings.Length == 0)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-
-        // Initialize rings array and materials
-        rings = concentricRings.rings;
-        for (int i = 0; i < rings.Length; i++)
-        {
-            if (rings[i] != null)
-            {
-                Renderer renderer = rings[i].GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    // Store original material
-                    originalMaterials[i] = renderer.material;
-                    
-                    // Create new material instance
-                    ringMaterials[i] = new Material(originalMaterials[i]);
-                    renderer.material = ringMaterials[i];
-                }
-            }
-        }
-
-        // Now that rings are initialized, start the game
-        InitializeGame();
-    }
-
     void Start()
     {
         // Find ConcentricRings component if not assigned
@@ -103,11 +72,14 @@ public class Player2RingGameController : MonoBehaviour
             }
         }
 
+        // Wait for the ConcentricRings to initialize
+        StartCoroutine(WaitForRingsInitialization());
+
         // Create expanding circle
         CreateExpandingCircle();
         
-        // Start waiting for rings initialization
-        StartCoroutine(WaitForRingsInitialization());
+        // Initialize the game
+        InitializeGame();
     }
 
     void CreateExpandingCircle()
@@ -213,7 +185,7 @@ public class Player2RingGameController : MonoBehaviour
 
     void SetRingColor(int ringIndex, Color color)
     {
-        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null && ringMaterials[ringIndex] != null)
+        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
         {
             ringMaterials[ringIndex].color = color;
             
@@ -228,15 +200,6 @@ public class Player2RingGameController : MonoBehaviour
                 ringMaterials[ringIndex].DisableKeyword("_EMISSION");
             }
         }
-    }
-    
-    float GetRingRadius(int ringIndex)
-    {
-        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
-        {
-            return rings[ringIndex].transform.localScale.x / 2f;
-        }
-        return 0f;
     }
 
     void Update()
