@@ -4,16 +4,22 @@ public class PredatorBehavior : MonoBehaviour
 {
     [Header("Movement Settings")]
     [Tooltip("Base movement speed")]
-    public float moveSpeed = 2f;  // Slower than player speed
+    public float moveSpeed = 3.5f;  // Slightly slower than player speed
     
     [Tooltip("How fast the predator orbits around the target")]
-    public float orbitSpeed = 30f;  // Degrees per second
+    public float orbitSpeed = 120f;  // Degrees per second - faster orbit
     
     [Tooltip("How quickly the predator closes in on the target")]
-    public float closingSpeed = 0.1f;  // Units per second
+    public float closingSpeed = 0.5f;  // Units per second - more aggressive closing
     
     [Tooltip("Minimum distance to maintain from target while orbiting")]
-    public float minOrbitDistance = 2f;
+    public float minOrbitDistance = 1.5f;  // Get closer to player
+    
+    [Tooltip("Initial orbit radius when targeting a player")]
+    public float initialOrbitRadius = 5f;  // Start circling from this distance
+    
+    [Tooltip("How quickly the predator moves to its orbit position")]
+    public float orbitPositionSpeed = 5f;  // Quick movement to orbit position
     
     [Header("References")]
     public GameObject player1;
@@ -38,8 +44,10 @@ public class PredatorBehavior : MonoBehaviour
         UpdateTargetPlayer();
         if (currentTarget != null)
         {
-            currentOrbitRadius = Vector3.Distance(transform.position, currentTarget.transform.position);
-            Debug.Log($"[Predator] Initial orbit radius: {currentOrbitRadius}");
+            // Start at the initial orbit radius or current distance, whichever is larger
+            float currentDistance = Vector3.Distance(transform.position, currentTarget.transform.position);
+            currentOrbitRadius = Mathf.Max(initialOrbitRadius, currentDistance);
+            Debug.Log($"[Predator] Initial orbit radius set to {currentOrbitRadius:F1} units");
         }
         
         Debug.Log($"[Predator] Starting to track players. Initial target: {(currentTarget != null ? currentTarget.name : "none")}");
@@ -58,12 +66,27 @@ public class PredatorBehavior : MonoBehaviour
         
         if (currentTarget != null)
         {
-            // Calculate orbit position
             Vector3 targetPos = currentTarget.transform.position;
             Vector3 startPos = transform.position;
-            
-            // Update orbit angle
-            orbitAngle += orbitSpeed * Time.deltaTime;
+            float distanceToTarget = Vector3.Distance(startPos, targetPos);
+
+            // If we're too far from target, move directly towards it first
+            if (distanceToTarget > initialOrbitRadius * 1.5f)
+            {
+                Vector3 directPath = Vector3.MoveTowards(startPos, targetPos, moveSpeed * Time.deltaTime);
+                transform.position = directPath;
+                transform.LookAt(targetPos);
+                
+                if (Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"[Predator] Moving directly to target. Distance: {distanceToTarget:F1}");
+                }
+                return;
+            }
+
+            // Update orbit angle - faster when closer to target
+            float speedMultiplier = 1f + (1f - (currentOrbitRadius / initialOrbitRadius));
+            orbitAngle += (orbitSpeed * speedMultiplier) * Time.deltaTime;
             if (orbitAngle >= 360f) orbitAngle -= 360f;
             
             // Calculate desired position on orbit
@@ -74,18 +97,28 @@ public class PredatorBehavior : MonoBehaviour
                 Mathf.Sin(radian) * currentOrbitRadius
             );
             
-            // Gradually reduce orbit radius
-            float oldRadius = currentOrbitRadius;
-            currentOrbitRadius = Mathf.Max(minOrbitDistance, currentOrbitRadius - (closingSpeed * Time.deltaTime));
+            // Gradually reduce orbit radius, faster when player is moving
+            Vector3 targetVelocity = (targetPos - currentTarget.transform.position) / Time.deltaTime;
+            float closingMultiplier = 1f + (targetVelocity.magnitude * 0.1f);
+            currentOrbitRadius = Mathf.Max(minOrbitDistance, 
+                currentOrbitRadius - (closingSpeed * closingMultiplier * Time.deltaTime));
             
-            // Set position and look at target
+            // Calculate and move to desired position
             Vector3 desiredPosition = targetPos + orbitOffset;
             transform.position = Vector3.MoveTowards(
                 transform.position,
                 desiredPosition,
-                moveSpeed * Time.deltaTime
+                orbitPositionSpeed * Time.deltaTime
             );
-            transform.LookAt(targetPos);
+
+            // Look slightly ahead in the orbit for smoother rotation
+            float lookAheadAngle = radian + (30f * Mathf.Deg2Rad);
+            Vector3 lookAheadPoint = targetPos + new Vector3(
+                Mathf.Cos(lookAheadAngle) * currentOrbitRadius,
+                0f,
+                Mathf.Sin(lookAheadAngle) * currentOrbitRadius
+            );
+            transform.LookAt(lookAheadPoint);
 
             // Log movement details every few frames
             if (Time.frameCount % 60 == 0)  // Log once per second at 60 fps
@@ -111,7 +144,9 @@ public class PredatorBehavior : MonoBehaviour
         if (newTarget != currentTarget)
         {
             currentTarget = newTarget;
-            Debug.Log($"[Predator] Switching target to {currentTarget.name}");
+            // Reset orbit radius when switching targets to start the circling pattern again
+            currentOrbitRadius = initialOrbitRadius;
+            Debug.Log($"[Predator] Switching target to {currentTarget.name}, starting orbit at radius {currentOrbitRadius:F1}");
         }
     }
     
