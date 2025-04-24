@@ -9,8 +9,14 @@ public class PredatorRingGame : MonoBehaviour
     [Tooltip("Maximum distance from players to spawn rings")]
     public float maxSpawnDistance = 15f;
     
-    [Tooltip("Color for the predator mode rings")]
-    public Color ringColor = new Color(1f, 0.2f, 0.2f, 1f); // Red color for predator mode
+    [Tooltip("Color for active rings")]
+    public Color activeRingColor = new Color(1f, 0.2f, 0.2f, 1f); // Red color for active ring
+    
+    [Tooltip("Color for inactive rings")]
+    public Color inactiveRingColor = new Color(0.2f, 0.2f, 0.2f, 0.6f); // Dark color for inactive rings
+    
+    [Tooltip("Tolerance for hitting the active ring")]
+    public float hitTolerance = 0.5f;
     
     [Tooltip("Success message when all rings are completed")]
     public string successMessage = "Rings completed! Keep running!";
@@ -43,7 +49,7 @@ public class PredatorRingGame : MonoBehaviour
     private bool player1Ready = false;
     private bool player2Ready = false;
     private float expandSpeed = 1.0f; // Match RingGameController's expansion speed
-    private float maxRadius = 5f;
+    private int[] ringOrder = new int[3]; // Order in which rings should be completed
     
     void Start()
     {
@@ -150,6 +156,10 @@ public class PredatorRingGame : MonoBehaviour
         float ringSpacing = 1.5f;
         float ringThickness = 0.2f;
         
+        // Generate random order for rings
+        int[] ringOrder = GenerateRandomOrder();
+        currentRingIndex = 0;
+        
         for (int i = 0; i < 3; i++)
         {
             float radius = baseRadius + (i * ringSpacing);
@@ -170,15 +180,47 @@ public class PredatorRingGame : MonoBehaviour
             Material ringMaterial = new Material(Shader.Find("Standard"));
             SetupTransparentMaterial(ringMaterial);
             
-            Color inactiveColor = new Color(0.2f, 0.2f, 0.2f, 0.6f);
-            ringMaterial.color = inactiveColor;
+            // Set initial color based on whether this is the first active ring
+            Color initialColor = (i == ringOrder[0]) ? activeRingColor : inactiveRingColor;
+            ringMaterial.color = initialColor;
             ringMaterial.EnableKeyword("_EMISSION");
-            ringMaterial.SetColor("_EmissionColor", inactiveColor * 0.3f);
+            ringMaterial.SetColor("_EmissionColor", initialColor * 0.3f);
             
             originalMaterials[i] = ringMaterial;
             ringMaterials[i] = new Material(ringMaterial);
             rings[i].GetComponent<Renderer>().material = ringMaterials[i];
         }
+        
+        Debug.Log($"[PredatorRingGame] Spawned new rings. Ring order: {ringOrder[0]}, {ringOrder[1]}, {ringOrder[2]}");
+    }
+    
+    int[] GenerateRandomOrder()
+    {
+        int[] order = { 0, 1, 2 };
+        
+        // Fisher-Yates shuffle
+        for (int i = order.Length - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            int temp = order[i];
+            order[i] = order[j];
+            order[j] = temp;
+        }
+        
+        return order;
+    }
+    
+    void SetRingColor(int ringIndex, Color color)
+    {
+        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
+        {
+            ringMaterials[ringIndex].color = color;
+            
+            // Set emission for better visibility
+            ringMaterials[ringIndex].EnableKeyword("_EMISSION");
+            ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.3f);
+        }
+    }
     }
     
     Vector3 GetRandomSpawnPosition()
@@ -322,15 +364,30 @@ public class PredatorRingGame : MonoBehaviour
     {
         if (currentRingIndex >= rings.Length) return;
         
-        float ringRadius = 2.0f + (currentRingIndex * 1.5f);
-        float tolerance = 0.3f;
+        // Get the radius of the current active ring
+        float ringRadius = 2.0f + (ringOrder[currentRingIndex] * 1.5f);
         
-        if (Mathf.Abs(player1CurrentRadius - ringRadius) <= tolerance)
+        // Check if the expanding circle matches the ring size
+        if (Mathf.Abs(player1CurrentRadius - ringRadius) <= hitTolerance)
         {
             player1Ready = true;
             CheckRingCompletion();
         }
+        else
+        {
+            // Show feedback on how close they were
+            float distanceFromTarget = Mathf.Abs(player1CurrentRadius - ringRadius);
+            if (distanceFromTarget < hitTolerance * 2)
+            {
+                Debug.Log($"[Player 1] Close! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+            }
+            else
+            {
+                Debug.Log($"[Player 1] Miss! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+            }
+        }
         
+        // Reset player 1's expanding circle
         player1CurrentRadius = 0f;
         player1IsExpanding = false;
         player1ExpandingCircle.SetActive(false);
@@ -340,15 +397,30 @@ public class PredatorRingGame : MonoBehaviour
     {
         if (currentRingIndex >= rings.Length) return;
         
-        float ringRadius = 2.0f + (currentRingIndex * 1.5f);
-        float tolerance = 0.3f;
+        // Get the radius of the current active ring
+        float ringRadius = 2.0f + (ringOrder[currentRingIndex] * 1.5f);
         
-        if (Mathf.Abs(player2CurrentRadius - ringRadius) <= tolerance)
+        // Check if the expanding circle matches the ring size
+        if (Mathf.Abs(player2CurrentRadius - ringRadius) <= hitTolerance)
         {
             player2Ready = true;
             CheckRingCompletion();
         }
+        else
+        {
+            // Show feedback on how close they were
+            float distanceFromTarget = Mathf.Abs(player2CurrentRadius - ringRadius);
+            if (distanceFromTarget < hitTolerance * 2)
+            {
+                Debug.Log($"[Player 2] Close! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+            }
+            else
+            {
+                Debug.Log($"[Player 2] Miss! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+            }
+        }
         
+        // Reset player 2's expanding circle
         player2CurrentRadius = 0f;
         player2IsExpanding = false;
         player2ExpandingCircle.SetActive(false);
@@ -359,8 +431,8 @@ public class PredatorRingGame : MonoBehaviour
         if (player1Ready && player2Ready && currentRingIndex < rings.Length)
         {
             // Both players hit the current ring correctly
-            ringMaterials[currentRingIndex].color = ringColor;
-            ringMaterials[currentRingIndex].SetColor("_EmissionColor", ringColor * 0.5f);
+            int currentRing = ringOrder[currentRingIndex];
+            SetRingColor(currentRing, activeRingColor); // Set current ring to active color
             
             currentRingIndex++;
             player1Ready = false;
@@ -370,6 +442,13 @@ public class PredatorRingGame : MonoBehaviour
             {
                 // All rings completed
                 OnRingsCompleted();
+            }
+            else
+            {
+                // Activate next ring in sequence
+                int nextRing = ringOrder[currentRingIndex];
+                SetRingColor(nextRing, activeRingColor);
+                Debug.Log($"Ring {currentRing} completed! Next ring: {nextRing}");
             }
         }
     }
