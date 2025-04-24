@@ -33,21 +33,21 @@ public class GameModeTransitionManager : MonoBehaviour
     public Color cubeColor = Color.red;
     
     [Header("Predator Movement")]
-    [Tooltip("Base movement speed of the predator (default: 3.5)")]
-    [Range(1f, 10f)]
-    public float predatorSpeed = 3.5f;
+    [Tooltip("Maximum speed of the predator")]
+    [Range(1f, 5f)]
+    public float predatorMaxSpeed = 2f;
     
-    [Tooltip("Multiplier for predator speed (1 = normal, 2 = twice as fast)")]
-    [Range(0.1f, 5f)]
-    public float predatorSpeedMultiplier = 1f;
+    [Tooltip("Minimum speed of the predator")]
+    [Range(0.5f, 2f)]
+    public float predatorMinSpeed = 1f;
     
-    [Tooltip("How fast the predator orbits around the target (degrees/second)")]
-    [Range(30f, 360f)]
-    public float orbitSpeed = 120f;
-    
-    [Tooltip("How quickly the predator closes in on the target")]
+    [Tooltip("How strongly the predator steers")]
     [Range(0.1f, 2f)]
-    public float closingSpeed = 0.5f;
+    public float predatorSteerForce = 1f;
+    
+    [Tooltip("How strongly the predator is attracted to players")]
+    [Range(0.1f, 1f)]
+    public float predatorAttractionWeight = 0.5f;
 
     private BoidManager boidManager;
     private float originalMinSpeed;
@@ -212,14 +212,14 @@ public class GameModeTransitionManager : MonoBehaviour
             predator.player1 = player1;
             predator.player2 = player2;
             
-            // Apply speed settings with multiplier
-            predator.moveSpeed = predatorSpeed * predatorSpeedMultiplier;
-            predator.orbitSpeed = orbitSpeed * predatorSpeedMultiplier;
-            predator.closingSpeed = closingSpeed * predatorSpeedMultiplier;
+            // Apply movement settings
+            predator.maxSpeed = predatorMaxSpeed;
+            predator.minSpeed = predatorMinSpeed;
+            predator.maxSteerForce = predatorSteerForce;
+            predator.attractionWeight = predatorAttractionWeight;
             
-            Debug.Log($"[Transition] Configured predator with speeds - Movement: {predator.moveSpeed:F1}, " +
-                     $"Orbit: {predator.orbitSpeed:F1}, Closing: {predator.closingSpeed:F1} " +
-                     $"(Multiplier: {predatorSpeedMultiplier:F1}x)");
+            Debug.Log($"[Transition] Configured predator - Speed: {predator.maxSpeed:F1} to {predator.minSpeed:F1}, " +
+                     $"Steer: {predator.maxSteerForce:F1}, Attraction: {predator.attractionWeight:F1}");
             
             Debug.Log($"[Transition] Predator cube spawned successfully and will begin hunting players");
         }
