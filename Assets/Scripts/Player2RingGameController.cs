@@ -407,7 +407,8 @@ public class Player2RingGameController : MonoBehaviour
         }
     }
     
-    private IEnumerator ShowHitFeedback(float distanceFromTarget, float targetRadius)
+    // Coroutine to show visual feedback of how close the hit was
+    private System.Collections.IEnumerator ShowHitFeedback(float distanceFromTarget, float targetRadius)
     {
         // Keep the expanding circle visible for feedback
         Color feedbackColor;
@@ -454,8 +455,81 @@ public class Player2RingGameController : MonoBehaviour
             yield return null;
         }
         
-        // Hide the expanding circle after feedback
-        expandingCircle.SetActive(false);
-        currentRadius = 0f;
+        // Only hide the expanding circle if we're not moving to the next ring
+        // (for successful hits, we already hide it in CheckHit)
+        if (distanceFromTarget >= hitTolerance)
+        {
+            // Hide the expanding circle
+            expandingCircle.SetActive(false);
+            
+            // Reset the expanding circle for the next attempt
+            currentRadius = 0f;
+        }
+        
+        // Reset the expanding circle material color back to dark
+        expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
+    }
+    
+    float GetRingRadius(int ringIndex)
+    {
+        // Use the same radius calculation as in ConcentricRings.CreateRings
+        // This ensures we're using the exact same radius values
+        return concentricRings.sphereRadius + concentricRings.minDistanceToFirstRing + (ringIndex * concentricRings.ringSpacing);
+    }
+
+    // Reset the game
+    public void ResetGame()
+    {
+        // Hide the cube when resetting the game
+        if (cubeObject != null)
+        {
+            cubeObject.SetActive(false);
+        }
+
+        InitializeGame();
+    }
+
+    // Coroutine to wait for rings to be initialized by ConcentricRings
+    private System.Collections.IEnumerator WaitForRingsInitialization()
+    {
+        // Wait for the ConcentricRings to create the rings
+        yield return new WaitForSeconds(0.2f);
+
+        // Get references to the rings
+        rings = new GameObject[3];
+
+        // Use the rings array from ConcentricRings if available
+        if (concentricRings.rings[0] != null)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                rings[i] = concentricRings.rings[i];
+
+                // Store original materials
+                if (rings[i] != null)
+                {
+                    Renderer renderer = rings[i].GetComponent<Renderer>();
+                    originalMaterials[i] = renderer.material;
+
+                    // Create a new material instance to avoid modifying the original
+                    ringMaterials[i] = new Material(originalMaterials[i]);
+                    renderer.material = ringMaterials[i];
+                }
+
+                // Log the ring radius for debugging
+                float ringRadius = GetRingRadius(i);
+                Debug.Log("Player 2 Ring " + i + " radius: " + ringRadius);
+            }
+
+            // Log sphere radius for debugging
+            Debug.Log("Player 2 Sphere radius from ConcentricRings: " + concentricRings.sphereRadius);
+
+            // Initialize the game once rings are ready
+            InitializeGame();
+        }
+        else
+        {
+            Debug.LogError("Player 2: Rings not found in ConcentricRings component!");
+        }
     }
 }
