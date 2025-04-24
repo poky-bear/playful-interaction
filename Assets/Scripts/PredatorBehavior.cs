@@ -6,20 +6,17 @@ public class PredatorBehavior : MonoBehaviour
     [Tooltip("Base movement speed")]
     public float moveSpeed = 3.5f;  // Slightly slower than player speed
     
+    [Tooltip("Distance at which predator starts orbiting")]
+    public float orbitStartDistance = 5f;  // When to start orbiting
+    
     [Tooltip("How fast the predator orbits around the target")]
-    public float orbitSpeed = 120f;  // Degrees per second - faster orbit
+    public float orbitSpeed = 180f;  // Degrees per second - faster orbit
     
     [Tooltip("How quickly the predator closes in on the target")]
-    public float closingSpeed = 0.5f;  // Units per second - more aggressive closing
+    public float closingSpeed = 0.8f;  // Units per second - aggressive closing
     
-    [Tooltip("Minimum distance to maintain from target while orbiting")]
-    public float minOrbitDistance = 1.5f;  // Get closer to player
-    
-    [Tooltip("Initial orbit radius when targeting a player")]
-    public float initialOrbitRadius = 5f;  // Start circling from this distance
-    
-    [Tooltip("How quickly the predator moves to its orbit position")]
-    public float orbitPositionSpeed = 5f;  // Quick movement to orbit position
+    [Tooltip("Minimum distance before considering it a 'hit'")]
+    public float hitDistance = 0.5f;  // Distance to count as touching
     
     [Header("References")]
     public GameObject player1;
@@ -70,66 +67,72 @@ public class PredatorBehavior : MonoBehaviour
             Vector3 startPos = transform.position;
             float distanceToTarget = Vector3.Distance(startPos, targetPos);
 
-            // If we're too far from target, move directly towards it first
-            if (distanceToTarget > initialOrbitRadius * 1.5f)
+            // Check if we've hit the player
+            if (distanceToTarget <= hitDistance)
             {
+                OnCollisionWithPlayer(currentTarget);
+                return;
+            }
+
+            // If we're outside orbit range, move directly towards target
+            if (distanceToTarget > orbitStartDistance)
+            {
+                // Direct pursuit mode
                 Vector3 directPath = Vector3.MoveTowards(startPos, targetPos, moveSpeed * Time.deltaTime);
                 transform.position = directPath;
                 transform.LookAt(targetPos);
                 
                 if (Time.frameCount % 60 == 0)
                 {
-                    Debug.Log($"[Predator] Moving directly to target. Distance: {distanceToTarget:F1}");
+                    Debug.Log($"[Predator] Direct pursuit. Distance: {distanceToTarget:F1}");
                 }
-                return;
             }
-
-            // Update orbit angle - faster when closer to target
-            float speedMultiplier = 1f + (1f - (currentOrbitRadius / initialOrbitRadius));
-            orbitAngle += (orbitSpeed * speedMultiplier) * Time.deltaTime;
-            if (orbitAngle >= 360f) orbitAngle -= 360f;
-            
-            // Calculate desired position on orbit
-            float radian = orbitAngle * Mathf.Deg2Rad;
-            Vector3 orbitOffset = new Vector3(
-                Mathf.Cos(radian) * currentOrbitRadius,
-                0f,
-                Mathf.Sin(radian) * currentOrbitRadius
-            );
-            
-            // Gradually reduce orbit radius, faster when player is moving
-            Vector3 targetVelocity = (targetPos - currentTarget.transform.position) / Time.deltaTime;
-            float closingMultiplier = 1f + (targetVelocity.magnitude * 0.1f);
-            currentOrbitRadius = Mathf.Max(minOrbitDistance, 
-                currentOrbitRadius - (closingSpeed * closingMultiplier * Time.deltaTime));
-            
-            // Calculate and move to desired position
-            Vector3 desiredPosition = targetPos + orbitOffset;
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                desiredPosition,
-                orbitPositionSpeed * Time.deltaTime
-            );
-
-            // Look slightly ahead in the orbit for smoother rotation
-            float lookAheadAngle = radian + (30f * Mathf.Deg2Rad);
-            Vector3 lookAheadPoint = targetPos + new Vector3(
-                Mathf.Cos(lookAheadAngle) * currentOrbitRadius,
-                0f,
-                Mathf.Sin(lookAheadAngle) * currentOrbitRadius
-            );
-            transform.LookAt(lookAheadPoint);
-
-            // Log movement details every few frames
-            if (Time.frameCount % 60 == 0)  // Log once per second at 60 fps
+            else
             {
-                Debug.Log($"[Predator] Movement - Target: {currentTarget.name}, " +
-                         $"Distance: {Vector3.Distance(transform.position, targetPos):F2}, " +
-                         $"Orbit Radius: {currentOrbitRadius:F2}, " +
-                         $"Speed: {moveSpeed:F2}, " +
-                         $"Movement: {(transform.position - startPos).magnitude:F2}");
+                // Orbital attack mode
+                // Update orbit angle - faster when closer to target
+                float speedMultiplier = 1f + ((orbitStartDistance - distanceToTarget) / orbitStartDistance);
+                orbitAngle += (orbitSpeed * speedMultiplier) * Time.deltaTime;
+                if (orbitAngle >= 360f) orbitAngle -= 360f;
+                
+                // Calculate current orbit radius and desired position
+                float currentRadius = distanceToTarget;
+                float radian = orbitAngle * Mathf.Deg2Rad;
+                Vector3 orbitOffset = new Vector3(
+                    Mathf.Cos(radian) * currentRadius,
+                    0f,
+                    Mathf.Sin(radian) * currentRadius
+                );
+                
+                // Calculate next position, moving both around and towards the target
+                Vector3 orbitPosition = targetPos + orbitOffset;
+                Vector3 nextPos = Vector3.MoveTowards(
+                    orbitPosition, 
+                    targetPos, 
+                    closingSpeed * Time.deltaTime
+                );
+                
+                // Move to the calculated position
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    nextPos,
+                    moveSpeed * Time.deltaTime
+                );
+                
+                // Always look at target during orbital attack
+                transform.LookAt(targetPos);
+                
+                if (Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"[Predator] Orbital attack. Distance: {distanceToTarget:F1}, Speed Multiplier: {speedMultiplier:F1}");
+                }
             }
         }
+
+    private void OnCollisionWithPlayer(GameObject player)
+    {
+        totalHits++;
+        Debug.Log($"[Predator] Hit player {player.name}! Total hits: {totalHits}");
     }
     
     private void UpdateTargetPlayer()
