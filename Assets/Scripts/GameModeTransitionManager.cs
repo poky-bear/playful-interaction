@@ -82,6 +82,7 @@ public class GameModeTransitionManager : MonoBehaviour
     private IEnumerator TransitionSequence()
     {
         isTransitioning = true;
+        Debug.Log("[Transition] Starting transition sequence - waiting for " + settings.initialWaitTime + " seconds");
 
         // Initial wait
         yield return new WaitForSeconds(settings.initialWaitTime);
@@ -89,6 +90,7 @@ public class GameModeTransitionManager : MonoBehaviour
         // Store initial speeds
         float initialMinSpeed = boidSettings.minSpeed;
         float initialMaxSpeed = boidSettings.maxSpeed;
+        Debug.Log("[Transition] Starting speed increase - Initial speeds: Min=" + initialMinSpeed + ", Max=" + initialMaxSpeed);
 
         // Gradually increase speed
         float elapsedTime = 0f;
@@ -100,10 +102,18 @@ public class GameModeTransitionManager : MonoBehaviour
             boidSettings.minSpeed = initialMinSpeed + speedIncrease;
             boidSettings.maxSpeed = initialMaxSpeed + speedIncrease;
             
+            // Log speed changes at 25%, 50%, and 75% of the transition
+            if (Mathf.Approximately(t, 0.25f) || Mathf.Approximately(t, 0.5f) || Mathf.Approximately(t, 0.75f))
+            {
+                Debug.Log($"[Transition] Speed increase progress {t*100}% - Current speeds: Min={boidSettings.minSpeed:F2}, Max={boidSettings.maxSpeed:F2}");
+            }
+            
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
+        Debug.Log("[Transition] Speed increase complete - Resetting to original speeds");
+        
         // Reset speeds
         boidSettings.minSpeed = originalMinSpeed;
         boidSettings.maxSpeed = originalMaxSpeed;
@@ -111,6 +121,7 @@ public class GameModeTransitionManager : MonoBehaviour
         // Spawn cone
         SpawnCone();
 
+        Debug.Log("[Transition] Transition sequence complete");
         isTransitioning = false;
     }
 
@@ -118,13 +129,16 @@ public class GameModeTransitionManager : MonoBehaviour
     {
         if (conePrefab == null)
         {
-            Debug.LogError("Cannot spawn cone: conePrefab is not assigned!");
+            Debug.LogError("[Transition] Cannot spawn cone: conePrefab is not assigned!");
             return;
         }
 
         // Pick a random corner
         int randomCorner = Random.Range(0, cornerPositions.Length);
         Vector3 spawnPosition = cornerPositions[randomCorner];
+        
+        string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
+        Debug.Log($"[Transition] Spawning cone in {cornerNames[randomCorner]} corner at position {spawnPosition}");
 
         // Instantiate and orient the cone
         GameObject cone = Instantiate(conePrefab, spawnPosition, Quaternion.identity);
@@ -132,6 +146,11 @@ public class GameModeTransitionManager : MonoBehaviour
         {
             cone.transform.LookAt(Vector3.zero);
             cone.transform.Rotate(90f, 0f, 0f);
+            Debug.Log($"[Transition] Cone spawned successfully and oriented towards center");
+        }
+        else
+        {
+            Debug.LogError("[Transition] Failed to spawn cone!");
         }
     }
 }
