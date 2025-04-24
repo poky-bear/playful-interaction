@@ -93,17 +93,22 @@ public class Boid : MonoBehaviour {
         }
 
         if (numPerceivedFlockmates != 0) {
-            // Calculate center based on target if available, otherwise use flockmate average
-            Vector3 center = (target != null) ? target.position : (centreOfFlockmates / numPerceivedFlockmates);
+            // Calculate center based on flockmate average
+            Vector3 center = centreOfFlockmates / numPerceivedFlockmates;
             Vector3 offsetToCenter = (center - position);
 
-            var alignmentForce = SteerTowards (avgFlockHeading) * settings.alignWeight;
-            var cohesionForce = SteerTowards (offsetToCenter) * settings.cohesionWeight;
-            var seperationForce = SteerTowards (avgAvoidanceHeading) * settings.seperateWeight;
+            // Only apply forces if the vectors are valid (not NaN)
+            if (!float.IsNaN(avgFlockHeading.x) && !float.IsNaN(offsetToCenter.x) && !float.IsNaN(avgAvoidanceHeading.x)) {
+                var alignmentForce = SteerTowards(avgFlockHeading) * settings.alignWeight;
+                var cohesionForce = SteerTowards(offsetToCenter) * settings.cohesionWeight;
+                var seperationForce = SteerTowards(avgAvoidanceHeading) * settings.seperateWeight;
 
-            acceleration += alignmentForce;
-            acceleration += cohesionForce;
-            acceleration += seperationForce;
+                acceleration += alignmentForce;
+                acceleration += cohesionForce;
+                acceleration += seperationForce;
+            } else {
+                Debug.LogWarning($"[Boid] Invalid force vectors detected. ID: {GetInstanceID()}, Pos: {position}");
+            }
         }
 
         if (IsHeadingForCollision ()) {
@@ -112,16 +117,41 @@ public class Boid : MonoBehaviour {
             acceleration += collisionAvoidForce;
         }
 
+        // Check for invalid acceleration
+        if (float.IsNaN(acceleration.x) || float.IsNaN(acceleration.y) || float.IsNaN(acceleration.z)) {
+            Debug.LogWarning($"[Boid] Invalid acceleration detected. ID: {GetInstanceID()}, Pos: {position}");
+            return;
+        }
+
         velocity += acceleration * Time.deltaTime;
         float speed = velocity.magnitude;
+        
+        // Prevent division by zero
+        if (speed < 0.0001f) {
+            Debug.LogWarning($"[Boid] Near-zero velocity detected. ID: {GetInstanceID()}, Pos: {position}");
+            return;
+        }
+
         Vector3 dir = velocity / speed;
-        speed = Mathf.Clamp (speed, settings.minSpeed, settings.maxSpeed);
+        speed = Mathf.Clamp(speed, settings.minSpeed, settings.maxSpeed);
         velocity = dir * speed;
 
-        cachedTransform.position += velocity * Time.deltaTime;
-        cachedTransform.forward = dir;
-        position = cachedTransform.position;
-        forward = dir;
+        // Final validation before applying movement
+        if (!float.IsNaN(velocity.x) && !float.IsNaN(velocity.y) && !float.IsNaN(velocity.z)) {
+            Vector3 newPosition = cachedTransform.position + velocity * Time.deltaTime;
+            
+            // Only update if the new position is valid
+            if (!float.IsNaN(newPosition.x) && !float.IsNaN(newPosition.y) && !float.IsNaN(newPosition.z)) {
+                cachedTransform.position = newPosition;
+                cachedTransform.forward = dir;
+                position = cachedTransform.position;
+                forward = dir;
+            } else {
+                Debug.LogWarning($"[Boid] Invalid position calculated. ID: {GetInstanceID()}, Current: {position}, Velocity: {velocity}");
+            }
+        } else {
+            Debug.LogWarning($"[Boid] Invalid velocity calculated. ID: {GetInstanceID()}, Pos: {position}, Acc: {acceleration}");
+        }
     }
 
     bool IsHeadingForCollision () {
@@ -146,9 +176,22 @@ public class Boid : MonoBehaviour {
         return forward;
     }
 
-    Vector3 SteerTowards (Vector3 vector) {
+    Vector3 SteerTowards(Vector3 vector) {
+        // Check for zero vector
+        if (vector.sqrMagnitude < 0.000001f) {
+            return Vector3.zero;
+        }
+
+        // Normalize and calculate steering force
         Vector3 v = vector.normalized * settings.maxSpeed - velocity;
-        return Vector3.ClampMagnitude (v, settings.maxSteerForce);
+        
+        // Validate result
+        if (float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z)) {
+            Debug.LogWarning($"[Boid] Invalid steering force calculated. ID: {GetInstanceID()}, Input: {vector}, Velocity: {velocity}");
+            return Vector3.zero;
+        }
+
+        return Vector3.ClampMagnitude(v, settings.maxSteerForce);
     }
 
 }
