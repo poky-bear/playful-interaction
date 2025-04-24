@@ -27,21 +27,21 @@ public class RingGameController : MonoBehaviour
     [Tooltip("Reference to the Cube object that will follow the sphere when game is completed")]
     public GameObject cubeObject;
     
-    // Private variables
-    private GameObject expandingCircle;
-    private Material expandingCircleMaterial;
-    private float currentRadius = 0f;
-    private bool isExpanding = false;
-    private int[] ringOrder = new int[3];
-    private int currentRingIndex = 0;
-    private bool gameCompleted = false;
+    // Protected variables accessible by derived classes
+    protected GameObject expandingCircle;
+    protected Material expandingCircleMaterial;
+    protected float currentRadius = 0f;
+    protected bool isExpanding = false;
+    protected int[] ringOrder = new int[3];
+    protected int currentRingIndex = 0;
+    protected bool gameCompleted = false;
+    protected GameObject[] rings;
+    protected Material[] originalMaterials = new Material[3];
+    protected Material[] ringMaterials = new Material[3];
     
     // Public properties for UI and other scripts
     public int CompletedRings { get { return currentRingIndex; } }
     public bool GameCompleted { get { return gameCompleted; } }
-    private GameObject[] rings;
-    private Material[] originalMaterials = new Material[3];
-    private Material[] ringMaterials = new Material[3];
 
     void Start()
     {
@@ -82,7 +82,7 @@ public class RingGameController : MonoBehaviour
         InitializeGame();
     }
 
-    void CreateExpandingCircle()
+    protected void CreateExpandingCircle()
     {
         // Create a sphere for the expanding circle
         expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -130,7 +130,7 @@ public class RingGameController : MonoBehaviour
         Debug.Log("Created expanding circle");
     }
 
-    void InitializeGame()
+    protected void InitializeGame()
     {
         // Generate random order for the rings
         ringOrder = GenerateRandomOrder();
@@ -167,7 +167,7 @@ public class RingGameController : MonoBehaviour
         Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
     }
 
-    int[] GenerateRandomOrder()
+    protected int[] GenerateRandomOrder()
     {
         int[] order = { 0, 1, 2 };
         
@@ -183,7 +183,7 @@ public class RingGameController : MonoBehaviour
         return order;
     }
 
-    void SetRingColor(int ringIndex, Color color)
+    protected void SetRingColor(int ringIndex, Color color)
     {
         if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
         {
@@ -438,7 +438,7 @@ public class RingGameController : MonoBehaviour
         expandingCircleMaterial.color = new Color(darkColor.r, darkColor.g, darkColor.b, 0.5f);
     }
     
-    float GetRingRadius(int ringIndex)
+    protected float GetRingRadius(int ringIndex)
     {
         // Use the same radius calculation as in ConcentricRings.CreateRings
         // This ensures we're using the exact same radius values
