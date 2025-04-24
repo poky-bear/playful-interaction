@@ -137,10 +137,11 @@ public class GameModeTransitionManager : MonoBehaviour
         Vector3 spawnPosition = cornerPositions[randomCorner];
         
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
-        Debug.Log($"[Transition] Spawning cube in {cornerNames[randomCorner]} corner at position {spawnPosition}");
+        Debug.Log($"[Transition] Spawning Predator cube in {cornerNames[randomCorner]} corner at position {spawnPosition}");
 
         // Create a cube primitive
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = "Predator";  // Name the cube "Predator"
         
         if (cube != null)
         {
@@ -160,11 +161,11 @@ public class GameModeTransitionManager : MonoBehaviour
                 cubeRenderer.material = cubeMaterial;
             }
             
-            Debug.Log($"[Transition] Cube spawned successfully and oriented towards center");
+            Debug.Log($"[Transition] Predator cube spawned successfully and oriented towards center");
         }
         else
         {
-            Debug.LogError("[Transition] Failed to spawn cube!");
+            Debug.LogError("[Transition] Failed to spawn Predator cube!");
         }
     }
 }
