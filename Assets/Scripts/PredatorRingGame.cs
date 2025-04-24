@@ -221,7 +221,6 @@ public class PredatorRingGame : MonoBehaviour
             ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.3f);
         }
     }
-    }
     
     Vector3 GetRandomSpawnPosition()
     {
