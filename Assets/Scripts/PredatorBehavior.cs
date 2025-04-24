@@ -3,6 +3,17 @@ using UnityEngine;
 public class PredatorBehavior : MonoBehaviour
 {
     [Header("Movement Settings")]
+    [Tooltip("Layer mask for obstacle detection")]
+    public LayerMask obstacleMask;
+    
+    [Tooltip("Radius for obstacle detection")]
+    public float boundsRadius = 0.5f;
+    
+    [Tooltip("Distance to look ahead for obstacles")]
+    public float collisionAvoidDst = 3f;
+    
+    [Tooltip("Weight of obstacle avoidance")]
+    public float avoidCollisionWeight = 2f;
     [Tooltip("Maximum movement speed")]
     public float maxSpeed = 2f;  // Slower than boids
     
@@ -71,35 +82,41 @@ public class PredatorBehavior : MonoBehaviour
             return;
         }
         
-        // Calculate attraction forces to both players
-        Vector3 attraction = Vector3.zero;
+        // Calculate target position (center between players if both in range)
+        Vector3 targetPos;
+        bool bothInRange = distToPlayer1 < attractionRadius && distToPlayer2 < attractionRadius;
         
-        // Add attraction to player1 if within radius
-        if (distToPlayer1 < attractionRadius)
-        {
-            Vector3 toPlayer1 = (player1Pos - currentPos).normalized;
-            float player1Strength = 1f - (distToPlayer1 / attractionRadius); // Stronger when closer
-            attraction += toPlayer1 * player1Strength;
+        if (bothInRange) {
+            // Use the midpoint between players as target
+            targetPos = (player1Pos + player2Pos) / 2f;
+        } else if (distToPlayer1 < attractionRadius) {
+            targetPos = player1Pos;
+        } else if (distToPlayer2 < attractionRadius) {
+            targetPos = player2Pos;
+        } else {
+            // If no players in range, maintain current velocity
+            targetPos = transform.position + velocity;
         }
+
+        // Calculate desired velocity towards target
+        Vector3 offsetToTarget = (targetPos - currentPos);
+        Vector3 desiredVelocity = offsetToTarget.normalized * maxSpeed;
         
-        // Add attraction to player2 if within radius
-        if (distToPlayer2 < attractionRadius)
-        {
-            Vector3 toPlayer2 = (player2Pos - currentPos).normalized;
-            float player2Strength = 1f - (distToPlayer2 / attractionRadius); // Stronger when closer
-            attraction += toPlayer2 * player2Strength;
+        // Calculate steering force
+        Vector3 steeringForce = Vector3.ClampMagnitude(desiredVelocity - velocity, maxSteerForce);
+        
+        // Apply smoother acceleration using attractionWeight
+        Vector3 acceleration = steeringForce * attractionWeight;
+        
+        // Check for obstacles and avoid if necessary
+        if (IsHeadingForCollision()) {
+            Vector3 collisionAvoidDir = ObstacleRays();
+            Vector3 collisionAvoidForce = SteerTowards(collisionAvoidDir) * avoidCollisionWeight;
+            acceleration += collisionAvoidForce;
         }
-        
-        // Apply attraction force
-        Vector3 steeringForce = Vector3.zero;
-        if (attraction != Vector3.zero)
-        {
-            Vector3 desiredVelocity = attraction.normalized * maxSpeed;
-            steeringForce = Vector3.ClampMagnitude(desiredVelocity - velocity, maxSteerForce);
-        }
-        
-        // Update velocity and position
-        velocity += steeringForce * attractionWeight * Time.deltaTime;
+
+        // Update velocity with smoothing
+        velocity = Vector3.Lerp(velocity, velocity + acceleration, Time.deltaTime * 5f);
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
         
         // Ensure minimum speed
@@ -111,6 +128,43 @@ public class PredatorBehavior : MonoBehaviour
         // Update position and rotation
         transform.position += velocity * Time.deltaTime;
         transform.forward = velocity.normalized;
+    }
+
+    private bool IsHeadingForCollision() {
+        RaycastHit hit;
+        return Physics.SphereCast(transform.position, boundsRadius, velocity.normalized, 
+            out hit, collisionAvoidDst, obstacleMask);
+    }
+
+    private Vector3 ObstacleRays() {
+        Vector3[] rayDirections = new Vector3[] {
+            transform.up,
+            transform.up + transform.right,
+            transform.up - transform.right,
+            transform.right,
+            -transform.right,
+            -transform.up + transform.right,
+            -transform.up - transform.right,
+            -transform.up
+        };
+
+        for (int i = 0; i < rayDirections.Length; i++) {
+            Vector3 dir = rayDirections[i].normalized;
+            Ray ray = new Ray(transform.position, dir);
+            if (!Physics.SphereCast(ray, boundsRadius, collisionAvoidDst, obstacleMask)) {
+                return dir;
+            }
+        }
+
+        return transform.forward;
+    }
+
+    private Vector3 SteerTowards(Vector3 vector) {
+        if (vector.sqrMagnitude < 0.000001f) {
+            return Vector3.zero;
+        }
+        Vector3 v = vector.normalized * maxSpeed - velocity;
+        return Vector3.ClampMagnitude(v, maxSteerForce);
         
         // Log status periodically
         if (Time.frameCount % 60 == 0)
