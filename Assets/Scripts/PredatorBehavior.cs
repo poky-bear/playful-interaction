@@ -128,6 +128,13 @@ public class PredatorBehavior : MonoBehaviour
         // Update position and rotation
         transform.position += velocity * Time.deltaTime;
         transform.forward = velocity.normalized;
+        
+        // Log status periodically
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[Predator] Status - Speed: {velocity.magnitude:F1}, " +
+                     $"Dist to P1: {distToPlayer1:F1}, Dist to P2: {distToPlayer2:F1}");
+        }
     }
 
     private bool IsHeadingForCollision() {
@@ -165,13 +172,6 @@ public class PredatorBehavior : MonoBehaviour
         }
         Vector3 v = vector.normalized * maxSpeed - velocity;
         return Vector3.ClampMagnitude(v, maxSteerForce);
-        
-        // Log status periodically
-        if (Time.frameCount % 60 == 0)
-        {
-            Debug.Log($"[Predator] Status - Speed: {velocity.magnitude:F1}, " +
-                     $"Dist to P1: {distToPlayer1:F1}, Dist to P2: {distToPlayer2:F1}");
-        }
     }
     
     private void OnCollisionWithPlayer(GameObject player)
