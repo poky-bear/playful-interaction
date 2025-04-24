@@ -31,12 +31,23 @@ public class GameModeTransitionManager : MonoBehaviour
     public Vector3 cubeScale = new Vector3(0.5f, 1f, 0.5f);
     [Tooltip("Color of the predator cube")]
     public Color cubeColor = Color.red;
-    [Tooltip("Speed of the predator (should be less than player speed)")]
-    public float predatorSpeed = 3f;
+    
+    [Header("Predator Movement")]
+    [Tooltip("Base movement speed of the predator (default: 3.5)")]
+    [Range(1f, 10f)]
+    public float predatorSpeed = 3.5f;
+    
+    [Tooltip("Multiplier for predator speed (1 = normal, 2 = twice as fast)")]
+    [Range(0.1f, 5f)]
+    public float predatorSpeedMultiplier = 1f;
+    
     [Tooltip("How fast the predator orbits around the target (degrees/second)")]
-    public float orbitSpeed = 90f;
+    [Range(30f, 360f)]
+    public float orbitSpeed = 120f;
+    
     [Tooltip("How quickly the predator closes in on the target")]
-    public float closingSpeed = 0.2f;
+    [Range(0.1f, 2f)]
+    public float closingSpeed = 0.5f;
 
     private BoidManager boidManager;
     private float originalMinSpeed;
@@ -200,9 +211,15 @@ public class GameModeTransitionManager : MonoBehaviour
             PredatorBehavior predator = cube.AddComponent<PredatorBehavior>();
             predator.player1 = player1;
             predator.player2 = player2;
-            predator.moveSpeed = predatorSpeed;
-            predator.orbitSpeed = orbitSpeed;
-            predator.closingSpeed = closingSpeed;
+            
+            // Apply speed settings with multiplier
+            predator.moveSpeed = predatorSpeed * predatorSpeedMultiplier;
+            predator.orbitSpeed = orbitSpeed * predatorSpeedMultiplier;
+            predator.closingSpeed = closingSpeed * predatorSpeedMultiplier;
+            
+            Debug.Log($"[Transition] Configured predator with speeds - Movement: {predator.moveSpeed:F1}, " +
+                     $"Orbit: {predator.orbitSpeed:F1}, Closing: {predator.closingSpeed:F1} " +
+                     $"(Multiplier: {predatorSpeedMultiplier:F1}x)");
             
             Debug.Log($"[Transition] Predator cube spawned successfully and will begin hunting players");
         }
