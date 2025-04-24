@@ -22,12 +22,20 @@ public class GameModeTransitionManager : MonoBehaviour
 
     [Header("References")]
     public BoidSettings boidSettings;
+    public GameObject player1;
+    public GameObject player2;
 
-    [Header("Cube Settings")]
-    [Tooltip("Scale of the spawned cube")]
+    [Header("Predator Settings")]
+    [Tooltip("Scale of the predator cube")]
     public Vector3 cubeScale = new Vector3(0.5f, 1f, 0.5f);
-    [Tooltip("Color of the spawned cube")]
-    public Color cubeColor = Color.white;
+    [Tooltip("Color of the predator cube")]
+    public Color cubeColor = Color.red;
+    [Tooltip("Speed of the predator (should be less than player speed)")]
+    public float predatorSpeed = 3f;
+    [Tooltip("How fast the predator orbits around the target (degrees/second)")]
+    public float orbitSpeed = 90f;
+    [Tooltip("How quickly the predator closes in on the target")]
+    public float closingSpeed = 0.2f;
 
     private BoidManager boidManager;
     private float originalMinSpeed;
@@ -161,7 +169,15 @@ public class GameModeTransitionManager : MonoBehaviour
                 cubeRenderer.material = cubeMaterial;
             }
             
-            Debug.Log($"[Transition] Predator cube spawned successfully and oriented towards center");
+            // Add and configure the predator behavior
+            PredatorBehavior predator = cube.AddComponent<PredatorBehavior>();
+            predator.player1 = player1;
+            predator.player2 = player2;
+            predator.moveSpeed = predatorSpeed;
+            predator.orbitSpeed = orbitSpeed;
+            predator.closingSpeed = closingSpeed;
+            
+            Debug.Log($"[Transition] Predator cube spawned successfully and will begin hunting players");
         }
         else
         {
