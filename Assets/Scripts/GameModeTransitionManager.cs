@@ -58,19 +58,21 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void Start()
     {
-        // Get references from parent object
-        if (transform.parent == null)
-        {
-            Debug.LogError("[Transition] GameModeTransitionManager must be a child object! Please make it a child of the MultiplayerController object.");
-            return;
-        }
-
-        multiplayerController = transform.parent.GetComponent<MultiplayerRingGame>();
+        // Get references from the scene
+        multiplayerController = GetComponentInParent<MultiplayerRingGame>();
         if (multiplayerController == null)
         {
-            Debug.LogError("[Transition] MultiplayerRingGame component not found on parent object! Make sure GameModeTransitionManager is a child of the MultiplayerController object.");
+            // Try finding it in the scene if not found in parent hierarchy
+            multiplayerController = FindObjectOfType<MultiplayerRingGame>();
+        }
+        
+        if (multiplayerController == null)
+        {
+            Debug.LogError("[Transition] MultiplayerRingGame component not found in scene! Please ensure there is a MultiplayerRingGame component in the scene.");
             return;
         }
+        
+        Debug.Log($"[Transition] Found MultiplayerRingGame component on {multiplayerController.gameObject.name}");
 
         // Get player references
         player1 = multiplayerController.player1Sphere;
