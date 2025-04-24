@@ -3593,8 +3593,8 @@ MonoBehaviour:
     speedTransitionDuration: 5
     maxSpeedIncrease: 10
     cornerOffset: 10
-  boidSettings: {fileID: 11400000, guid: 1234567890abcdef1234567890abcdef, type: 2}
-  conePrefab: {fileID: 1000000000, guid: 1234567890abcdef1234567890abcdef, type: 3}
+  boidSettings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
+  conePrefab: {fileID: 1000000000, guid: f4b9ec07f9f13214aa44153e0c72111b, type: 3}
 --- !u!1 &1237440463
 GameObject:
   m_ObjectHideFlags: 0
