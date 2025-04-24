@@ -43,7 +43,7 @@ public class PredatorBehavior : MonoBehaviour
         {
             // Start at the initial orbit radius or current distance, whichever is larger
             float currentDistance = Vector3.Distance(transform.position, currentTarget.transform.position);
-            currentOrbitRadius = Mathf.Max(initialOrbitRadius, currentDistance);
+            currentOrbitRadius = Mathf.Max(orbitStartDistance, currentDistance);
             Debug.Log($"[Predator] Initial orbit radius set to {currentOrbitRadius:F1} units");
         }
         
@@ -128,7 +128,8 @@ public class PredatorBehavior : MonoBehaviour
                 }
             }
         }
-
+    }
+    
     private void OnCollisionWithPlayer(GameObject player)
     {
         totalHits++;
@@ -148,19 +149,20 @@ public class PredatorBehavior : MonoBehaviour
         {
             currentTarget = newTarget;
             // Reset orbit radius when switching targets to start the circling pattern again
-            currentOrbitRadius = initialOrbitRadius;
+            currentOrbitRadius = orbitStartDistance;
             Debug.Log($"[Predator] Switching target to {currentTarget.name}, starting orbit at radius {currentOrbitRadius:F1}");
         }
     }
     
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject == player1 || collision.gameObject == player2)
-        {
-            totalHits++;
-            Debug.Log($"[Predator] Hit a player! Total hits: {totalHits}");
-        }
-    }
+    // Using distance-based hit detection instead of physical collisions
+    // private void OnCollisionEnter(Collision collision)
+    // {
+    //     if (collision.gameObject == player1 || collision.gameObject == player2)
+    //     {
+    //         totalHits++;
+    //         Debug.Log($"[Predator] Hit a player! Total hits: {totalHits}");
+    //     }
+    // }
     
     public int GetTotalHits()
     {
