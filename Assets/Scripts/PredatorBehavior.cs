@@ -39,6 +39,10 @@ public class PredatorBehavior : MonoBehaviour
     private Vector3 velocity;  // Current movement velocity
     private int totalHits = 0;
     
+    [Header("Ring Game")]
+    [Tooltip("Reference to the predator ring game controller")]
+    public PredatorRingGame ringGame;
+
     private void Start()
     {
         if (player1 == null || player2 == null)
@@ -52,6 +56,17 @@ public class PredatorBehavior : MonoBehaviour
         // Initialize velocity
         float startSpeed = (minSpeed + maxSpeed) / 2f;
         velocity = transform.forward * startSpeed;
+
+        // Find or create ring game controller
+        if (ringGame == null)
+        {
+            GameObject ringGameObj = new GameObject("PredatorRingGame");
+            ringGame = ringGameObj.AddComponent<PredatorRingGame>();
+            ringGame.player1Sphere = player1;
+            ringGame.player2Sphere = player2;
+            ringGame.predator = gameObject;
+            ringGame.OnPredatorModeActivated();
+        }
     }
     
     private void Update()
@@ -175,6 +190,12 @@ public class PredatorBehavior : MonoBehaviour
     {
         totalHits++;
         Debug.Log($"[Predator] Hit player {player.name}! Game Over!");
+        
+        // Deactivate ring game
+        if (ringGame != null)
+        {
+            ringGame.OnPredatorModeDeactivated();
+        }
         
         // Find GameManager and end the game
         GameManager gameManager = FindObjectOfType<GameManager>();
