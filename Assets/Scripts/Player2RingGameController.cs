@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player2RingGameController : MonoBehaviour
+public class Player2RingGameController : RingGameController
 {
     [Header("Game Settings")]
     [Tooltip("Dark color for inactive rings")]
@@ -230,15 +230,6 @@ public class Player2RingGameController : MonoBehaviour
         }
     }
     
-    float GetRingRadius(int ringIndex)
-    {
-        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
-        {
-            return rings[ringIndex].transform.localScale.x / 2f;
-        }
-        return 0f;
-    }
-
     void Update()
     {
         if (gameCompleted)
