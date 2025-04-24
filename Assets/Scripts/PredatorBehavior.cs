@@ -3,34 +3,29 @@ using UnityEngine;
 public class PredatorBehavior : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [Tooltip("Base movement speed")]
-    public float moveSpeed = 3f;  // Slower than player speed
+    [Tooltip("Maximum movement speed")]
+    public float maxSpeed = 2f;  // Slower than boids
     
-    [Tooltip("Distance at which predator starts orbiting")]
-    public float orbitStartDistance = 6f;  // Start orbiting further away
+    [Tooltip("Minimum movement speed")]
+    public float minSpeed = 1f;  // Keep some movement
     
-    [Tooltip("How fast the predator orbits around the target")]
-    public float orbitSpeed = 120f;  // Degrees per second
+    [Tooltip("How strongly the predator steers")]
+    public float maxSteerForce = 1f;  // Gentle steering
     
-    [Tooltip("How quickly the predator closes in on the target")]
-    public float closingSpeed = 0.2f;  // Units per second - slower closing
+    [Tooltip("How strongly the predator is attracted to players")]
+    public float attractionWeight = 0.5f;  // Gentle attraction
     
     [Tooltip("Minimum distance before considering it a 'hit'")]
     public float hitDistance = 0.5f;  // Distance to count as touching
     
-    [Tooltip("Number of complete orbits before starting to close in")]
-    public float requiredOrbits = 1.5f;  // Must complete this many orbits first
-    
-    private float totalRotation = 0f;  // Track total rotation for orbit counting
-    private bool canStartClosing = false;  // Only close in after completing orbits
+    [Tooltip("Distance at which attraction starts")]
+    public float attractionRadius = 10f;  // Start being attracted from far
     
     [Header("References")]
     public GameObject player1;
     public GameObject player2;
     
-    private GameObject currentTarget;
-    private float currentOrbitRadius;
-    private float orbitAngle;
+    private Vector3 velocity;  // Current movement velocity
     private int totalHits = 0;
     
     private void Start()
@@ -43,17 +38,9 @@ public class PredatorBehavior : MonoBehaviour
 
         Debug.Log($"[Predator] Initialized with Player1: {player1.name}, Player2: {player2.name}");
         
-        // Find the nearest player and set initial orbit radius
-        UpdateTargetPlayer();
-        if (currentTarget != null)
-        {
-            // Start at the initial orbit radius or current distance, whichever is larger
-            float currentDistance = Vector3.Distance(transform.position, currentTarget.transform.position);
-            currentOrbitRadius = Mathf.Max(orbitStartDistance, currentDistance);
-            Debug.Log($"[Predator] Initial orbit radius set to {currentOrbitRadius:F1} units");
-        }
-        
-        Debug.Log($"[Predator] Starting to track players. Initial target: {(currentTarget != null ? currentTarget.name : "none")}");
+        // Initialize velocity
+        float startSpeed = (minSpeed + maxSpeed) / 2f;
+        velocity = transform.forward * startSpeed;
     }
     
     private void Update()
@@ -63,97 +50,73 @@ public class PredatorBehavior : MonoBehaviour
             Debug.LogWarning("[Predator] One or both players are missing!");
             return;
         }
+
+        Vector3 player1Pos = player1.transform.position;
+        Vector3 player2Pos = player2.transform.position;
+        Vector3 currentPos = transform.position;
         
-        // Periodically check if we should switch targets
-        UpdateTargetPlayer();
+        // Calculate distances to both players
+        float distToPlayer1 = Vector3.Distance(currentPos, player1Pos);
+        float distToPlayer2 = Vector3.Distance(currentPos, player2Pos);
         
-        if (currentTarget != null)
+        // Check for hits with either player
+        if (distToPlayer1 <= hitDistance)
         {
-            Vector3 targetPos = currentTarget.transform.position;
-            Vector3 startPos = transform.position;
-            float distanceToTarget = Vector3.Distance(startPos, targetPos);
-
-            // Check if we've hit the player
-            if (distanceToTarget <= hitDistance)
-            {
-                OnCollisionWithPlayer(currentTarget);
-                return;
-            }
-
-            // If we're outside orbit range, move directly towards target
-            if (distanceToTarget > orbitStartDistance)
-            {
-                // Direct pursuit mode
-                Vector3 directPath = Vector3.MoveTowards(startPos, targetPos, moveSpeed * Time.deltaTime);
-                transform.position = directPath;
-                transform.LookAt(targetPos);
-                
-                if (Time.frameCount % 60 == 0)
-                {
-                    Debug.Log($"[Predator] Direct pursuit. Distance: {distanceToTarget:F1}");
-                }
-            }
-            else
-            {
-                // Orbital attack mode
-                // Update orbit angle - slightly faster when closer to target
-                float speedMultiplier = 1f + ((orbitStartDistance - distanceToTarget) / orbitStartDistance) * 0.5f;
-                float deltaAngle = (orbitSpeed * speedMultiplier) * Time.deltaTime;
-                orbitAngle += deltaAngle;
-                if (orbitAngle >= 360f) orbitAngle -= 360f;
-                
-                // Track total rotation for orbit counting
-                totalRotation += deltaAngle;
-                if (totalRotation >= 360f * requiredOrbits && !canStartClosing)
-                {
-                    canStartClosing = true;
-                    Debug.Log($"[Predator] Completed {requiredOrbits} orbits, beginning to close in");
-                }
-                
-                // Calculate orbit position
-                float currentRadius = distanceToTarget;
-                float radian = orbitAngle * Mathf.Deg2Rad;
-                Vector3 orbitOffset = new Vector3(
-                    Mathf.Cos(radian) * currentRadius,
-                    0f,
-                    Mathf.Sin(radian) * currentRadius
-                );
-                
-                // Calculate next position
-                Vector3 orbitPosition = targetPos + orbitOffset;
-                Vector3 nextPos = orbitPosition;
-                
-                // Only start closing in after completing required orbits
-                if (canStartClosing)
-                {
-                    nextPos = Vector3.MoveTowards(
-                        orbitPosition, 
-                        targetPos, 
-                        closingSpeed * Time.deltaTime
-                    );
-                }
-                
-                // Move to the calculated position
-                transform.position = Vector3.MoveTowards(
-                    transform.position,
-                    nextPos,
-                    moveSpeed * Time.deltaTime
-                );
-                
-                // Look slightly ahead in the orbit for smoother movement
-                float lookAheadAngle = radian + (15f * Mathf.Deg2Rad);
-                Vector3 lookAheadPoint = targetPos + new Vector3(
-                    Mathf.Cos(lookAheadAngle) * currentRadius,
-                    0f,
-                    Mathf.Sin(lookAheadAngle) * currentRadius
-                );
-                transform.LookAt(lookAheadPoint);
-                
-                if (Time.frameCount % 60 == 0)
-                {
-                    Debug.Log($"[Predator] Orbital attack. Distance: {distanceToTarget:F1}, Speed Multiplier: {speedMultiplier:F1}");
-                }
-            }
+            OnCollisionWithPlayer(player1);
+            return;
+        }
+        if (distToPlayer2 <= hitDistance)
+        {
+            OnCollisionWithPlayer(player2);
+            return;
+        }
+        
+        // Calculate attraction forces to both players
+        Vector3 attraction = Vector3.zero;
+        
+        // Add attraction to player1 if within radius
+        if (distToPlayer1 < attractionRadius)
+        {
+            Vector3 toPlayer1 = (player1Pos - currentPos).normalized;
+            float player1Strength = 1f - (distToPlayer1 / attractionRadius); // Stronger when closer
+            attraction += toPlayer1 * player1Strength;
+        }
+        
+        // Add attraction to player2 if within radius
+        if (distToPlayer2 < attractionRadius)
+        {
+            Vector3 toPlayer2 = (player2Pos - currentPos).normalized;
+            float player2Strength = 1f - (distToPlayer2 / attractionRadius); // Stronger when closer
+            attraction += toPlayer2 * player2Strength;
+        }
+        
+        // Apply attraction force
+        Vector3 steeringForce = Vector3.zero;
+        if (attraction != Vector3.zero)
+        {
+            Vector3 desiredVelocity = attraction.normalized * maxSpeed;
+            steeringForce = Vector3.ClampMagnitude(desiredVelocity - velocity, maxSteerForce);
+        }
+        
+        // Update velocity and position
+        velocity += steeringForce * attractionWeight * Time.deltaTime;
+        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+        
+        // Ensure minimum speed
+        if (velocity.magnitude < minSpeed)
+        {
+            velocity = velocity.normalized * minSpeed;
+        }
+        
+        // Update position and rotation
+        transform.position += velocity * Time.deltaTime;
+        transform.forward = velocity.normalized;
+        
+        // Log status periodically
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[Predator] Status - Speed: {velocity.magnitude:F1}, " +
+                     $"Dist to P1: {distToPlayer1:F1}, Dist to P2: {distToPlayer2:F1}");
         }
     }
     
@@ -162,36 +125,6 @@ public class PredatorBehavior : MonoBehaviour
         totalHits++;
         Debug.Log($"[Predator] Hit player {player.name}! Total hits: {totalHits}");
     }
-    
-    private void UpdateTargetPlayer()
-    {
-        if (player1 == null || player2 == null) return;
-        
-        float distToPlayer1 = Vector3.Distance(transform.position, player1.transform.position);
-        float distToPlayer2 = Vector3.Distance(transform.position, player2.transform.position);
-        
-        GameObject newTarget = (distToPlayer1 <= distToPlayer2) ? player1 : player2;
-        
-        if (newTarget != currentTarget)
-        {
-            currentTarget = newTarget;
-            // Reset orbit tracking when switching targets
-            currentOrbitRadius = orbitStartDistance;
-            totalRotation = 0f;
-            canStartClosing = false;
-            Debug.Log($"[Predator] Switching target to {currentTarget.name}, resetting orbit pattern");
-        }
-    }
-    
-    // Using distance-based hit detection instead of physical collisions
-    // private void OnCollisionEnter(Collision collision)
-    // {
-    //     if (collision.gameObject == player1 || collision.gameObject == player2)
-    //     {
-    //         totalHits++;
-    //         Debug.Log($"[Predator] Hit a player! Total hits: {totalHits}");
-    //     }
-    // }
     
     public int GetTotalHits()
     {
