@@ -174,7 +174,19 @@ public class PredatorBehavior : MonoBehaviour
     private void OnCollisionWithPlayer(GameObject player)
     {
         totalHits++;
-        Debug.Log($"[Predator] Hit player {player.name}! Total hits: {totalHits}");
+        Debug.Log($"[Predator] Hit player {player.name}! Game Over!");
+        
+        // Find GameManager and end the game
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.EndGame($"Game Over! {player.name} was caught!");
+        }
+        else
+        {
+            Debug.LogWarning("[Predator] GameManager not found! Stopping time instead.");
+            Time.timeScale = 0; // Pause the game if no GameManager is found
+        }
     }
     
     public int GetTotalHits()
