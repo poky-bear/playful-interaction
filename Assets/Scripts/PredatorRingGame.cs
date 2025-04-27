@@ -340,7 +340,7 @@ public class PredatorRingGame : MonoBehaviour
         // Fisher-Yates shuffle
         for (int i = order.Length - 1; i > 0; i--)
         {
-            int j = Random.Range(0, i + 1);
+            int j = UnityEngine.Random.Range(0, i + 1);
             int temp = order[i];
             order[i] = order[j];
             order[j] = temp;
@@ -377,8 +377,8 @@ public class PredatorRingGame : MonoBehaviour
         float maxZ = Mathf.Min(ARENA_SIZE/2 - WALL_MARGIN, playersCenter.z + maxSpawnDistance);
         
         // Get random position within bounds
-        float x = Random.Range(minX, maxX);
-        float z = Random.Range(minZ, maxZ);
+        float x = UnityEngine.Random.Range(minX, maxX);
+        float z = UnityEngine.Random.Range(minZ, maxZ);
         
         // Keep y position at player level
         float y = player1Sphere.transform.position.y;
