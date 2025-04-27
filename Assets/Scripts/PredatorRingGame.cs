@@ -489,6 +489,7 @@ public class PredatorRingGame : MonoBehaviour
         // Check if the expanding circle matches the ring size
         if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
         {
+            player1Ready = true;
             Debug.Log($"[Player 1] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             CheckRingCompletion();
         }
@@ -525,6 +526,7 @@ public class PredatorRingGame : MonoBehaviour
         // Check if the expanding circle matches the ring size
         if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
         {
+            player2Ready = true;
             Debug.Log($"[Player 2] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             CheckRingCompletion();
         }
@@ -550,15 +552,15 @@ public class PredatorRingGame : MonoBehaviour
     
     void CheckRingCompletion()
     {
-        if (currentRingIndex < rings.Length)
+        if (player1Ready && player2Ready && currentRingIndex < rings.Length)
         {
-            // Get current ring
+            // Both players hit the current ring correctly
             int currentRing = ringOrder[currentRingIndex];
-            
-            // Set current ring to inactive color (deactivate it)
-            SetRingColor(currentRing, inactiveRingColor);
+            SetRingColor(currentRing, inactiveRingColor); // Set completed ring to inactive
             
             currentRingIndex++;
+            player1Ready = false;
+            player2Ready = false;
             
             if (currentRingIndex >= rings.Length)
             {
