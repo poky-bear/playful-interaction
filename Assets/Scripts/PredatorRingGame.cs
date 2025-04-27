@@ -483,23 +483,27 @@ public class PredatorRingGame : MonoBehaviour
         // Get the radius of the current active ring
         float ringRadius = 2.0f + (ringOrder[currentRingIndex] * 1.5f);
         
+        // The actual radius is half the scale since we're using a sphere
+        float actualRadius = player1CurrentRadius / 2f;
+        
         // Check if the expanding circle matches the ring size
-        if (Mathf.Abs(player1CurrentRadius - ringRadius) <= hitTolerance)
+        if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
         {
             player1Ready = true;
             CheckRingCompletion();
+            Debug.Log($"[Player 1] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
         }
         else
         {
             // Show feedback on how close they were
-            float distanceFromTarget = Mathf.Abs(player1CurrentRadius - ringRadius);
+            float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
             if (distanceFromTarget < hitTolerance * 2)
             {
-                Debug.Log($"[Player 1] Close! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+                Debug.Log($"[Player 1] Close! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
             else
             {
-                Debug.Log($"[Player 1] Miss! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+                Debug.Log($"[Player 1] Miss! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
         }
         
@@ -516,23 +520,27 @@ public class PredatorRingGame : MonoBehaviour
         // Get the radius of the current active ring
         float ringRadius = 2.0f + (ringOrder[currentRingIndex] * 1.5f);
         
+        // The actual radius is half the scale since we're using a sphere
+        float actualRadius = player2CurrentRadius / 2f;
+        
         // Check if the expanding circle matches the ring size
-        if (Mathf.Abs(player2CurrentRadius - ringRadius) <= hitTolerance)
+        if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
         {
             player2Ready = true;
             CheckRingCompletion();
+            Debug.Log($"[Player 2] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
         }
         else
         {
             // Show feedback on how close they were
-            float distanceFromTarget = Mathf.Abs(player2CurrentRadius - ringRadius);
+            float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
             if (distanceFromTarget < hitTolerance * 2)
             {
-                Debug.Log($"[Player 2] Close! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+                Debug.Log($"[Player 2] Close! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
             else
             {
-                Debug.Log($"[Player 2] Miss! {distanceFromTarget:F2} units away. Tolerance: {hitTolerance}");
+                Debug.Log($"[Player 2] Miss! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
         }
         

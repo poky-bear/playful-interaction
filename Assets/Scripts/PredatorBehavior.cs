@@ -39,9 +39,12 @@ public class PredatorBehavior : MonoBehaviour
     private Vector3 velocity;  // Current movement velocity
     private int totalHits = 0;
     
-    [Header("Ring Game")]
+    [Header("Game Settings")]
     [Tooltip("Reference to the predator ring game controller")]
     public PredatorRingGame ringGame;
+    
+    [Tooltip("If true, the game won't end when the predator catches a player")]
+    public bool disableGameOver = false;
 
     private void Start()
     {
@@ -189,6 +192,13 @@ public class PredatorBehavior : MonoBehaviour
     private void OnCollisionWithPlayer(GameObject player)
     {
         totalHits++;
+        
+        if (disableGameOver)
+        {
+            Debug.Log($"[Predator] Hit player {player.name}! (Game Over disabled)");
+            return;
+        }
+        
         Debug.Log($"[Predator] Hit player {player.name}! Game Over!");
         
         // Deactivate ring game
