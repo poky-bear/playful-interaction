@@ -682,7 +682,7 @@ public class PredatorRingGame : MonoBehaviour
     void OnRingsCompleted()
     {
         gameCompleted = true;
-        Debug.Log("All rings completed successfully!");
+        Debug.Log(successMessage);
         
         // Destroy current rings
         if (ringsObject != null)
@@ -699,7 +699,7 @@ public class PredatorRingGame : MonoBehaviour
         player2Ready = false;
         activePlayer = null;
         
-        // Make the dot visible again
+        // Make the original dot visible again
         CreateDotAtPosition(initialDotSpawnPosition.Value);
     }
     
