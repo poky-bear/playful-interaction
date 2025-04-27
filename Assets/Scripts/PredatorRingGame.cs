@@ -128,15 +128,14 @@ public class PredatorRingGame : MonoBehaviour
             
             if (distanceFromDot > maxRingDistance)
             {
-                // Active player moved too far from dot, destroy rings
+                // Active player moved too far from dot, destroy rings but maintain progress
                 Debug.Log($"Active player moved too far from dot ({distanceFromDot:F2} units). Rings disappearing.");
                 Destroy(ringsObject);
                 ringsObject = null;
                 rings = null;
                 activePlayer = null;
-                player1Ready = false;
-                player2Ready = false;
                 
+                // Keep player ready states and currentRingIndex
                 // Make the dot visible again
                 CreateDotAtPosition(initialDotSpawnPosition.Value);
             }
@@ -266,9 +265,11 @@ public class PredatorRingGame : MonoBehaviour
         float ringSpacing = 1.5f;
         float ringThickness = 0.2f;
         
-        // Generate random order for rings
-        ringOrder = GenerateRandomOrder();
-        currentRingIndex = 0;
+        // Only generate new ring order if we're starting fresh
+        if (currentRingIndex == 0 && !player1Ready && !player2Ready)
+        {
+            ringOrder = GenerateRandomOrder();
+        }
         
         for (int i = 0; i < 3; i++)
         {
@@ -290,8 +291,23 @@ public class PredatorRingGame : MonoBehaviour
             Material ringMaterial = new Material(Shader.Find("Standard"));
             SetupTransparentMaterial(ringMaterial);
             
-            // Set initial color based on whether this is the first active ring
-            Color initialColor = (i == ringOrder[0]) ? activeRingColor : inactiveRingColor;
+            // Set color based on current progress
+            Color initialColor;
+            if (i == ringOrder[currentRingIndex])
+            {
+                // This is the current active ring
+                initialColor = activeRingColor;
+            }
+            else if (currentRingIndex > 0 && Array.IndexOf(ringOrder, i) < currentRingIndex)
+            {
+                // This ring was already completed
+                initialColor = inactiveRingColor;
+            }
+            else
+            {
+                // This ring hasn't been activated yet
+                initialColor = inactiveRingColor;
+            }
             ringMaterial.color = initialColor;
             ringMaterial.EnableKeyword("_EMISSION");
             ringMaterial.SetColor("_EmissionColor", initialColor * 0.3f);
@@ -512,7 +528,12 @@ public class PredatorRingGame : MonoBehaviour
         {
             player1Ready = true;
             Debug.Log($"[Player 1] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
-            CheckRingCompletion();
+            
+            // If both players have hit, advance to next ring
+            if (player2Ready)
+            {
+                AdvanceToNextRing();
+            }
         }
         else
         {
@@ -549,7 +570,12 @@ public class PredatorRingGame : MonoBehaviour
         {
             player2Ready = true;
             Debug.Log($"[Player 2] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
-            CheckRingCompletion();
+            
+            // If both players have hit, advance to next ring
+            if (player1Ready)
+            {
+                AdvanceToNextRing();
+            }
         }
         else
         {
@@ -569,6 +595,31 @@ public class PredatorRingGame : MonoBehaviour
         player2CurrentRadius = 0f;
         player2IsExpanding = false;
         player2ExpandingCircle.SetActive(false);
+    }
+    
+    void AdvanceToNextRing()
+    {
+        // Both players hit the current ring
+        int currentRing = ringOrder[currentRingIndex];
+        SetRingColor(currentRing, inactiveRingColor); // Set completed ring to inactive
+        
+        currentRingIndex++;
+        player1Ready = false;
+        player2Ready = false;
+        
+        if (currentRingIndex >= rings.Length)
+        {
+            // All rings completed
+            Debug.Log("All rings completed!");
+            OnRingsCompleted();
+        }
+        else
+        {
+            // Activate next ring in sequence
+            int nextRing = ringOrder[currentRingIndex];
+            SetRingColor(nextRing, activeRingColor);
+            Debug.Log($"Ring {currentRing} completed! Next ring: {nextRing}");
+        }
     }
     
     void CheckRingCompletion()
