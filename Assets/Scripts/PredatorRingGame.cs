@@ -693,7 +693,7 @@ public class PredatorRingGame : MonoBehaviour
         }
         
         // Reset game state
-        gameCompleted = false;
+        // gameCompleted = false;
         currentRingIndex = 0;
         player1Ready = false;
         player2Ready = false;

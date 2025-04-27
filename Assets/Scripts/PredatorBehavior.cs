@@ -44,7 +44,7 @@ public class PredatorBehavior : MonoBehaviour
     public PredatorRingGame ringGame;
     
     [Tooltip("If true, the game won't end when the predator catches a player")]
-    public bool disableGameOver = false;
+    public bool disableGameOver = true;
 
     private void Start()
     {
