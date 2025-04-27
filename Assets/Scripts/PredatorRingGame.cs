@@ -40,9 +40,10 @@ public class PredatorRingGame : MonoBehaviour
     // Target dot object
     private GameObject targetDot;
     
-    // Track which player activated the rings and the original dot position
+    // Track player and position states
     private GameObject activePlayer = null;
     private Vector3 originalDotPosition;
+    private Vector3? initialDotSpawnPosition = null; // Position where dot first spawned
     
     // Private variables
     private GameObject ringsObject = null;
@@ -199,8 +200,19 @@ public class PredatorRingGame : MonoBehaviour
     
     void SpawnTargetDot()
     {
-        // Calculate spawn position
-        Vector3 spawnPos = GetRandomSpawnPosition();
+        // Get spawn position - use initial position if it exists, otherwise create new random position
+        Vector3 spawnPos;
+        if (initialDotSpawnPosition == null)
+        {
+            spawnPos = GetRandomSpawnPosition();
+            initialDotSpawnPosition = spawnPos;
+            Debug.Log("[PredatorRingGame] First spawn - setting initial dot position");
+        }
+        else
+        {
+            spawnPos = initialDotSpawnPosition.Value;
+            Debug.Log("[PredatorRingGame] Respawning dot at initial position");
+        }
         
         // Create target dot
         targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -218,7 +230,7 @@ public class PredatorRingGame : MonoBehaviour
         // Remove collider as we'll use distance check instead
         Destroy(targetDot.GetComponent<Collider>());
         
-        Debug.Log("[PredatorRingGame] Spawned target dot");
+        Debug.Log($"[PredatorRingGame] Spawned target dot at {spawnPos}");
     }
     
     void SpawnRingsAtPosition(Vector3 position)
@@ -576,5 +588,6 @@ public class PredatorRingGame : MonoBehaviour
             targetDot = null;
         }
         activePlayer = null;
+        initialDotSpawnPosition = null; // Reset initial spawn position for next activation
     }
 }
