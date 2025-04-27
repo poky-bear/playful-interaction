@@ -191,32 +191,34 @@ public class PredatorBehavior : MonoBehaviour
     
     private void OnCollisionWithPlayer(GameObject player)
     {
-        totalHits++;
-        
-        if (disableGameOver)
+        // If game over is disabled, just count the hit and return
+        if (!disableGameOver)
         {
-            Debug.Log($"[Predator] Hit player {player.name}! (Game Over disabled)");
-            return;
-        }
-        
-        Debug.Log($"[Predator] Hit player {player.name}! Game Over!");
-        
-        // Deactivate ring game
-        if (ringGame != null)
-        {
-            ringGame.OnPredatorModeDeactivated();
-        }
-        
-        // Find GameManager and end the game
-        GameManager gameManager = FindObjectOfType<GameManager>();
-        if (gameManager != null)
-        {
-            gameManager.EndGame($"Game Over! {player.name} was caught!");
+            totalHits++;
+            Debug.Log($"[Predator] Hit player {player.name}! Game Over!");
+            
+            // Deactivate ring game
+            if (ringGame != null)
+            {
+                ringGame.OnPredatorModeDeactivated();
+            }
+            
+            // Find GameManager and end the game
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (gameManager != null)
+            {
+                gameManager.EndGame($"Game Over! {player.name} was caught!");
+            }
+            else
+            {
+                Debug.LogWarning("[Predator] GameManager not found! Stopping time instead.");
+                Time.timeScale = 0; // Pause the game if no GameManager is found
+            }
         }
         else
         {
-            Debug.LogWarning("[Predator] GameManager not found! Stopping time instead.");
-            Time.timeScale = 0; // Pause the game if no GameManager is found
+            totalHits++;
+            Debug.Log($"[Predator] Hit player {player.name}! (Game Over disabled)");
         }
     }
     
