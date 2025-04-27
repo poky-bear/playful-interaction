@@ -40,9 +40,9 @@ public class PredatorRingGame : MonoBehaviour
     // Target dot object
     private GameObject targetDot;
     
-    // Track which player activated the rings and their position
+    // Track which player activated the rings and the original dot position
     private GameObject activePlayer = null;
-    private Vector3 ringSpawnPosition;
+    private Vector3 originalDotPosition;
     
     // Private variables
     private GameObject ringsObject = null;
@@ -93,32 +93,32 @@ public class PredatorRingGame : MonoBehaviour
             if (player1Distance <= touchDistance)
             {
                 // Player 1 touched the dot
+                originalDotPosition = dotPosition;
                 Destroy(targetDot);
                 targetDot = null;
                 activePlayer = player1Sphere;
-                ringSpawnPosition = player1Sphere.transform.position;
-                SpawnRingsAtPosition(ringSpawnPosition);
+                SpawnRingsAtPosition(player1Sphere.transform.position);
             }
             else if (player2Distance <= touchDistance)
             {
                 // Player 2 touched the dot
+                originalDotPosition = dotPosition;
                 Destroy(targetDot);
                 targetDot = null;
                 activePlayer = player2Sphere;
-                ringSpawnPosition = player2Sphere.transform.position;
-                SpawnRingsAtPosition(ringSpawnPosition);
+                SpawnRingsAtPosition(player2Sphere.transform.position);
             }
         }
         
-        // Check if active player has moved too far from rings
+        // Check if active player has moved too far from original dot position
         if (ringsObject != null && activePlayer != null)
         {
-            float distanceFromSpawn = Vector3.Distance(activePlayer.transform.position, ringSpawnPosition);
+            float distanceFromDot = Vector3.Distance(activePlayer.transform.position, originalDotPosition);
             
-            if (distanceFromSpawn > maxRingDistance)
+            if (distanceFromDot > maxRingDistance)
             {
-                // Player moved too far, destroy rings and respawn dot
-                Debug.Log($"Player moved too far ({distanceFromSpawn:F2} units). Rings disappearing.");
+                // Player moved too far from dot position, destroy rings and respawn dot
+                Debug.Log($"Player moved too far from dot ({distanceFromDot:F2} units). Rings disappearing.");
                 Destroy(ringsObject);
                 ringsObject = null;
                 rings = null;
@@ -127,7 +127,10 @@ public class PredatorRingGame : MonoBehaviour
             }
             else
             {
-                // Player is still within range, handle input
+                // Update rings position to follow player
+                ringsObject.transform.position = activePlayer.transform.position;
+                
+                // Handle input for ring completion
                 HandlePlayerInput();
                 UpdateExpandingCircles();
             }
