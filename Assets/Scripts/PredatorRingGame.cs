@@ -118,13 +118,13 @@ public class PredatorRingGame : MonoBehaviour
             
             if (distanceFromDot > maxRingDistance)
             {
-                // Player moved too far from dot position, destroy rings and respawn dot
+                // Player moved too far from dot position, just destroy rings
                 Debug.Log($"Player moved too far from dot ({distanceFromDot:F2} units). Rings disappearing.");
                 Destroy(ringsObject);
                 ringsObject = null;
                 rings = null;
                 activePlayer = null;
-                SpawnTargetDot();
+                // Don't respawn dot - it should stay at its original position
             }
             else
             {
@@ -598,8 +598,22 @@ public class PredatorRingGame : MonoBehaviour
         player2Ready = false;
         activePlayer = null;
         
-        // Spawn new target dot
-        SpawnTargetDot();
+        // Make the original dot visible again
+        if (targetDot == null)
+        {
+            targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            targetDot.name = "TargetDot";
+            targetDot.transform.position = initialDotSpawnPosition.Value;
+            targetDot.transform.localScale = Vector3.one * 0.5f;
+            
+            Material dotMaterial = new Material(Shader.Find("Standard"));
+            dotMaterial.color = Color.red;
+            dotMaterial.EnableKeyword("_EMISSION");
+            dotMaterial.SetColor("_EmissionColor", Color.red * 0.5f);
+            targetDot.GetComponent<Renderer>().material = dotMaterial;
+            
+            Destroy(targetDot.GetComponent<Collider>());
+        }
     }
     
     public void OnPredatorModeActivated()
