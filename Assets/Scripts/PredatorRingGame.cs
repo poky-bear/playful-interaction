@@ -313,23 +313,51 @@ public class PredatorRingGame : MonoBehaviour
     
     Vector3 GetRandomSpawnPosition()
     {
-        // Get the midpoint between players
+        // Define the play area bounds (assuming walls form a square)
+        const float ARENA_SIZE = 20f; // Adjust this based on actual wall positions
+        const float WALL_MARGIN = 2f; // Keep some distance from walls
+        
+        // Get the midpoint between players as a reference point
         Vector3 playersCenter = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
         
-        // Get a random angle
-        float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        // Calculate bounds relative to center
+        float minX = Mathf.Max(-ARENA_SIZE/2 + WALL_MARGIN, playersCenter.x - maxSpawnDistance);
+        float maxX = Mathf.Min(ARENA_SIZE/2 - WALL_MARGIN, playersCenter.x + maxSpawnDistance);
+        float minZ = Mathf.Max(-ARENA_SIZE/2 + WALL_MARGIN, playersCenter.z - maxSpawnDistance);
+        float maxZ = Mathf.Min(ARENA_SIZE/2 - WALL_MARGIN, playersCenter.z + maxSpawnDistance);
         
-        // Get a random distance between min and max
-        float distance = Random.Range(minSpawnDistance, maxSpawnDistance);
+        // Get random position within bounds
+        float x = Random.Range(minX, maxX);
+        float z = Random.Range(minZ, maxZ);
         
-        // Calculate position
-        Vector3 offset = new Vector3(
-            Mathf.Cos(angle) * distance,
-            0f,
-            Mathf.Sin(angle) * distance
-        );
+        // Keep y position at player level
+        float y = player1Sphere.transform.position.y;
         
-        return playersCenter + offset;
+        // Create position
+        Vector3 position = new Vector3(x, y, z);
+        
+        // Ensure minimum distance from players
+        Vector3 toPlayer1 = position - player1Sphere.transform.position;
+        Vector3 toPlayer2 = position - player2Sphere.transform.position;
+        
+        // If too close to either player, move the position away
+        if (toPlayer1.magnitude < minSpawnDistance || toPlayer2.magnitude < minSpawnDistance)
+        {
+            // Get direction from closest player
+            Vector3 awayDir = toPlayer1.magnitude < toPlayer2.magnitude ? toPlayer1 : toPlayer2;
+            awayDir.y = 0; // Keep movement in XZ plane
+            awayDir = awayDir.normalized;
+            
+            // Move position away until minimum distance is met
+            position = position + awayDir * minSpawnDistance;
+            
+            // Clamp to arena bounds
+            position.x = Mathf.Clamp(position.x, minX, maxX);
+            position.z = Mathf.Clamp(position.z, minZ, maxZ);
+        }
+        
+        Debug.Log($"[PredatorRingGame] Spawning dot at {position}, Arena bounds: {ARENA_SIZE}x{ARENA_SIZE}");
+        return position;
     }
     
     void CreateExpandingCircles()
