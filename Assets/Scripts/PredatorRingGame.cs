@@ -92,26 +92,11 @@ public class PredatorRingGame : MonoBehaviour
         // If no rings exist, check if either player is touching the dot
         if (ringsObject == null)
         {
-            if (player1Distance <= touchDistance)
+            if (player1Distance <= touchDistance || player2Distance <= touchDistance)
             {
-                // Player 1 touched the dot
+                // A player touched the dot - spawn rings at dot position
                 originalDotPosition = dotPosition;
-                activePlayer = player1Sphere;
-                SpawnRingsAtPosition(player1Sphere.transform.position);
-                
-                // Hide the dot while rings are active
-                if (targetDot != null)
-                {
-                    Destroy(targetDot);
-                    targetDot = null;
-                }
-            }
-            else if (player2Distance <= touchDistance)
-            {
-                // Player 2 touched the dot
-                originalDotPosition = dotPosition;
-                activePlayer = player2Sphere;
-                SpawnRingsAtPosition(player2Sphere.transform.position);
+                SpawnRingsAtPosition(dotPosition);
                 
                 // Hide the dot while rings are active
                 if (targetDot != null)
@@ -121,29 +106,28 @@ public class PredatorRingGame : MonoBehaviour
                 }
             }
         }
-        // If rings exist, check if active player is still in range
-        else if (activePlayer != null)
+        // If rings exist, check if either player is too far from dot
+        else
         {
-            float distanceFromDot = Vector3.Distance(activePlayer.transform.position, originalDotPosition);
+            bool player1InRange = player1Distance <= maxRingDistance;
+            bool player2InRange = player2Distance <= maxRingDistance;
             
-            if (distanceFromDot > maxRingDistance)
+            if (!player1InRange && !player2InRange)
             {
-                // Player moved too far from dot position, destroy rings
-                Debug.Log($"Player moved too far from dot ({distanceFromDot:F2} units). Rings disappearing.");
+                // Both players too far from dot, destroy rings
+                Debug.Log("Both players too far from dot. Rings disappearing.");
                 Destroy(ringsObject);
                 ringsObject = null;
                 rings = null;
-                activePlayer = null;
+                player1Ready = false;
+                player2Ready = false;
                 
                 // Make the dot visible again
                 CreateDotAtPosition(initialDotSpawnPosition.Value);
             }
             else
             {
-                // Update rings position to follow player
-                ringsObject.transform.position = activePlayer.transform.position;
-                
-                // Handle input for ring completion
+                // At least one player in range, handle input
                 HandlePlayerInput();
                 UpdateExpandingCircles();
             }
@@ -571,28 +555,44 @@ public class PredatorRingGame : MonoBehaviour
     
     void CheckRingCompletion()
     {
-        if (player1Ready && player2Ready && currentRingIndex < rings.Length)
+        if (currentRingIndex < rings.Length)
         {
-            // Both players hit the current ring correctly
-            int currentRing = ringOrder[currentRingIndex];
-            SetRingColor(currentRing, inactiveRingColor); // Set completed ring to inactive
-            
-            currentRingIndex++;
-            player1Ready = false;
-            player2Ready = false;
-            
-            if (currentRingIndex >= rings.Length)
+            // Check if both players have hit the current ring
+            if (player1Ready && player2Ready)
             {
-                // All rings completed
-                Debug.Log("All rings completed!");
-                OnRingsCompleted();
+                // Both players have hit the current ring
+                int currentRing = ringOrder[currentRingIndex];
+                SetRingColor(currentRing, inactiveRingColor); // Set completed ring to inactive
+                
+                currentRingIndex++;
+                player1Ready = false;
+                player2Ready = false;
+                
+                if (currentRingIndex >= rings.Length)
+                {
+                    // All rings completed
+                    Debug.Log("All rings completed!");
+                    OnRingsCompleted();
+                }
+                else
+                {
+                    // Activate next ring in sequence
+                    int nextRing = ringOrder[currentRingIndex];
+                    SetRingColor(nextRing, activeRingColor);
+                    Debug.Log($"Ring {currentRing} completed! Next ring: {nextRing}");
+                }
             }
             else
             {
-                // Activate next ring in sequence
-                int nextRing = ringOrder[currentRingIndex];
-                SetRingColor(nextRing, activeRingColor);
-                Debug.Log($"Ring {currentRing} completed! Next ring: {nextRing}");
+                // Log which player has hit the current ring
+                if (player1Ready && !player2Ready)
+                {
+                    Debug.Log("Player 1 hit the ring. Waiting for Player 2.");
+                }
+                else if (!player1Ready && player2Ready)
+                {
+                    Debug.Log("Player 2 hit the ring. Waiting for Player 1.");
+                }
             }
         }
     }
