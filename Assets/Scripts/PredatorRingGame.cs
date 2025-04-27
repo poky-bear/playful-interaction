@@ -682,7 +682,7 @@ public class PredatorRingGame : MonoBehaviour
     void OnRingsCompleted()
     {
         gameCompleted = true;
-        Debug.Log(successMessage);
+        Debug.Log("All rings completed successfully! Predator defeated!");
         
         // Destroy current rings
         if (ringsObject != null)
@@ -690,6 +690,12 @@ public class PredatorRingGame : MonoBehaviour
             Destroy(ringsObject);
             ringsObject = null;
             rings = null;
+        }
+        
+        // Hide the predator
+        if (predator != null)
+        {
+            predator.SetActive(false);
         }
         
         // Reset game state
