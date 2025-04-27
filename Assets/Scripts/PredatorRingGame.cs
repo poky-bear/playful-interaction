@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class PredatorRingGame : MonoBehaviour
 {
-    [Header("Ring Settings")]
-    [Tooltip("Minimum distance from players to spawn rings")]
+    [Header("Game Settings")]
+    [Tooltip("Minimum distance from players to spawn target")]
     public float minSpawnDistance = 5f;
     
-    [Tooltip("Maximum distance from players to spawn rings")]
+    [Tooltip("Maximum distance from players to spawn target")]
     public float maxSpawnDistance = 15f;
     
     [Tooltip("Color for active rings")]
@@ -21,6 +21,9 @@ public class PredatorRingGame : MonoBehaviour
     [Tooltip("Success message when all rings are completed")]
     public string successMessage = "Rings completed! Keep running!";
     
+    [Tooltip("Distance threshold to detect player touching the target")]
+    public float touchDistance = 1.0f;
+    
     [Header("References")]
     [Tooltip("Reference to Player 1 sphere")]
     public GameObject player1Sphere;
@@ -30,6 +33,9 @@ public class PredatorRingGame : MonoBehaviour
     
     [Tooltip("Reference to the predator object")]
     public GameObject predator;
+    
+    // Target dot object
+    private GameObject targetDot;
     
     // Private variables
     private GameObject ringsObject = null;
@@ -61,8 +67,8 @@ public class PredatorRingGame : MonoBehaviour
         // Create expanding circles
         CreateExpandingCircles();
         
-        // Create initial set of rings
-        SpawnNewRings();
+        // Create initial target dot
+        SpawnTargetDot();
     }
     
     void Update()
@@ -70,15 +76,35 @@ public class PredatorRingGame : MonoBehaviour
         if (gameCompleted || player1Sphere == null || player2Sphere == null)
             return;
             
-        // Update ring positions
-        if (ringsObject != null)
+        // Check if any player has touched the target dot
+        if (targetDot != null)
         {
-            // Keep rings stationary, they were spawned at a random position
+            Vector3 dotPosition = targetDot.transform.position;
+            float player1Distance = Vector3.Distance(player1Sphere.transform.position, dotPosition);
+            float player2Distance = Vector3.Distance(player2Sphere.transform.position, dotPosition);
+            
+            if (player1Distance <= touchDistance)
+            {
+                // Player 1 touched the dot
+                Destroy(targetDot);
+                targetDot = null;
+                SpawnRingsAtPosition(player1Sphere.transform.position);
+            }
+            else if (player2Distance <= touchDistance)
+            {
+                // Player 2 touched the dot
+                Destroy(targetDot);
+                targetDot = null;
+                SpawnRingsAtPosition(player2Sphere.transform.position);
+            }
         }
         
-        // Handle player input and expanding circles
-        HandlePlayerInput();
-        UpdateExpandingCircles();
+        // Handle player input and expanding circles only if rings are present
+        if (ringsObject != null)
+        {
+            HandlePlayerInput();
+            UpdateExpandingCircles();
+        }
     }
     
     void HandlePlayerInput()
@@ -141,14 +167,35 @@ public class PredatorRingGame : MonoBehaviour
         }
     }
     
-    void SpawnNewRings()
+    void SpawnTargetDot()
     {
         // Calculate spawn position
         Vector3 spawnPos = GetRandomSpawnPosition();
         
+        // Create target dot
+        targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        targetDot.name = "TargetDot";
+        targetDot.transform.position = spawnPos;
+        targetDot.transform.localScale = Vector3.one * 0.5f; // Make it smaller than players
+        
+        // Create and set material
+        Material dotMaterial = new Material(Shader.Find("Standard"));
+        dotMaterial.color = Color.red;
+        dotMaterial.EnableKeyword("_EMISSION");
+        dotMaterial.SetColor("_EmissionColor", Color.red * 0.5f);
+        targetDot.GetComponent<Renderer>().material = dotMaterial;
+        
+        // Remove collider as we'll use distance check instead
+        Destroy(targetDot.GetComponent<Collider>());
+        
+        Debug.Log("[PredatorRingGame] Spawned target dot");
+    }
+    
+    void SpawnRingsAtPosition(Vector3 position)
+    {
         // Create rings object
         ringsObject = new GameObject("PredatorRings");
-        ringsObject.transform.position = spawnPos;
+        ringsObject.transform.position = position;
         
         // Create rings
         rings = new GameObject[3];
@@ -157,7 +204,7 @@ public class PredatorRingGame : MonoBehaviour
         float ringThickness = 0.2f;
         
         // Generate random order for rings
-        int[] ringOrder = GenerateRandomOrder();
+        ringOrder = GenerateRandomOrder();
         currentRingIndex = 0;
         
         for (int i = 0; i < 3; i++)
@@ -191,7 +238,7 @@ public class PredatorRingGame : MonoBehaviour
             rings[i].GetComponent<Renderer>().material = ringMaterials[i];
         }
         
-        Debug.Log($"[PredatorRingGame] Spawned new rings. Ring order: {ringOrder[0]}, {ringOrder[1]}, {ringOrder[2]}");
+        Debug.Log($"[PredatorRingGame] Spawned new rings at player position. Ring order: {ringOrder[0]}, {ringOrder[1]}, {ringOrder[2]}");
     }
     
     int[] GenerateRandomOrder()
@@ -457,22 +504,31 @@ public class PredatorRingGame : MonoBehaviour
         gameCompleted = true;
         Debug.Log(successMessage);
         
-        // Spawn new set of rings
+        // Destroy current rings
         if (ringsObject != null)
         {
             Destroy(ringsObject);
+            ringsObject = null;
+            rings = null;
         }
         
+        // Reset game state
         gameCompleted = false;
         currentRingIndex = 0;
-        SpawnNewRings();
+        player1Ready = false;
+        player2Ready = false;
+        
+        // Spawn new target dot
+        SpawnTargetDot();
     }
     
     public void OnPredatorModeActivated()
     {
         gameCompleted = false;
         currentRingIndex = 0;
-        SpawnNewRings();
+        player1Ready = false;
+        player2Ready = false;
+        SpawnTargetDot();
     }
     
     public void OnPredatorModeDeactivated()
@@ -480,6 +536,13 @@ public class PredatorRingGame : MonoBehaviour
         if (ringsObject != null)
         {
             Destroy(ringsObject);
+            ringsObject = null;
+            rings = null;
+        }
+        if (targetDot != null)
+        {
+            Destroy(targetDot);
+            targetDot = null;
         }
     }
 }
