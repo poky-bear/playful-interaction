@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class PredatorRingGame : MonoBehaviour
 {
@@ -293,12 +294,24 @@ public class PredatorRingGame : MonoBehaviour
             
             // Set color based on current progress
             Color initialColor;
+            bool isCompleted = false;
+            
+            // Check if this ring was already completed
+            for (int j = 0; j < currentRingIndex; j++)
+            {
+                if (ringOrder[j] == i)
+                {
+                    isCompleted = true;
+                    break;
+                }
+            }
+            
             if (i == ringOrder[currentRingIndex])
             {
                 // This is the current active ring
                 initialColor = activeRingColor;
             }
-            else if (currentRingIndex > 0 && Array.IndexOf(ringOrder, i) < currentRingIndex)
+            else if (isCompleted)
             {
                 // This ring was already completed
                 initialColor = inactiveRingColor;
