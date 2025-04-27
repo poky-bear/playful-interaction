@@ -84,47 +84,59 @@ public class PredatorRingGame : MonoBehaviour
         if (gameCompleted || player1Sphere == null || player2Sphere == null)
             return;
             
-        // Check if any player has touched the target dot
-        if (targetDot != null)
+        // Check if any player is near the dot position
+        Vector3 dotPosition = initialDotSpawnPosition.Value;
+        float player1Distance = Vector3.Distance(player1Sphere.transform.position, dotPosition);
+        float player2Distance = Vector3.Distance(player2Sphere.transform.position, dotPosition);
+        
+        // If no rings exist, check if either player is touching the dot
+        if (ringsObject == null)
         {
-            Vector3 dotPosition = targetDot.transform.position;
-            float player1Distance = Vector3.Distance(player1Sphere.transform.position, dotPosition);
-            float player2Distance = Vector3.Distance(player2Sphere.transform.position, dotPosition);
-            
             if (player1Distance <= touchDistance)
             {
                 // Player 1 touched the dot
                 originalDotPosition = dotPosition;
-                Destroy(targetDot);
-                targetDot = null;
                 activePlayer = player1Sphere;
                 SpawnRingsAtPosition(player1Sphere.transform.position);
+                
+                // Hide the dot while rings are active
+                if (targetDot != null)
+                {
+                    Destroy(targetDot);
+                    targetDot = null;
+                }
             }
             else if (player2Distance <= touchDistance)
             {
                 // Player 2 touched the dot
                 originalDotPosition = dotPosition;
-                Destroy(targetDot);
-                targetDot = null;
                 activePlayer = player2Sphere;
                 SpawnRingsAtPosition(player2Sphere.transform.position);
+                
+                // Hide the dot while rings are active
+                if (targetDot != null)
+                {
+                    Destroy(targetDot);
+                    targetDot = null;
+                }
             }
         }
-        
-        // Check if active player has moved too far from original dot position
-        if (ringsObject != null && activePlayer != null)
+        // If rings exist, check if active player is still in range
+        else if (activePlayer != null)
         {
             float distanceFromDot = Vector3.Distance(activePlayer.transform.position, originalDotPosition);
             
             if (distanceFromDot > maxRingDistance)
             {
-                // Player moved too far from dot position, just destroy rings
+                // Player moved too far from dot position, destroy rings
                 Debug.Log($"Player moved too far from dot ({distanceFromDot:F2} units). Rings disappearing.");
                 Destroy(ringsObject);
                 ringsObject = null;
                 rings = null;
                 activePlayer = null;
-                // Don't respawn dot - it should stay at its original position
+                
+                // Make the dot visible again
+                CreateDotAtPosition(initialDotSpawnPosition.Value);
             }
             else
             {
@@ -198,6 +210,29 @@ public class PredatorRingGame : MonoBehaviour
         }
     }
     
+    void CreateDotAtPosition(Vector3 position)
+    {
+        if (targetDot != null)
+        {
+            Destroy(targetDot);
+        }
+        
+        targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        targetDot.name = "TargetDot";
+        targetDot.transform.position = position;
+        targetDot.transform.localScale = Vector3.one * 0.5f;
+        
+        Material dotMaterial = new Material(Shader.Find("Standard"));
+        dotMaterial.color = Color.red;
+        dotMaterial.EnableKeyword("_EMISSION");
+        dotMaterial.SetColor("_EmissionColor", Color.red * 0.5f);
+        targetDot.GetComponent<Renderer>().material = dotMaterial;
+        
+        Destroy(targetDot.GetComponent<Collider>());
+        
+        Debug.Log($"[PredatorRingGame] Created dot at {position}");
+    }
+    
     void SpawnTargetDot()
     {
         // Get spawn position - use initial position if it exists, otherwise create new random position
@@ -214,23 +249,7 @@ public class PredatorRingGame : MonoBehaviour
             Debug.Log("[PredatorRingGame] Respawning dot at initial position");
         }
         
-        // Create target dot
-        targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        targetDot.name = "TargetDot";
-        targetDot.transform.position = spawnPos;
-        targetDot.transform.localScale = Vector3.one * 0.5f; // Make it smaller than players
-        
-        // Create and set material
-        Material dotMaterial = new Material(Shader.Find("Standard"));
-        dotMaterial.color = Color.red;
-        dotMaterial.EnableKeyword("_EMISSION");
-        dotMaterial.SetColor("_EmissionColor", Color.red * 0.5f);
-        targetDot.GetComponent<Renderer>().material = dotMaterial;
-        
-        // Remove collider as we'll use distance check instead
-        Destroy(targetDot.GetComponent<Collider>());
-        
-        Debug.Log($"[PredatorRingGame] Spawned target dot at {spawnPos}");
+        CreateDotAtPosition(spawnPos);
     }
     
     void SpawnRingsAtPosition(Vector3 position)
@@ -599,21 +618,7 @@ public class PredatorRingGame : MonoBehaviour
         activePlayer = null;
         
         // Make the original dot visible again
-        if (targetDot == null)
-        {
-            targetDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            targetDot.name = "TargetDot";
-            targetDot.transform.position = initialDotSpawnPosition.Value;
-            targetDot.transform.localScale = Vector3.one * 0.5f;
-            
-            Material dotMaterial = new Material(Shader.Find("Standard"));
-            dotMaterial.color = Color.red;
-            dotMaterial.EnableKeyword("_EMISSION");
-            dotMaterial.SetColor("_EmissionColor", Color.red * 0.5f);
-            targetDot.GetComponent<Renderer>().material = dotMaterial;
-            
-            Destroy(targetDot.GetComponent<Collider>());
-        }
+        CreateDotAtPosition(initialDotSpawnPosition.Value);
     }
     
     public void OnPredatorModeActivated()
