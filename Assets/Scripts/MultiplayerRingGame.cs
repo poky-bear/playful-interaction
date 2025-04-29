@@ -202,6 +202,7 @@ public class MultiplayerRingGame : MonoBehaviour
         player1ExpandingCircle.name = "Player1ExpandingCircle";
         player1ExpandingCircle.transform.localScale = Vector3.zero;
         player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+        player1ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Rotate 90 degrees around X axis
         Destroy(player1ExpandingCircle.GetComponent<Collider>());
         
         // Create material for Player 1's expanding circle
@@ -216,6 +217,7 @@ public class MultiplayerRingGame : MonoBehaviour
         player2ExpandingCircle.name = "Player2ExpandingCircle";
         player2ExpandingCircle.transform.localScale = Vector3.zero;
         player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        player2ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Rotate 90 degrees around X axis
         Destroy(player2ExpandingCircle.GetComponent<Collider>());
         
         // Create material for Player 2's expanding circle
@@ -413,6 +415,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 player1CurrentRadius += 1.0f * Time.deltaTime;
                 player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
                 player1ExpandingCircle.transform.position = midpoint;
+                player1ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Maintain rotation
             }
             
             // Update Player 2's expanding circle
@@ -421,6 +424,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 player2CurrentRadius += 1.0f * Time.deltaTime;
                 player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
                 player2ExpandingCircle.transform.position = midpoint;
+                player2ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Maintain rotation
             }
             
             // Position updates are handled in the main Update function
@@ -773,11 +777,13 @@ public class MultiplayerRingGame : MonoBehaviour
             // In multiplayer mode, start from the midpoint
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
             player2ExpandingCircle.transform.position = midpoint;
+            player2ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Maintain rotation
         }
         else
         {
             // In single player mode, start from player's position
             player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+            player2ExpandingCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Maintain rotation
         }
         
         // Set initial scale for the sphere
