@@ -164,34 +164,16 @@ public class Boid : MonoBehaviour {
 
     Vector3 ObstacleRays () {
         Vector3[] rayDirections = BoidHelper.directions;
-        float minObstacleDist = float.MaxValue;
-        Vector3 bestDir = forward;
 
         for (int i = 0; i < rayDirections.Length; i++) {
             Vector3 dir = cachedTransform.TransformDirection (rayDirections[i]);
             Ray ray = new Ray (position, dir);
-            RaycastHit hit;
-            
-            // If this direction has no obstacle, it's a good escape route
-            if (!Physics.SphereCast (ray, settings.boundsRadius, out hit, settings.collisionAvoidDst, settings.obstacleMask)) {
+            if (!Physics.SphereCast (ray, settings.boundsRadius, settings.collisionAvoidDst, settings.obstacleMask)) {
                 return dir;
-            }
-            // Otherwise, keep track of the direction that gives us the most room
-            else if (hit.distance > minObstacleDist) {
-                minObstacleDist = hit.distance;
-                bestDir = dir;
             }
         }
 
-        // If we're here, all directions have obstacles
-        // Turn around if we're very close to an obstacle
-        RaycastHit forwardHit;
-        if (Physics.SphereCast(new Ray(position, forward), settings.boundsRadius, out forwardHit, 1f, settings.obstacleMask)) {
-            return -forward;
-        }
-        
-        // Otherwise use the direction with the most room
-        return bestDir;
+        return forward;
     }
 
     Vector3 SteerTowards(Vector3 vector) {
