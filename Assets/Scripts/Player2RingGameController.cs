@@ -102,6 +102,9 @@ public class Player2RingGameController : MonoBehaviour
         // Start with zero scale
         expandingCircle.transform.localScale = Vector3.zero;
         
+        // Rotate to make the ring horizontal
+        expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+        
         // Remove collider as we don't need physics for this
         Destroy(expandingCircle.GetComponent<Collider>());
         
@@ -248,8 +251,9 @@ public class Player2RingGameController : MonoBehaviour
             // Update the scale of the expanding circle
             expandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
             
-            // Ensure the expanding circle stays centered on the sphere
+            // Ensure the expanding circle stays centered on the sphere and maintains rotation
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
+            expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         }
         
         // Always keep the expanding circle centered on the sphere, even when not expanding
@@ -257,6 +261,7 @@ public class Player2RingGameController : MonoBehaviour
         if (expandingCircle.activeSelf)
         {
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
+            expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         }
     }
     
