@@ -26,12 +26,6 @@ public class GameModeTransitionManager : MonoBehaviour
     private GameObject player2;
     private MultiplayerRingGame multiplayerController;
 
-    [Header("Predator Settings")]
-    [Tooltip("Scale of the predator cube")]
-    public Vector3 cubeScale = new Vector3(0.5f, 1f, 0.5f);
-    [Tooltip("Color of the predator cube")]
-    public Color cubeColor = Color.red;
-    
     [Header("Predator Movement")]
     [Tooltip("Maximum speed of the predator")]
     [Range(1f, 5f)]
@@ -169,63 +163,52 @@ public class GameModeTransitionManager : MonoBehaviour
         boidSettings.minSpeed = originalMinSpeed;
         boidSettings.maxSpeed = originalMaxSpeed;
 
-        // Spawn cube
-        SpawnCube();
+        // Activate predator
+        ActivatePredator();
 
         Debug.Log("[Transition] Transition sequence complete");
         isTransitioning = false;
     }
 
-    private void SpawnCube()
+    private void ActivatePredator()
     {
         // Pick a random corner
         int randomCorner = Random.Range(0, cornerPositions.Length);
         Vector3 spawnPosition = cornerPositions[randomCorner];
         
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
-        Debug.Log($"[Transition] Spawning Predator cube in {cornerNames[randomCorner]} corner at position {spawnPosition}");
+        Debug.Log($"[Transition] Moving Predator bird to {cornerNames[randomCorner]} corner at position {spawnPosition}");
 
-        // Create a cube primitive
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.name = "Predator";  // Name the cube "Predator"
+        // Find the existing Predator bird 2 object
+        GameObject predatorObj = GameObject.Find("Predator bird 2");
+        if (predatorObj == null)
+        {
+            Debug.LogError("[Transition] Could not find 'Predator bird 2' object in the scene!");
+            return;
+        }
         
-        if (cube != null)
+        // Move the predator to spawn position
+        predatorObj.transform.position = spawnPosition;
+        predatorObj.transform.LookAt(Vector3.zero);
+            
+        // Add and configure the predator behavior
+        PredatorBehavior predator = predatorObj.GetComponent<PredatorBehavior>();
+        if (predator == null)
         {
-            // Set position and scale
-            cube.transform.position = spawnPosition;
-            cube.transform.localScale = cubeScale;
-            
-            // Make the cube look at the center
-            cube.transform.LookAt(Vector3.zero);
-            
-            // Set the color
-            Renderer cubeRenderer = cube.GetComponent<Renderer>();
-            if (cubeRenderer != null)
-            {
-                Material cubeMaterial = new Material(Shader.Find("Standard"));
-                cubeMaterial.color = cubeColor;
-                cubeRenderer.material = cubeMaterial;
-            }
-            
-            // Add and configure the predator behavior
-            PredatorBehavior predator = cube.AddComponent<PredatorBehavior>();
-            predator.player1 = player1;
-            predator.player2 = player2;
-            
-            // Apply movement settings
-            predator.maxSpeed = predatorMaxSpeed;
-            predator.minSpeed = predatorMinSpeed;
-            predator.maxSteerForce = predatorSteerForce;
-            predator.attractionWeight = predatorAttractionWeight;
-            
-            Debug.Log($"[Transition] Configured predator - Speed: {predator.maxSpeed:F1} to {predator.minSpeed:F1}, " +
-                     $"Steer: {predator.maxSteerForce:F1}, Attraction: {predator.attractionWeight:F1}");
-            
-            Debug.Log($"[Transition] Predator cube spawned successfully and will begin hunting players");
+            predator = predatorObj.AddComponent<PredatorBehavior>();
         }
-        else
-        {
-            Debug.LogError("[Transition] Failed to spawn Predator cube!");
-        }
+        predator.player1 = player1;
+        predator.player2 = player2;
+            
+        // Apply movement settings
+        predator.maxSpeed = predatorMaxSpeed;
+        predator.minSpeed = predatorMinSpeed;
+        predator.maxSteerForce = predatorSteerForce;
+        predator.attractionWeight = predatorAttractionWeight;
+            
+        Debug.Log($"[Transition] Configured predator - Speed: {predator.maxSpeed:F1} to {predator.minSpeed:F1}, " +
+                 $"Steer: {predator.maxSteerForce:F1}, Attraction: {predator.attractionWeight:F1}");
+            
+        Debug.Log($"[Transition] Predator bird relocated and will begin hunting players");
     }
 }
