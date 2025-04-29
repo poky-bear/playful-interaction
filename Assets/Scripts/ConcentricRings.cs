@@ -120,7 +120,7 @@ public class ConcentricRings : MonoBehaviour
                 
                 int vertIndex = i * (radialSegments + 1) + j;
                 
-                vertices[vertIndex] = new Vector3(x, z, y); // Adjust for Unity's coordinate system
+                vertices[vertIndex] = new Vector3(x, y, z); // Keep original coordinate order
                 uv[vertIndex] = new Vector2((float)i / tubularSegments, (float)j / radialSegments);
             }
         }
