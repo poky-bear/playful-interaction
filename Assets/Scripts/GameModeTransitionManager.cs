@@ -190,6 +190,9 @@ public class GameModeTransitionManager : MonoBehaviour
         // Move the predator to spawn position
         predatorObj.transform.position = spawnPosition;
         predatorObj.transform.LookAt(Vector3.zero);
+        
+        // Set the predator to the obstacle layer (layer 9)
+        predatorObj.layer = 9;
             
         // Add and configure the predator behavior
         PredatorBehavior predator = predatorObj.GetComponent<PredatorBehavior>();
