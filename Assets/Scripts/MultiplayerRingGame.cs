@@ -719,7 +719,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 // No need to scale the rings as they are created with the correct size
                 
                 // Set all rings to dark initially
-                SetRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
+                SetMultiplayerRingColor(i, new Color(0.1f, 0.1f, 0.1f, 1f)); // Darker black for better contrast
             }
             else
             {
@@ -734,7 +734,7 @@ public class MultiplayerRingGame : MonoBehaviour
         // Set the first ring to the multiplayer color with glow
         if (ringOrder != null && currentRingIndex < ringOrder.Length)
         {
-            SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+            SetMultiplayerRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
         }
         else
         {
@@ -1231,7 +1231,7 @@ public class MultiplayerRingGame : MonoBehaviour
         }
         
         // Set the completed ring to a dark color
-        SetRingColor(ringOrder[currentRingIndex], new Color(0.1f, 0.1f, 0.1f, 1f));
+        SetMultiplayerRingColor(ringOrder[currentRingIndex], new Color(0.1f, 0.1f, 0.1f, 1f));
         
         // Move to the next ring
         currentRingIndex++;
@@ -1290,7 +1290,7 @@ public class MultiplayerRingGame : MonoBehaviour
         }
         
         // Ensure final color is set
-        SetRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
+        SetMultiplayerRingColor(ringOrder[currentRingIndex], multiplayerRingColor);
         Debug.Log("Next active ring: " + ringOrder[currentRingIndex] + " (radius: " + GetRingRadius(ringOrder[currentRingIndex]) + ")");
     }
     
@@ -1344,7 +1344,7 @@ public class MultiplayerRingGame : MonoBehaviour
         multiplayerRingObject.SetActive(false);
     }
     
-    void SetRingColor(int ringIndex, Color color)
+    void SetMultiplayerRingColor(int ringIndex, Color color)
     {
         if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
         {
