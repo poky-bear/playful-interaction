@@ -41,44 +41,14 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             Debug.Log("Found Rigidbody, setting to kinematic to prevent physics interference");
         }
 
-        // Check parent hierarchy and object state
+        // Check parent hierarchy
         Transform parent = transform.parent;
         if (parent != null)
         {
-            Debug.Log($"[HIERARCHY] Full path: {gameObject.name} -> {GetFullPath(transform)}");
-            Debug.Log($"[HIERARCHY] Parent world position: {parent.position}");
-            Debug.Log($"[HIERARCHY] Parent local position: {parent.localPosition}");
-        }
-
-        // Log all components on this object
-        Component[] components = GetComponents<Component>();
-        Debug.Log($"[COMPONENTS] Components on {gameObject.name}:");
-        foreach (Component comp in components)
-        {
-            Debug.Log($"[COMPONENTS] - {comp.GetType().Name}");
-        }
-
-        // Check if object and its renderers are enabled
-        Debug.Log($"[STATE] GameObject active: {gameObject.activeInHierarchy}, self active: {gameObject.activeSelf}");
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        foreach (Renderer renderer in renderers)
-        {
-            Debug.Log($"[STATE] Renderer '{renderer.name}' enabled: {renderer.enabled}");
+            Debug.Log($"Object has parent: {parent.name}. This might affect local position updates.");
         }
 
         this.StreamingClient.RegisterRigidBody(this, RigidBodyId);
-    }
-
-    private string GetFullPath(Transform transform)
-    {
-        string path = transform.name;
-        while (transform.parent != null)
-        {
-            transform = transform.parent;
-            path = transform.name + "/" + path;
-        }
-        return path;
-    }
     }
 
 #if UNITY_2017_1_OR_NEWER
@@ -130,10 +100,6 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             // Update the accumulated position with the inverted delta
             accumulatedPosition += delta;
 
-            // Store previous positions for comparison
-            Vector3 prevWorldPos = transform.position;
-            Vector3 prevLocalPos = transform.localPosition;
-
             // Try to update both world and local position
             transform.position = accumulatedPosition;
             transform.rotation = rbState.Pose.Orientation;
@@ -142,23 +108,14 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             lastOptitrackPosition = currentOptitrackPosition;
 
             // Detailed debug logging
-            Debug.Log($"[POSITION] Previous World: {prevWorldPos}, New World: {transform.position}");
-            Debug.Log($"[POSITION] Previous Local: {prevLocalPos}, New Local: {transform.localPosition}");
-            Debug.Log($"[OPTITRACK] Current: {currentOptitrackPosition}, Last: {lastOptitrackPosition.Value}");
-            Debug.Log($"[MOVEMENT] Delta: {delta}, Accumulated: {accumulatedPosition}");
+            Debug.Log($"OptiTrack Current: {currentOptitrackPosition}, Last: {lastOptitrackPosition.Value}");
+            Debug.Log($"Delta: {delta}, Accumulated: {accumulatedPosition}");
+            Debug.Log($"Transform World Pos: {transform.position}, Local Pos: {transform.localPosition}");
             
             // Check if position actually changed
             if (transform.position != accumulatedPosition)
             {
-                Debug.LogWarning($"[WARNING] Position not updating as expected!");
-                Debug.LogWarning($"[WARNING] Attempted to set position to {accumulatedPosition} but got {transform.position}");
-                
-                // Check if any parent transforms are moving
-                Transform parent = transform.parent;
-                if (parent != null)
-                {
-                    Debug.LogWarning($"[WARNING] Parent '{parent.name}' position: {parent.position}");
-                }
+                Debug.LogWarning("Position not updating as expected! Something might be overriding the transform.");
             }
         }
     }
