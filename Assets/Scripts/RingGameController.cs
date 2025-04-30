@@ -84,10 +84,10 @@ public class RingGameController : MonoBehaviour
 
     void CreateExpandingCircle()
     {
-        // Create a sphere for the expanding circle
+        // Create a sphere for the expanding circle at root level
         expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         expandingCircle.name = "ExpandingCircle";
-        expandingCircle.transform.parent = transform;
+        expandingCircle.transform.parent = null; // Ensure it's at root level
         
         // Position it at the sphere's position
         if (concentricRings != null && concentricRings.targetSphere != null)
@@ -96,7 +96,7 @@ public class RingGameController : MonoBehaviour
         }
         else
         {
-            expandingCircle.transform.localPosition = Vector3.zero;
+            expandingCircle.transform.position = transform.position;
         }
         
         // Start with zero scale

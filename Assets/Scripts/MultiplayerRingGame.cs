@@ -197,9 +197,10 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircles()
     {
-        // Create Player 1's expanding circle
+        // Create Player 1's expanding circle at root level
         player1ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         player1ExpandingCircle.name = "Player1ExpandingCircle";
+        player1ExpandingCircle.transform.parent = null; // Ensure it's at root level
         player1ExpandingCircle.transform.localScale = Vector3.zero;
         player1ExpandingCircle.transform.position = player1Sphere.transform.position;
         Destroy(player1ExpandingCircle.GetComponent<Collider>());
@@ -211,9 +212,10 @@ public class MultiplayerRingGame : MonoBehaviour
         player1ExpandingCircle.GetComponent<Renderer>().material = player1ExpandingCircleMaterial;
         player1ExpandingCircle.SetActive(false);
         
-        // Create Player 2's expanding circle
+        // Create Player 2's expanding circle at root level
         player2ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         player2ExpandingCircle.name = "Player2ExpandingCircle";
+        player2ExpandingCircle.transform.parent = null; // Ensure it's at root level
         player2ExpandingCircle.transform.localScale = Vector3.zero;
         player2ExpandingCircle.transform.position = player2Sphere.transform.position;
         Destroy(player2ExpandingCircle.GetComponent<Collider>());
