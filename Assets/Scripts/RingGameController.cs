@@ -18,14 +18,11 @@ public class RingGameController : MonoBehaviour
     public float expansionSpeed = 1.0f;
     
     [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.05f;
+    public float hitTolerance = 0.0001f;
 
     [Header("References")]
     [Tooltip("Reference to the ConcentricRings component")]
     public ConcentricRings concentricRings;
-    
-    [Tooltip("Reference to the Cube object that will follow the sphere when game is completed")]
-    public GameObject cubeObject;
     
     // Private variables
     private GameObject expandingCircle;
@@ -56,21 +53,7 @@ public class RingGameController : MonoBehaviour
             }
         }
         
-        // Find Cube object if not assigned
-        if (cubeObject == null)
-        {
-            // Try to find a GameObject named "Cube" in the scene
-            cubeObject = GameObject.Find("Cube");
-            if (cubeObject == null)
-            {
-                Debug.LogWarning("No Cube object found in the scene. Creating one...");
-                // Create a cube if none exists
-                cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cubeObject.name = "Cube";
-                // Position it away from the play area initially
-                cubeObject.transform.position = new Vector3(0, -10, 0);
-            }
-        }
+    
 
         // Wait for the ConcentricRings to initialize
         StartCoroutine(WaitForRingsInitialization());
@@ -158,11 +141,7 @@ public class RingGameController : MonoBehaviour
             expandingCircle.transform.localScale = Vector3.zero;
         }
         
-        // Hide the cube at the start of the game
-        if (cubeObject != null)
-        {
-            cubeObject.SetActive(false);
-        }
+     
         
         Debug.Log("Game initialized! Ring order: " + ringOrder[0] + ", " + ringOrder[1] + ", " + ringOrder[2]);
     }
@@ -204,16 +183,7 @@ public class RingGameController : MonoBehaviour
 
     void Update()
     {
-        if (gameCompleted)
-        {
-            // When game is completed, make the cube follow the sphere
-            if (cubeObject != null && concentricRings != null && concentricRings.targetSphere != null)
-            {
-                // Turn on controller script for cube object
-                cubeObject.transform.position = concentricRings.targetSphere.transform.position;
-            }
-            return;
-        }
+    
         
         // Check if multiplayer mode is active
         MultiplayerRingGame multiplayerGame = FindObjectOfType<MultiplayerRingGame>();
@@ -297,7 +267,7 @@ public class RingGameController : MonoBehaviour
         // The distance should be measured relative to the sphere's position
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         
-        Debug.Log("Radius of target ring: " + activeRingRadius + 
+          Debug.Log("Radius of target ring: " + activeRingRadius + 
             ", Raw radius: " + (currentRadius / 2) +
             ", Scaled radius: " + distanceFromSphereToCircleEdge + 
             ", Total diff: " + distanceFromTarget);
@@ -451,12 +421,7 @@ public class RingGameController : MonoBehaviour
     // Reset the game
     public void ResetGame()
     {
-        // Hide the cube when resetting the game
-        if (cubeObject != null)
-        {
-            cubeObject.SetActive(false);
-        }
-        
+
         InitializeGame();
     }
     
