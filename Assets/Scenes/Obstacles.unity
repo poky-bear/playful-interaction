@@ -532,10 +532,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activationDistance: 1.5
+  darkColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  brightColor: {r: 0.8, g: 0.2, b: 0.8, a: 1}
+  minDistanceToFirstRing: 1
   baseRingRadius: 0.15
   ringHeight: 0
   smoothSpeed: 5
-  ringSpacing: 0.8
+  hitTolerance: 0.0001
+  ringSpacing: 0.4
   ringThickness: 0.08
   expansionSpeed: 0.3
   activationTime: 3

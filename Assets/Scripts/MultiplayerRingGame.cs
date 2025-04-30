@@ -234,7 +234,7 @@ public class MultiplayerRingGame : MonoBehaviour
     void CreateExpandingCircles()
     {
         // Create center expanding circle
-        (centerExpandingCircle, centerExpandingCircleMaterial) = CreateExpandingSphere("CenterExpandingCircle", new Color(0.8f, 0.2f, 0.8f, 0.5f)); // Purple tint
+        // (centerExpandingCircle, centerExpandingCircleMaterial) = CreateExpandingSphere("CenterExpandingCircle", new Color(0.8f, 0.2f, 0.8f, 0.5f)); // Purple tint
         
         // Create Player 1's expanding circle
         (player1ExpandingCircle, player1ExpandingCircleMaterial) = CreateExpandingSphere("Player1ExpandingCircle", new Color(0.2f, 0.8f, 0.2f, 0.5f)); // Green tint
@@ -309,9 +309,9 @@ public class MultiplayerRingGame : MonoBehaviour
         midpoint.y = ringHeight; // Keep at same height as rings
         
         // Position and show the expanding circle
-        centerExpandingCircle.transform.position = midpoint;
-        centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
-        centerExpandingCircle.SetActive(true);
+        // centerExpandingCircle.transform.position = midpoint;
+        // centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+        // centerExpandingCircle.SetActive(true);
         
         // Reset hit flags
         player1Hit = false;
@@ -357,7 +357,7 @@ public class MultiplayerRingGame : MonoBehaviour
                     // Game completed!
                     Debug.Log(successMessage);
                     gameCompleted = true;
-                    centerExpandingCircle.SetActive(false);
+                    // centerExpandingCircle.SetActive(false);
                 }
                 else
                 {
@@ -369,7 +369,7 @@ public class MultiplayerRingGame : MonoBehaviour
                 // Reset for next ring
                 isExpanding = false;
                 currentRadius = 0f;
-                centerExpandingCircle.SetActive(false);
+                // centerExpandingCircle.SetActive(false);
                 player1Hit = false;
                 player2Hit = false;
             }
@@ -385,8 +385,8 @@ public class MultiplayerRingGame : MonoBehaviour
     private IEnumerator ShowHitFeedback(float distanceFromTarget)
     {
         // Get the renderer and material
-        MeshRenderer renderer = centerExpandingCircle.GetComponent<MeshRenderer>();
-        Material material = renderer.material;
+        // MeshRenderer renderer = centerExpandingCircle.GetComponent<MeshRenderer>();
+        // Material material = renderer.material;
         
         // Set feedback color based on how close it was
         Color feedbackColor;
@@ -407,14 +407,14 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             time += Time.deltaTime;
             float alpha = Mathf.Lerp(0.5f, 0.1f, time / duration);
-            material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
+            // material.color = new Color(feedbackColor.r, feedbackColor.g, feedbackColor.b, alpha);
             yield return null;
         }
         
         // Hide the circle and reset
         centerExpandingCircle.SetActive(false);
         currentRadius = 0f;
-        material.color = new Color(0.8f, 0.2f, 0.8f, 0.5f); // Reset to original color
+        // material.color = new Color(0.8f, 0.2f, 0.8f, 0.5f); // Reset to original color
     }
 
     void SetRingColor(int ringIndex, Color color)
@@ -587,8 +587,8 @@ public class MultiplayerRingGame : MonoBehaviour
                     
                     // Update radius and position
                     currentRadius += expansionSpeed * Time.deltaTime;
-                    centerExpandingCircle.transform.position = centerPoint;
-                    centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
+                    // centerExpandingCircle.transform.position = centerPoint;
+                    // centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
                     
                     // Check for key releases
                     if (Input.GetKeyUp(KeyCode.Space))
