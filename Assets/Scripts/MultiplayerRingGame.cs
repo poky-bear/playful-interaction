@@ -89,7 +89,6 @@ public class MultiplayerRingGame : MonoBehaviour
     private bool player2Hit = false;
     private bool isExpanding = false;
     private float currentRadius = 0f;
-    private GameObject centerExpandingCircle;
 
     private void SetupBoidTargets()
     {
