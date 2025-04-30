@@ -70,10 +70,8 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             if (!lastOptitrackPosition.HasValue)
             {
                 lastOptitrackPosition = currentOptitrackPosition;
-                // Initialize accumulated position with inverted X and Z for consistency
+                // Keep the initial position as-is from OptiTrack
                 accumulatedPosition = currentOptitrackPosition;
-                accumulatedPosition.x = -accumulatedPosition.x;
-                accumulatedPosition.z = -accumulatedPosition.z;
                 transform.localPosition = accumulatedPosition;
                 transform.localRotation = rbState.Pose.Orientation;
                 return;
