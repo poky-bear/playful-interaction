@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Extends OptitrackRigidBody to invert Z-axis movement deltas.
+/// Extends OptitrackRigidBody to invert X and Z axis movement deltas.
 /// </summary>
 public class InvertedZOptitrackRigidBody : MonoBehaviour
 {
@@ -78,7 +78,8 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             // Calculate the delta movement from OptiTrack
             Vector3 delta = currentOptitrackPosition - lastOptitrackPosition.Value;
             
-            // Invert the Z delta
+            // Invert the X and Z deltas
+            delta.x = -delta.x;
             delta.z = -delta.z;
 
             // Update the accumulated position with the inverted delta
