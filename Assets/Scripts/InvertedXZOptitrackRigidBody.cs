@@ -15,6 +15,7 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
     public bool NetworkCompensation = true;
 
     private Vector3? lastOptitrackPosition = null;
+    private Vector3 accumulatedPosition = Vector3.zero;
 
     void Start()
     {
@@ -113,34 +114,52 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             if (!lastOptitrackPosition.HasValue)
             {
                 lastOptitrackPosition = currentOptitrackPosition;
-                transform.position = currentOptitrackPosition;
-                transform.rotation = rbState.Pose.Orientation;
+                accumulatedPosition = currentOptitrackPosition;
+                transform.localPosition = accumulatedPosition;
+                transform.localRotation = rbState.Pose.Orientation;
                 return;
             }
 
             // Calculate the delta movement from OptiTrack
             Vector3 delta = currentOptitrackPosition - lastOptitrackPosition.Value;
             
-            // Create a new position by applying inverted deltas to our current position
-            Vector3 newPosition = transform.position;
-            newPosition.x -= delta.x;  // Move opposite to X delta
-            newPosition.y += delta.y;  // Keep Y movement the same
-            newPosition.z -= delta.z;  // Move opposite to Z delta
+            // Invert the X and Z deltas
+            delta.x = -delta.x;
+            delta.z = -delta.z;
 
-            // Update position directly
-            transform.position = newPosition;
-            accumulatedPosition = newPosition;
+            // Update the accumulated position with the inverted delta
+            accumulatedPosition += delta;
 
-            // Update rotation
+            // Store previous positions for comparison
+            Vector3 prevWorldPos = transform.position;
+            Vector3 prevLocalPos = transform.localPosition;
+
+            // Try to update both world and local position
+            transform.position = accumulatedPosition;
             transform.rotation = rbState.Pose.Orientation;
 
             // Store the current position for next frame's delta calculation
             lastOptitrackPosition = currentOptitrackPosition;
 
-            // Debug logging focused on movement
-            Debug.Log($"[MOVEMENT] OptiTrack Delta: {delta}");
-            Debug.Log($"[MOVEMENT] Our Movement: X: {-delta.x}, Y: {delta.y}, Z: {-delta.z}");
-            Debug.Log($"[POSITION] New Position: {transform.position}");
+            // Detailed debug logging
+            Debug.Log($"[POSITION] Previous World: {prevWorldPos}, New World: {transform.position}");
+            Debug.Log($"[POSITION] Previous Local: {prevLocalPos}, New Local: {transform.localPosition}");
+            Debug.Log($"[OPTITRACK] Current: {currentOptitrackPosition}, Last: {lastOptitrackPosition.Value}");
+            Debug.Log($"[MOVEMENT] Delta: {delta}, Accumulated: {accumulatedPosition}");
+            
+            // Check if position actually changed
+            if (transform.position != accumulatedPosition)
+            {
+                Debug.LogWarning($"[WARNING] Position not updating as expected!");
+                Debug.LogWarning($"[WARNING] Attempted to set position to {accumulatedPosition} but got {transform.position}");
+                
+                // Check if any parent transforms are moving
+                Transform parent = transform.parent;
+                if (parent != null)
+                {
+                    Debug.LogWarning($"[WARNING] Parent '{parent.name}' position: {parent.position}");
+                }
+            }
         }
     }
 }
