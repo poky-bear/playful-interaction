@@ -83,12 +83,6 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             transform.localPosition = mirroredPosition;
             // transform.localRotation = rbState.Pose.Orientation;
 
-            // Debug log to verify mirroring
-            Debug.Log($"[Position Update] Frame: {Time.frameCount}\n" +
-                     $"Original Position: {currentOptitrackPosition:F3}\n" +
-                     $"Relative to Center: ({relativeX:F3}, {currentOptitrackPosition.y:F3}, {relativeZ:F3})\n" +
-                     $"Mirrored Position: {mirroredPosition:F3}");
-
         }
     }
 }

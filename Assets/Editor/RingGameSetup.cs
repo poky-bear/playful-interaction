@@ -116,6 +116,5 @@ public class RingGameSetup : Editor
             uiController.gameController = gameController;
         }
         
-        Debug.Log("Ring Game setup complete!");
     }
 }

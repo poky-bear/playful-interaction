@@ -10,7 +10,6 @@ public class SetupConcentricRings : EditorWindow
         GameObject keyboardSphere = GameObject.Find("KeyboardSphere");
         if (keyboardSphere == null)
         {
-            Debug.LogError("KeyboardSphere not found in the scene!");
             return;
         }
         
@@ -19,7 +18,6 @@ public class SetupConcentricRings : EditorWindow
         if (rings == null)
         {
             rings = keyboardSphere.AddComponent<ConcentricRings>();
-            Debug.Log("Added ConcentricRings component to KeyboardSphere");
         }
         
         // Set default values
@@ -37,7 +35,6 @@ public class SetupConcentricRings : EditorWindow
         // Create materials if they don't exist
         if (rings.ringMaterials[0] == null || rings.ringMaterials[1] == null || rings.ringMaterials[2] == null)
         {
-            Debug.Log("Some ring materials not found. Creating default materials...");
             RingMaterialCreator.CreateRingMaterials();
             
             // Try loading the materials again
@@ -46,6 +43,5 @@ public class SetupConcentricRings : EditorWindow
             rings.ringMaterials[2] = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/RingMaterial3.mat");
         }
         
-        Debug.Log("Concentric rings setup complete!");
     }
 }

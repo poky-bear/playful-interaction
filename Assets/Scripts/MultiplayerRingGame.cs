@@ -29,7 +29,7 @@ public class MultiplayerRingGame : MonoBehaviour
     public float smoothSpeed = 5.0f;
     
     [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.0001f;
+    public float hitTolerance = 0.01f;
     
     [Tooltip("Spacing between consecutive rings")]
     public float ringSpacing = 1.5f;
