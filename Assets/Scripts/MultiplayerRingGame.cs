@@ -232,30 +232,26 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircles()
     {
-        // Create the center expanding circle
-        centerExpandingCircle = new GameObject("CenterExpandingCircle");
+        // Create a sphere for the expanding circle at root level
+        centerExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        centerExpandingCircle.name = "CenterExpandingCircle";
         centerExpandingCircle.transform.parent = null; // Ensure it's at root level
         
-        // Add mesh components
-        MeshFilter meshFilter = centerExpandingCircle.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = centerExpandingCircle.AddComponent<MeshRenderer>();
+        // Remove collider as we don't need physics for this
+        Destroy(centerExpandingCircle.GetComponent<Collider>());
         
-        // Create material for the expanding circle
+        // Create material for the expanding circle with transparency
         Material material = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(material);
         material.color = new Color(0.8f, 0.2f, 0.8f, 0.5f); // Purple tint to match multiplayer color
-        meshRenderer.material = material;
+        centerExpandingCircle.GetComponent<Renderer>().material = material;
         
-        // Initialize with zero radius
-        UpdateExpandingCircleMesh(meshFilter, 0f);
+        // Start with zero scale
+        centerExpandingCircle.transform.localScale = Vector3.zero;
         centerExpandingCircle.SetActive(false);
     }
     
-    void UpdateExpandingCircleMesh(MeshFilter meshFilter, float radius)
-    {
-        // Create a ring mesh with the current radius
-        meshFilter.mesh = CreateTorusMesh(radius, ringThickness);
-    }
+
 
     void UpdateRingParameters()
     {
@@ -299,7 +295,7 @@ public class MultiplayerRingGame : MonoBehaviour
         
         // Position and show the expanding circle
         centerExpandingCircle.transform.position = midpoint;
-        UpdateExpandingCircleMesh(centerExpandingCircle.GetComponent<MeshFilter>(), currentRadius);
+        centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
         centerExpandingCircle.SetActive(true);
         
         // Reset hit flags
@@ -313,7 +309,8 @@ public class MultiplayerRingGame : MonoBehaviour
         float activeRingRadius = GetRingRadius(currentRingIndex);
         
         // Calculate the distance from the center to the expanding circle edge
-        float distanceToEdge = currentRadius;
+        // Divide by 2 since Unity's sphere primitive has a diameter of 1 unit
+        float distanceToEdge = currentRadius / 2;
         
         // Calculate how close the expanding circle was to the target
         float distanceFromTarget = Mathf.Abs(distanceToEdge - activeRingRadius);
@@ -563,7 +560,7 @@ public class MultiplayerRingGame : MonoBehaviour
                     // Update radius and position
                     currentRadius += expansionSpeed * Time.deltaTime;
                     centerExpandingCircle.transform.position = centerPoint;
-                    UpdateExpandingCircleMesh(centerExpandingCircle.GetComponent<MeshFilter>(), currentRadius);
+                    centerExpandingCircle.transform.localScale = new Vector3(currentRadius, currentRadius, currentRadius);
                     
                     // Check for key releases
                     if (Input.GetKeyUp(KeyCode.Space))
