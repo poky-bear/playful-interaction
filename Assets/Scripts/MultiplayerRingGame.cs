@@ -214,37 +214,80 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircles()
     {
-        // Create Player 1's expanding circle at root level
-        player1ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        player1ExpandingCircle.name = "Player1ExpandingCircle";
+        // Create Player 1's expanding circle
+        player1ExpandingCircle = new GameObject("Player1ExpandingCircle");
         player1ExpandingCircle.transform.parent = null; // Ensure it's at root level
-        player1ExpandingCircle.transform.localScale = Vector3.zero;
         player1ExpandingCircle.transform.position = player1Sphere.transform.position;
-        Destroy(player1ExpandingCircle.GetComponent<Collider>());
+        
+        // Add mesh components for Player 1
+        MeshFilter meshFilter1 = player1ExpandingCircle.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer1 = player1ExpandingCircle.AddComponent<MeshRenderer>();
         
         // Create material for Player 1's expanding circle
         player1ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(player1ExpandingCircleMaterial);
         player1ExpandingCircleMaterial.color = new Color(1f, 0.8f, 0.2f, 0.5f); // Yellow tint
-        player1ExpandingCircle.GetComponent<Renderer>().material = player1ExpandingCircleMaterial;
+        meshRenderer1.material = player1ExpandingCircleMaterial;
         player1ExpandingCircle.SetActive(false);
         
-        // Create Player 2's expanding circle at root level
-        player2ExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        player2ExpandingCircle.name = "Player2ExpandingCircle";
+        // Create Player 2's expanding circle
+        player2ExpandingCircle = new GameObject("Player2ExpandingCircle");
         player2ExpandingCircle.transform.parent = null; // Ensure it's at root level
-        player2ExpandingCircle.transform.localScale = Vector3.zero;
         player2ExpandingCircle.transform.position = player2Sphere.transform.position;
-        Destroy(player2ExpandingCircle.GetComponent<Collider>());
+        
+        // Add mesh components for Player 2
+        MeshFilter meshFilter2 = player2ExpandingCircle.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer2 = player2ExpandingCircle.AddComponent<MeshRenderer>();
         
         // Create material for Player 2's expanding circle
         player2ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(player2ExpandingCircleMaterial);
         player2ExpandingCircleMaterial.color = new Color(0.2f, 0.8f, 1f, 0.5f); // Blue tint
-        player2ExpandingCircle.GetComponent<Renderer>().material = player2ExpandingCircleMaterial;
+        meshRenderer2.material = player2ExpandingCircleMaterial;
         player2ExpandingCircle.SetActive(false);
+        
+        // Initialize with zero radius
+        UpdateExpandingCircleMesh(player1ExpandingCircle.GetComponent<MeshFilter>(), 0f);
+        UpdateExpandingCircleMesh(player2ExpandingCircle.GetComponent<MeshFilter>(), 0f);
     }
     
+    void UpdateExpandingCircleMesh(MeshFilter meshFilter, float radius)
+    {
+        // Create a ring mesh with the current radius
+        meshFilter.mesh = CreateTorusMesh(radius, ringThickness);
+    }
+
+    void UpdateRingParameters()
+    {
+        if (rings == null) return;
+
+        for (int i = 0; i < rings.Length; i++)
+        {
+            if (rings[i] != null)
+            {
+                float radius = baseRingRadius + (i * ringSpacing);
+                MeshFilter meshFilter = rings[i].GetComponent<MeshFilter>();
+                if (meshFilter != null)
+                {
+                    meshFilter.mesh = CreateTorusMesh(radius, ringThickness * 0.5f);
+                    
+                    // Update collider as well
+                    MeshCollider meshCollider = rings[i].GetComponent<MeshCollider>();
+                    if (meshCollider != null)
+                    {
+                        meshCollider.sharedMesh = meshFilter.mesh;
+                    }
+                }
+            }
+        }
+    }
+
+    void OnValidate()
+    {
+        // Update ring parameters whenever they are changed in the inspector
+        UpdateRingParameters();
+    }
+
     void SetupTransparentMaterial(Material material)
     {
         material.SetFloat("_Mode", 3); // Transparent mode
@@ -389,14 +432,14 @@ public class MultiplayerRingGame : MonoBehaviour
         if (player1IsExpanding)
         {
             player1CurrentRadius += expansionSpeed * Time.deltaTime;
-            player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
+            UpdateExpandingCircleMesh(player1ExpandingCircle.GetComponent<MeshFilter>(), player1CurrentRadius);
             player1ExpandingCircle.transform.position = player1Sphere.transform.position;
         }
         
         if (player2IsExpanding)
         {
             player2CurrentRadius += expansionSpeed * Time.deltaTime;
-            player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
+            UpdateExpandingCircleMesh(player2ExpandingCircle.GetComponent<MeshFilter>(), player2CurrentRadius);
             player2ExpandingCircle.transform.position = player2Sphere.transform.position;
         }
         
