@@ -844,6 +844,12 @@ Transform:
   m_Children: []
   m_Father: {fileID: 56894761}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &249118858 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1f7fb868273be3143baae3a126115a1d,
+    type: 3}
+  m_PrefabInstance: {fileID: 447255479}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &344743097
 GameObject:
   m_ObjectHideFlags: 0
@@ -3053,6 +3059,7 @@ GameObject:
   - component: {fileID: 1472242335}
   - component: {fileID: 1472242334}
   - component: {fileID: 1472242333}
+  - component: {fileID: 1472242341}
   m_Layer: 0
   m_Name: Player2Bird
   m_TagString: Untagged
@@ -3113,8 +3120,8 @@ MonoBehaviour:
   successMessage: Congratulations! Player 2 completed all rings!
   expansionSpeed: 0.3
   hitTolerance: 0.05
-  concentricRings: {fileID: 0}
-  cubeObject: {fileID: 0}
+  concentricRings: {fileID: 1472242337}
+  cubeObject: {fileID: 249118858}
 --- !u!54 &1472242335
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3235,6 +3242,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1472242331}
   m_Mesh: {fileID: 4711208715938537054, guid: 2c0e10b13534a55499d274e2e7660e72, type: 3}
+--- !u!114 &1472242341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1472242331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f77bc200897df4f4483b478b598b0c51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StreamingClient: {fileID: 1467667637}
+  RigidBodyId: 489
+  NetworkCompensation: 1
 --- !u!4 &1480242412 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f7fb868273be3143baae3a126115a1d,
@@ -4795,7 +4817,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4986780198534993785}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 61180e3adea97464584204a2c4b73d0c, type: 3}
   m_Name: 
@@ -4873,7 +4895,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4986780198534993785}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f77bc200897df4f4483b478b598b0c51, type: 3}
   m_Name: 
