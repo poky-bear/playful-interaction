@@ -18,6 +18,9 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("Thickness of the rings")]
     public float ringThickness = 0.2f;
     
+    [Tooltip("Speed at which the circles expand")]
+    public float expansionSpeed = 1.0f;
+    
     [Tooltip("Time players need to stay close to activate multiplayer mode")]
     public float activationTime = 3.0f;
     
@@ -372,6 +375,21 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void UpdateMultiplayerGame()
     {
+        // Update expanding circles
+        if (player1IsExpanding)
+        {
+            player1CurrentRadius += expansionSpeed * Time.deltaTime;
+            player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
+            player1ExpandingCircle.transform.position = player1Sphere.transform.position;
+        }
+        
+        if (player2IsExpanding)
+        {
+            player2CurrentRadius += expansionSpeed * Time.deltaTime;
+            player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
+            player2ExpandingCircle.transform.position = player2Sphere.transform.position;
+        }
+        
         // Check for space bar press (Player 1)
         if (Input.GetKeyDown(KeyCode.Space))
         {
