@@ -28,8 +28,7 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("How smoothly rings follow player movement (higher = smoother)")]
     public float smoothSpeed = 5.0f;
     
-    [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.01f;
+
     
     [Tooltip("Spacing between consecutive rings")]
     public float ringSpacing = 1.5f;
@@ -85,8 +84,6 @@ public class MultiplayerRingGame : MonoBehaviour
     private bool player2Ready = false;
     private bool player1Hit = false;
     private bool player2Hit = false;
-    private bool isExpanding = false;
-    private float currentRadius = 0f;
 
     private void SetupBoidTargets()
     {
@@ -98,9 +95,7 @@ public class MultiplayerRingGame : MonoBehaviour
         }
     }
     
-    // Variables for synchronized ring completion
-    private bool player1Success = false;
-    private bool player2Success = false;
+
     private float player1Distance = 0f;
     private float player2Distance = 0f;
     
@@ -318,7 +313,7 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         player1IsExpanding = false;
         float distanceFromSphereToCircleEdge = (player1CurrentRadius / 2);
-        float activeRingRadius = GetRingRadius(currentRingIndex);
+        float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         float tolerance = 0.2f; // Adjusted tolerance for world-space units
         
@@ -329,9 +324,29 @@ public class MultiplayerRingGame : MonoBehaviour
         if (distanceFromTarget < tolerance)
         {
             player1Hit = true;
-            Debug.Log("Player 1 hit the target!");
+            Debug.Log("Player 1 hit the target perfectly! Distance: " + distanceFromTarget.ToString("F2"));
             
-            CheckBothPlayersHit();
+            if (player2Hit)
+            {
+                Debug.Log("Both players have hit the target!");
+                AdvanceToNextRing();
+            }
+            else
+            {
+                Debug.Log("Waiting for Player 2 to hit the target...");
+            }
+        }
+        else
+        {
+            player1Hit = false;
+            if (distanceFromTarget < tolerance * 2)
+            {
+                Debug.Log("Player 1 was close! Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
+            }
+            else
+            {
+                Debug.Log("Player 1 missed. Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
+            }
         }
     }
     
@@ -339,7 +354,7 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         player2IsExpanding = false;
         float distanceFromSphereToCircleEdge = (player2CurrentRadius / 2);
-        float activeRingRadius = GetRingRadius(currentRingIndex);
+        float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         float tolerance = 0.2f; // Adjusted tolerance for world-space units
         
@@ -350,41 +365,58 @@ public class MultiplayerRingGame : MonoBehaviour
         if (distanceFromTarget < tolerance)
         {
             player2Hit = true;
-            Debug.Log("Player 2 hit the target!");
+            Debug.Log("Player 2 hit the target perfectly! Distance: " + distanceFromTarget.ToString("F2"));
             
-            CheckBothPlayersHit();
-        }
-    }
-    
-    void CheckBothPlayersHit()
-    {
-        if (player1Hit && player2Hit)
-        {
-            // Success! Move to the next ring
-            SetRingColor(currentRingIndex, darkColor);
-            currentRingIndex++;
-            
-            if (currentRingIndex >= rings.Length)
+            if (player1Hit)
             {
-                // Game completed!
-                Debug.Log(successMessage);
-                gameCompleted = true;
+                Debug.Log("Both players have hit the target!");
+                AdvanceToNextRing();
             }
             else
             {
-                // Activate the next ring
-                SetRingColor(currentRingIndex, brightColor);
-                Debug.Log("Both players hit! Moving to next ring: " + currentRingIndex);
+                Debug.Log("Waiting for Player 1 to hit the target...");
             }
-            
-            // Reset for next ring
-            player1Hit = false;
-            player2Hit = false;
-            player1CurrentRadius = 0f;
-            player2CurrentRadius = 0f;
-            player1ExpandingCircle.SetActive(false);
-            player2ExpandingCircle.SetActive(false);
         }
+        else
+        {
+            player2Hit = false;
+            if (distanceFromTarget < tolerance * 2)
+            {
+                Debug.Log("Player 2 was close! Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
+            }
+            else
+            {
+                Debug.Log("Player 2 missed. Distance: " + distanceFromTarget.ToString("F2") + " (need " + tolerance.ToString("F2") + " or less)");
+            }
+        }
+    }
+    
+    void AdvanceToNextRing()
+    {
+        // Success! Move to the next ring
+        SetRingColor(ringOrder[currentRingIndex], darkColor);
+        currentRingIndex++;
+        
+        if (currentRingIndex >= rings.Length)
+        {
+            // Game completed!
+            Debug.Log(successMessage);
+            gameCompleted = true;
+        }
+        else
+        {
+            // Activate the next ring
+            SetRingColor(ringOrder[currentRingIndex], brightColor);
+            Debug.Log("Both players hit! Moving to next ring: " + currentRingIndex);
+        }
+        
+        // Reset for next ring
+        player1Hit = false;
+        player2Hit = false;
+        player1CurrentRadius = 0f;
+        player2CurrentRadius = 0f;
+        player1ExpandingCircle.SetActive(false);
+        player2ExpandingCircle.SetActive(false);
     }
     
     private IEnumerator ShowHitFeedback(GameObject circle, Material material, float distanceFromTarget, float currentRadius)
