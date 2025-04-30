@@ -2,7 +2,7 @@ using System.IO.Compression;
 using UnityEngine;
 
 /// <summary>
-/// Extends OptitrackRigidBody to invert Z-axis movement deltas.
+/// Extends OptitrackRigidBody to invert X and Z-axis movement deltas.
 /// </summary>
 public class InvertedZOptitrackRigidBody : MonoBehaviour
 {
@@ -70,7 +70,10 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             if (!lastOptitrackPosition.HasValue)
             {
                 lastOptitrackPosition = currentOptitrackPosition;
+                // Initialize accumulated position with inverted X and Z for consistency
                 accumulatedPosition = currentOptitrackPosition;
+                accumulatedPosition.x = -accumulatedPosition.x;
+                accumulatedPosition.z = -accumulatedPosition.z;
                 transform.localPosition = accumulatedPosition;
                 transform.localRotation = rbState.Pose.Orientation;
                 return;
@@ -79,10 +82,11 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             // Calculate the delta movement from OptiTrack
             Vector3 delta = currentOptitrackPosition - lastOptitrackPosition.Value;
             
-            // Invert the Z delta
+            // Invert the X and Z deltas
+            delta.x = -delta.x;
             delta.z = -delta.z;
 
-            // Update the accumulated position with the inverted delta
+            // Update the accumulated position with the inverted deltas
             accumulatedPosition += delta;
 
             // Update the transform
@@ -93,7 +97,12 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             lastOptitrackPosition = currentOptitrackPosition;
 
             // Debug log to verify delta calculations
-            Debug.Log($"OptiTrack Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}, Applied Delta: {delta}");
+            Debug.Log($"Current OptiTrack Pos: {currentOptitrackPosition}, " +
+                     $"Last OptiTrack Pos: {lastOptitrackPosition.Value}, " +
+                     $"Raw Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}, " +
+                     $"Inverted Delta: {delta}, " +
+                     $"Accumulated Pos: {accumulatedPosition}, " +
+                     $"Transform Pos: {transform.localPosition}");
         }
     }
 }
