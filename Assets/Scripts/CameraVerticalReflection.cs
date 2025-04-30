@@ -8,7 +8,7 @@ public class CameraVerticalReflection : MonoBehaviour
     void Start()
     {
         cam = GetComponent<Camera>();
-        // Flip the camera's view vertically by scaling Y by -1 in the projection matrix
-        cam.projectionMatrix = cam.projectionMatrix * Matrix4x4.Scale(new Vector3(1, -1, 1));
+        // Flip the camera's view horizontally by scaling X by -1 in the projection matrix
+        cam.projectionMatrix = cam.projectionMatrix * Matrix4x4.Scale(new Vector3(-1, 1, 1));
     }
 }
