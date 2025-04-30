@@ -81,6 +81,11 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             // Calculate the delta movement from OptiTrack
             Vector3 delta = currentOptitrackPosition - lastOptitrackPosition.Value;
             
+            // Scale up small movements to make them more noticeable
+            // Adjust this multiplier as needed
+            const float movementMultiplier = 5.0f;
+            delta *= movementMultiplier;
+            
             // Invert the X and Z deltas
             delta.x = -delta.x;
             delta.z = -delta.z;
@@ -94,11 +99,11 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
 
             // Debug log to verify delta calculations
             Debug.Log($"[Delta Calculation] Frame: {Time.frameCount}\n" +
-                     $"Current Frame Position: {currentOptitrackPosition}\n" +
-                     $"Last Frame Position: {lastOptitrackPosition.Value}\n" +
-                     $"Raw Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}\n" +
-                     $"Inverted Delta: {delta}\n" +
-                     $"Accumulated Position: {accumulatedPosition}");
+                     $"Current Frame Position: {currentOptitrackPosition:F6}\n" +
+                     $"Last Frame Position: {lastOptitrackPosition.Value:F6}\n" +
+                     $"Raw Delta: {(currentOptitrackPosition - lastOptitrackPosition.Value):F6}\n" +
+                     $"Scaled Delta: {delta:F6}\n" +
+                     $"Accumulated Position: {accumulatedPosition:F6}");
 
             // Store the current position for next frame's delta calculation
             lastOptitrackPosition = currentOptitrackPosition;
