@@ -18,7 +18,7 @@ public class Player2RingGameController : MonoBehaviour
     public float expansionSpeed = 1.0f;
     
     [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.5f;
+    public float hitTolerance = 0.0001f;
 
     [Header("References")]
     [Tooltip("Reference to the ConcentricRings component")]
@@ -87,7 +87,7 @@ public class Player2RingGameController : MonoBehaviour
         // Create a sphere for the expanding circle
         expandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         expandingCircle.name = "Player2ExpandingCircle";
-        expandingCircle.transform.parent = transform;
+        expandingCircle.transform.parent = null; // Make it a root-level object like Player 1's
         
         // Position it at the sphere's position
         if (concentricRings != null && concentricRings.targetSphere != null)
