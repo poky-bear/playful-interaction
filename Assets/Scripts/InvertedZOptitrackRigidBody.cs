@@ -15,8 +15,11 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
     [Tooltip("Subscribes to this asset when using Unicast streaming.")]
     public bool NetworkCompensation = true;
 
-    private Vector3? lastOptitrackPosition = null;
-    private Vector3 accumulatedPosition;
+    [Tooltip("The X coordinate of the room's center")]
+    public float RoomCenterX = -3.37f;
+
+    [Tooltip("The Z coordinate of the room's center")]
+    public float RoomCenterZ = -0.83f;
 
     void Start()
     {
@@ -65,16 +68,25 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
         if (rbState != null)
         {
             Vector3 currentOptitrackPosition = rbState.Pose.Position;
+            Vector3 mirroredPosition = currentOptitrackPosition;
     
-            // Relative against the center
-            currentOptitrackPosition.x = (-3.37f - currentOptitrackPosition.x)/2f;
+            // Calculate position relative to center, then mirror it
+            float relativeX = currentOptitrackPosition.x - RoomCenterX;
+            float relativeZ = currentOptitrackPosition.z - RoomCenterZ;
 
-            // Relative against the center
-            currentOptitrackPosition.z = (-0.83f - currentOptitrackPosition.z)/2f;
+            // Mirror the relative positions
+            mirroredPosition.x = RoomCenterX - relativeX;
+            mirroredPosition.z = RoomCenterZ - relativeZ;
 
-            // Update the transform
-            transform.localPosition = currentOptitrackPosition;
+            // Update the transform with mirrored position
+            transform.localPosition = mirroredPosition;
             transform.localRotation = rbState.Pose.Orientation;
+
+            // Debug log to verify mirroring
+            Debug.Log($"[Position Update] Frame: {Time.frameCount}\n" +
+                     $"Original Position: {currentOptitrackPosition:F3}\n" +
+                     $"Relative to Center: ({relativeX:F3}, {currentOptitrackPosition.y:F3}, {relativeZ:F3})\n" +
+                     $"Mirrored Position: {mirroredPosition:F3}");
 
         }
     }
