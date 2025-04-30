@@ -233,16 +233,16 @@ public class MultiplayerRingGame : MonoBehaviour
     void CreateExpandingCircles()
     {
         // Create center expanding circle
-        centerExpandingCircle = CreateExpandingSphere("CenterExpandingCircle", new Color(0.8f, 0.2f, 0.8f, 0.5f)); // Purple tint
+        (centerExpandingCircle, centerExpandingCircleMaterial) = CreateExpandingSphere("CenterExpandingCircle", new Color(0.8f, 0.2f, 0.8f, 0.5f)); // Purple tint
         
         // Create Player 1's expanding circle
-        player1ExpandingCircle = CreateExpandingSphere("Player1ExpandingCircle", new Color(0.2f, 0.8f, 0.2f, 0.5f)); // Green tint
+        (player1ExpandingCircle, player1ExpandingCircleMaterial) = CreateExpandingSphere("Player1ExpandingCircle", new Color(0.2f, 0.8f, 0.2f, 0.5f)); // Green tint
         
         // Create Player 2's expanding circle
-        player2ExpandingCircle = CreateExpandingSphere("Player2ExpandingCircle", new Color(0.2f, 0.2f, 0.8f, 0.5f)); // Blue tint
+        (player2ExpandingCircle, player2ExpandingCircleMaterial) = CreateExpandingSphere("Player2ExpandingCircle", new Color(0.2f, 0.2f, 0.8f, 0.5f)); // Blue tint
     }
     
-    private GameObject CreateExpandingSphere(string name, Color color)
+    private (GameObject sphere, Material material) CreateExpandingSphere(string name, Color color)
     {
         // Create a sphere for the expanding circle at root level
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -262,7 +262,7 @@ public class MultiplayerRingGame : MonoBehaviour
         sphere.transform.localScale = Vector3.zero;
         sphere.SetActive(false);
         
-        return sphere;
+        return (sphere, material);
     }
     
 
