@@ -8,6 +8,13 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("Distance at which multiplayer mode activates")]
     public float activationDistance = 3.0f;
     
+    [Header("Colors")]
+    [Tooltip("Dark color for inactive rings")]
+    public Color darkColor = new Color(0.1f, 0.1f, 0.1f, 1f);
+    
+    [Tooltip("Bright color for active ring")]
+    public Color brightColor = new Color(0.8f, 0.2f, 0.8f, 1f); // Purple for active ring
+    
     [Header("Ring Settings")]
     [Tooltip("Minimum distance between sphere and first ring")]
     public float minDistanceToFirstRing = 1.0f;
@@ -398,6 +405,25 @@ public class MultiplayerRingGame : MonoBehaviour
         material.color = new Color(0.8f, 0.2f, 0.8f, 0.5f); // Reset to original color
     }
 
+    void SetRingColor(int ringIndex, Color color)
+    {
+        if (ringIndex >= 0 && ringIndex < rings.Length && rings[ringIndex] != null)
+        {
+            ringMaterials[ringIndex].color = color;
+            
+            // Also set emission for bright color
+            if (color == brightColor)
+            {
+                ringMaterials[ringIndex].EnableKeyword("_EMISSION");
+                ringMaterials[ringIndex].SetColor("_EmissionColor", color * 0.5f);
+            }
+            else
+            {
+                ringMaterials[ringIndex].DisableKeyword("_EMISSION");
+            }
+        }
+    }
+
     void SetupTransparentMaterial(Material material)
     {
         material.SetFloat("_Mode", 3); // Transparent mode
@@ -530,13 +556,13 @@ public class MultiplayerRingGame : MonoBehaviour
                 // Update expanding circle
                 if (isExpanding)
                 {
-                    // Calculate the midpoint between players
-                    Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
-                    midpoint.y = ringHeight; // Keep at same height as rings
+                    // Calculate the center point between players
+                    Vector3 centerPoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+                    centerPoint.y = ringHeight; // Keep at same height as rings
                     
                     // Update radius and position
                     currentRadius += expansionSpeed * Time.deltaTime;
-                    centerExpandingCircle.transform.position = midpoint;
+                    centerExpandingCircle.transform.position = centerPoint;
                     UpdateExpandingCircleMesh(centerExpandingCircle.GetComponent<MeshFilter>(), currentRadius);
                     
                     // Check for key releases
