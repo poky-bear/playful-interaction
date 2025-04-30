@@ -33,6 +33,21 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             }
         }
 
+        // Check for and handle Rigidbody if present
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true; // Make sure physics don't interfere with our position updates
+            Debug.Log("Found Rigidbody, setting to kinematic to prevent physics interference");
+        }
+
+        // Check parent hierarchy
+        Transform parent = transform.parent;
+        if (parent != null)
+        {
+            Debug.Log($"Object has parent: {parent.name}. This might affect local position updates.");
+        }
+
         this.StreamingClient.RegisterRigidBody(this, RigidBodyId);
     }
 
@@ -85,15 +100,23 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
             // Update the accumulated position with the inverted delta
             accumulatedPosition += delta;
 
-            // Update the transform
-            transform.localPosition = accumulatedPosition;
-            transform.localRotation = rbState.Pose.Orientation;
+            // Try to update both world and local position
+            transform.position = accumulatedPosition;
+            transform.rotation = rbState.Pose.Orientation;
 
             // Store the current position for next frame's delta calculation
             lastOptitrackPosition = currentOptitrackPosition;
 
-            // Debug log to verify delta calculations
-            Debug.Log($"OptiTrack Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}, Applied Delta: {delta}");
+            // Detailed debug logging
+            Debug.Log($"OptiTrack Current: {currentOptitrackPosition}, Last: {lastOptitrackPosition.Value}");
+            Debug.Log($"Delta: {delta}, Accumulated: {accumulatedPosition}");
+            Debug.Log($"Transform World Pos: {transform.position}, Local Pos: {transform.localPosition}");
+            
+            // Check if position actually changed
+            if (transform.position != accumulatedPosition)
+            {
+                Debug.LogWarning("Position not updating as expected! Something might be overriding the transform.");
+            }
         }
     }
 }
