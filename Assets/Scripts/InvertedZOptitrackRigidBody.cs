@@ -16,7 +16,7 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
     public bool NetworkCompensation = true;
 
     private Vector3? lastOptitrackPosition = null;
-    private Vector3 accumulatedPosition = Vector3.zero;
+    private Vector3 accumulatedPosition;
 
     void Start()
     {
