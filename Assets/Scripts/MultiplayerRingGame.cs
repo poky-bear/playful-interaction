@@ -12,6 +12,12 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("Base radius for the first ring")]
     public float baseRingRadius = 2.0f;
     
+    [Tooltip("Height at which rings should stay")]
+    public float ringHeight = 0.0f;
+    
+    [Tooltip("How smoothly rings follow player movement (higher = smoother)")]
+    public float smoothSpeed = 5.0f;
+    
     [Tooltip("Spacing between consecutive rings")]
     public float ringSpacing = 1.5f;
     
@@ -145,6 +151,7 @@ public class MultiplayerRingGame : MonoBehaviour
         if (player1Sphere != null && player2Sphere != null)
         {
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            midpoint.y = ringHeight; // Force rings to stay at fixed height
             multiplayerRingObject.transform.position = midpoint;
         }
         
@@ -330,11 +337,14 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             // Calculate the midpoint between players
             Vector3 midpoint = (player1Sphere.transform.position + player2Sphere.transform.position) / 2f;
+            midpoint.y = ringHeight; // Force rings to stay at fixed height
             
-            // Update the position of the multiplayer rings to stay centered
+            // Update the position of the multiplayer rings to stay centered with smooth movement
             if (multiplayerRingObject != null)
             {
-                multiplayerRingObject.transform.position = midpoint;
+                Vector3 currentPos = multiplayerRingObject.transform.position;
+                Vector3 targetPos = Vector3.Lerp(currentPos, midpoint, Time.deltaTime * smoothSpeed);
+                multiplayerRingObject.transform.position = targetPos;
             }
             
             // Check if players have moved too far apart
