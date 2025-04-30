@@ -232,23 +232,37 @@ public class MultiplayerRingGame : MonoBehaviour
     
     void CreateExpandingCircles()
     {
+        // Create center expanding circle
+        centerExpandingCircle = CreateExpandingSphere("CenterExpandingCircle", new Color(0.8f, 0.2f, 0.8f, 0.5f)); // Purple tint
+        
+        // Create Player 1's expanding circle
+        player1ExpandingCircle = CreateExpandingSphere("Player1ExpandingCircle", new Color(0.2f, 0.8f, 0.2f, 0.5f)); // Green tint
+        
+        // Create Player 2's expanding circle
+        player2ExpandingCircle = CreateExpandingSphere("Player2ExpandingCircle", new Color(0.2f, 0.2f, 0.8f, 0.5f)); // Blue tint
+    }
+    
+    private GameObject CreateExpandingSphere(string name, Color color)
+    {
         // Create a sphere for the expanding circle at root level
-        centerExpandingCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        centerExpandingCircle.name = "CenterExpandingCircle";
-        centerExpandingCircle.transform.parent = null; // Ensure it's at root level
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.name = name;
+        sphere.transform.parent = null; // Ensure it's at root level
         
         // Remove collider as we don't need physics for this
-        Destroy(centerExpandingCircle.GetComponent<Collider>());
+        Destroy(sphere.GetComponent<Collider>());
         
         // Create material for the expanding circle with transparency
         Material material = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(material);
-        material.color = new Color(0.8f, 0.2f, 0.8f, 0.5f); // Purple tint to match multiplayer color
-        centerExpandingCircle.GetComponent<Renderer>().material = material;
+        material.color = color;
+        sphere.GetComponent<Renderer>().material = material;
         
         // Start with zero scale
-        centerExpandingCircle.transform.localScale = Vector3.zero;
-        centerExpandingCircle.SetActive(false);
+        sphere.transform.localScale = Vector3.zero;
+        sphere.SetActive(false);
+        
+        return sphere;
     }
     
 
