@@ -287,7 +287,13 @@ public class RingGameController : MonoBehaviour
         // Calculate the distance from the sphere's center to the expanding circle edge
         // This ensures we're measuring from the sphere's position, not world origin
         Vector3 spherePosition = concentricRings.targetSphere.transform.position;
-        float distanceFromSphereToCircleEdge = currentRadius /2;
+        // Scale the radius by the same factor as the sphere to match the ring radius calculation
+        float scaleFactor = Mathf.Max(
+            concentricRings.targetSphere.transform.lossyScale.x,
+            concentricRings.targetSphere.transform.lossyScale.y,
+            concentricRings.targetSphere.transform.lossyScale.z
+        );
+        float distanceFromSphereToCircleEdge = (currentRadius / 2) * scaleFactor;
 
        
         
@@ -295,9 +301,11 @@ public class RingGameController : MonoBehaviour
         // The distance should be measured relative to the sphere's position
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         
-         Debug.Log("Radius of target ring: " + activeRingRadius + 
-        ", Radius of user ring: " + distanceFromSphereToCircleEdge + 
-        ", total diff: " + distanceFromTarget);
+        Debug.Log("Radius of target ring: " + activeRingRadius + 
+            ", Raw radius: " + (currentRadius / 2) +
+            ", Scale factor: " + scaleFactor +
+            ", Scaled radius: " + distanceFromSphereToCircleEdge + 
+            ", Total diff: " + distanceFromTarget);
 
         Debug.Log("Sphere position: " + spherePosition + 
                   ", Circle radius: " + currentRadius + 
