@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Extends OptitrackRigidBody to invert the Z-axis movement.
+/// Extends OptitrackRigidBody to invert Z-axis movement deltas.
 /// </summary>
 public class InvertedZOptitrackRigidBody : MonoBehaviour
 {
@@ -13,6 +13,9 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
 
     [Tooltip("Subscribes to this asset when using Unicast streaming.")]
     public bool NetworkCompensation = true;
+
+    private Vector3? lastOptitrackPosition = null;
+    private Vector3 accumulatedPosition = Vector3.zero;
 
     void Start()
     {
@@ -60,11 +63,36 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
         OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId, NetworkCompensation);
         if (rbState != null)
         {
-            Vector3 position = rbState.Pose.Position;
-            position.z = -position.z; // Invert the Z position
+            Vector3 currentOptitrackPosition = rbState.Pose.Position;
 
-            this.transform.localPosition = position;
-            this.transform.localRotation = rbState.Pose.Orientation;
+            // If this is our first position update, initialize the accumulated position
+            if (!lastOptitrackPosition.HasValue)
+            {
+                lastOptitrackPosition = currentOptitrackPosition;
+                accumulatedPosition = currentOptitrackPosition;
+                transform.localPosition = accumulatedPosition;
+                transform.localRotation = rbState.Pose.Orientation;
+                return;
+            }
+
+            // Calculate the delta movement from OptiTrack
+            Vector3 delta = currentOptitrackPosition - lastOptitrackPosition.Value;
+            
+            // Invert the Z delta
+            delta.z = -delta.z;
+
+            // Update the accumulated position with the inverted delta
+            accumulatedPosition += delta;
+
+            // Update the transform
+            transform.localPosition = accumulatedPosition;
+            transform.localRotation = rbState.Pose.Orientation;
+
+            // Store the current position for next frame's delta calculation
+            lastOptitrackPosition = currentOptitrackPosition;
+
+            // Debug log to verify delta calculations
+            Debug.Log($"OptiTrack Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}, Applied Delta: {delta}");
         }
     }
 }
