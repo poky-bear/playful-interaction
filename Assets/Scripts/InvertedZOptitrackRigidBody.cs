@@ -77,6 +77,7 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             // Mirror the relative positions
             mirroredPosition.x = RoomCenterX - relativeX;
             mirroredPosition.z = RoomCenterZ - relativeZ;
+            mirroredPosition.y = 0;
 
             // Update the transform with mirrored position
             transform.localPosition = mirroredPosition;
