@@ -3060,6 +3060,7 @@ GameObject:
   - component: {fileID: 1472242334}
   - component: {fileID: 1472242333}
   - component: {fileID: 1472242341}
+  - component: {fileID: 1472242342}
   m_Layer: 0
   m_Name: Player2Bird
   m_TagString: Untagged
@@ -3249,9 +3250,24 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1472242331}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f77bc200897df4f4483b478b598b0c51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StreamingClient: {fileID: 1467667637}
+  RigidBodyId: 489
+  NetworkCompensation: 1
+--- !u!114 &1472242342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1472242331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 984d921e1644e5d42a911afbdb23d3e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StreamingClient: {fileID: 1467667637}
@@ -4817,7 +4833,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4986780198534993785}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 61180e3adea97464584204a2c4b73d0c, type: 3}
   m_Name: 
@@ -4895,13 +4911,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4986780198534993785}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f77bc200897df4f4483b478b598b0c51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StreamingClient: {fileID: 1467667637}
-  RigidBodyId: 488
+  RigidBodyId: 490
   NetworkCompensation: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
