@@ -78,6 +78,7 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
         }
         return path;
     }
+    }
 
 #if UNITY_2017_1_OR_NEWER
     void OnEnable()
@@ -128,6 +129,7 @@ public class InvertedXZOptitrackRigidBody : MonoBehaviour
 
             // Update position directly
             transform.position = newPosition;
+            accumulatedPosition = newPosition;
 
             // Update rotation
             transform.rotation = rbState.Pose.Orientation;
