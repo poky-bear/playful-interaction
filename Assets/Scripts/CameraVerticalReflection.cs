@@ -1,16 +1,29 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class CameraVerticalReflection : MonoBehaviour
-{
-    private Camera cam;
+[ExecuteInEditMode]
+public class MirrorFlipCamera : MonoBehaviour {
 
-    void Start()
-    {
-        cam = GetComponent<Camera>();
-        // Just flip the sign of the first column of the projection matrix
-        Matrix4x4 mat = cam.projectionMatrix;
-        mat.m00 = -mat.m00;
-        cam.projectionMatrix = mat;
-    }
+	new Camera camera;
+
+	public bool flipHorizontal;
+
+	void Awake () {
+		camera = GetComponent<Camera>();
+	}
+
+	void OnPreCull() {
+		camera.ResetWorldToCameraMatrix();
+		camera.ResetProjectionMatrix();
+		Vector3 scale = new Vector3(flipHorizontal ? -1 : 1, 1, 1);
+		camera.projectionMatrix = camera.projectionMatrix * Matrix4x4.Scale(scale);
+	}
+
+	void OnPreRender () {
+		GL.invertCulling = flipHorizontal;
+	}
+	
+	void OnPostRender () {
+		GL.invertCulling = false;
+	}
 }
