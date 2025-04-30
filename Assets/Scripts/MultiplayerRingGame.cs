@@ -8,6 +8,16 @@ public class MultiplayerRingGame : MonoBehaviour
     [Tooltip("Distance at which multiplayer mode activates")]
     public float activationDistance = 3.0f;
     
+    [Header("Ring Settings")]
+    [Tooltip("Base radius for the first ring")]
+    public float baseRingRadius = 2.0f;
+    
+    [Tooltip("Spacing between consecutive rings")]
+    public float ringSpacing = 1.5f;
+    
+    [Tooltip("Thickness of the rings")]
+    public float ringThickness = 0.2f;
+    
     [Tooltip("Time players need to stay close to activate multiplayer mode")]
     public float activationTime = 3.0f;
     
@@ -137,14 +147,11 @@ public class MultiplayerRingGame : MonoBehaviour
         
         // Create rings
         rings = new GameObject[3];
-        float baseRadius = 2.0f; // Base radius for the first ring
-        float ringSpacing = 1.5f; // Spacing between rings
-        float ringThickness = 0.2f; // Make rings thicker for better visibility
         
         for (int i = 0; i < 3; i++)
         {
-            // Calculate the radius for this ring
-            float radius = baseRadius + (i * ringSpacing);
+            // Calculate the radius for this ring using the configurable settings
+            float radius = baseRingRadius + (i * ringSpacing);
             
             // Create a ring using a torus mesh
             rings[i] = new GameObject("MultiplayerRing" + i);
@@ -1144,9 +1151,8 @@ public class MultiplayerRingGame : MonoBehaviour
     
     float GetRingRadius(int ringIndex)
     {
-        float baseRadius = 2.0f;
-        float ringSpacing = 1.5f; // Match the spacing used in CreateMultiplayerRing
-        return baseRadius + (ringIndex * ringSpacing);
+        // Use the configurable ring settings
+        return baseRingRadius + (ringIndex * ringSpacing);
     }
     
     int[] GenerateRandomOrder()
