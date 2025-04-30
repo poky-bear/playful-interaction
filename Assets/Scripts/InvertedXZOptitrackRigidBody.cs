@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Extends OptitrackRigidBody to invert X and Z axis movement deltas.
 /// </summary>
-public class InvertedZOptitrackRigidBody : MonoBehaviour
+public class InvertedXZOptitrackRigidBody : MonoBehaviour
 {
     [Tooltip("The object containing the OptiTrackStreamingClient script.")]
     public OptitrackStreamingClient StreamingClient;
