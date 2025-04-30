@@ -9,6 +9,9 @@ public class MultiplayerRingGame : MonoBehaviour
     public float activationDistance = 3.0f;
     
     [Header("Ring Settings")]
+    [Tooltip("Minimum distance between sphere and first ring")]
+    public float minDistanceToFirstRing = 1.0f;
+    
     [Tooltip("Base radius for the first ring")]
     public float baseRingRadius = 2.0f;
     
@@ -161,7 +164,7 @@ public class MultiplayerRingGame : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             // Calculate the radius for this ring using the configurable settings
-            float radius = baseRingRadius + (i * ringSpacing);
+            float radius = minDistanceToFirstRing + baseRingRadius + (i * ringSpacing);
             
             // Create a ring using a torus mesh
             rings[i] = new GameObject("MultiplayerRing" + i);
@@ -265,7 +268,7 @@ public class MultiplayerRingGame : MonoBehaviour
         {
             if (rings[i] != null)
             {
-                float radius = baseRingRadius + (i * ringSpacing);
+                float radius = minDistanceToFirstRing + baseRingRadius + (i * ringSpacing);
                 MeshFilter meshFilter = rings[i].GetComponent<MeshFilter>();
                 if (meshFilter != null)
                 {
@@ -1221,7 +1224,7 @@ public class MultiplayerRingGame : MonoBehaviour
     float GetRingRadius(int ringIndex)
     {
         // Use the configurable ring settings
-        return baseRingRadius + (ringIndex * ringSpacing);
+        return minDistanceToFirstRing + baseRingRadius + (ringIndex * ringSpacing);
     }
     
     int[] GenerateRandomOrder()
