@@ -3273,6 +3273,8 @@ MonoBehaviour:
   StreamingClient: {fileID: 1467667637}
   RigidBodyId: 489
   NetworkCompensation: 1
+  RoomCenterX: -3.37
+  RoomCenterZ: -1.7
 --- !u!4 &1480242412 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f7fb868273be3143baae3a126115a1d,
@@ -4329,7 +4331,7 @@ Transform:
   m_GameObject: {fileID: 1949895909}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.37, y: -0.83, z: 0.122}
+  m_LocalPosition: {x: -3.37, y: -0.83, z: 0.109}
   m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4935,6 +4937,8 @@ MonoBehaviour:
   StreamingClient: {fileID: 1467667637}
   RigidBodyId: 490
   NetworkCompensation: 1
+  RoomCenterX: -3.1
+  RoomCenterZ: -1.7
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
