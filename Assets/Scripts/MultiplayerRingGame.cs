@@ -463,10 +463,7 @@ public class MultiplayerRingGame : MonoBehaviour
             CreateMultiplayerRing();
         }
 
-        // Set up the rings with increasing sizes
-        float baseRadius = 2.0f; // Base radius for the first ring
-        float ringSpacing = 1.5f; // Increased spacing between rings for better visibility
-        
+        // Set up the rings with increasing sizes        
         for (int i = 0; i < rings.Length; i++)
         {
             if (rings[i] != null)
@@ -807,7 +804,7 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceFromSphereToCircleEdge = (player1CurrentRadius / 2);
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
-        float tolerance = 0.1f; // Tighter tolerance for more precise gameplay
+        float tolerance = 0.05f; // Tighter tolerance for more precise gameplay
         
         // Show visual feedback
         StartCoroutine(ShowHitFeedback(player1ExpandingCircle, player1ExpandingCircleMaterial, distanceFromTarget, player1CurrentRadius));
