@@ -606,14 +606,14 @@ public class MultiplayerRingGame : MonoBehaviour
         if (player1IsExpanding)
         {
             player1CurrentRadius += expansionSpeed * Time.deltaTime;
-            UpdateExpandingCircleMesh(player1ExpandingCircle.GetComponent<MeshFilter>(), player1CurrentRadius);
+            player1ExpandingCircle.transform.localScale = new Vector3(player1CurrentRadius, player1CurrentRadius, player1CurrentRadius);
             player1ExpandingCircle.transform.position = player1Sphere.transform.position;
         }
         
         if (player2IsExpanding)
         {
             player2CurrentRadius += expansionSpeed * Time.deltaTime;
-            UpdateExpandingCircleMesh(player2ExpandingCircle.GetComponent<MeshFilter>(), player2CurrentRadius);
+            player2ExpandingCircle.transform.localScale = new Vector3(player2CurrentRadius, player2CurrentRadius, player2CurrentRadius);
             player2ExpandingCircle.transform.position = player2Sphere.transform.position;
         }
         
