@@ -183,8 +183,8 @@ public class MultiplayerRingGame : MonoBehaviour
             
             // Create a ring using a torus mesh
             rings[i] = new GameObject("MultiplayerRing" + i);
-            rings[i].transform.parent = multiplayerRingObject.transform;
-            rings[i].transform.localPosition = Vector3.zero;
+            rings[i].transform.parent = null; // Keep rings at world space for consistent radius calculations
+            rings[i].transform.position = multiplayerRingObject.transform.position; // Position at the center
             
             // Add mesh components
             MeshFilter meshFilter = rings[i].AddComponent<MeshFilter>();
@@ -535,6 +535,19 @@ public class MultiplayerRingGame : MonoBehaviour
                 Vector3 currentPos = multiplayerRingObject.transform.position;
                 Vector3 targetPos = Vector3.Lerp(currentPos, midpoint, Time.deltaTime * smoothSpeed);
                 multiplayerRingObject.transform.position = targetPos;
+                
+                // Update individual ring positions
+                if (rings != null)
+                {
+                    foreach (GameObject ring in rings)
+                    {
+                        if (ring != null)
+                        {
+                            Vector3 ringCurrentPos = ring.transform.position;
+                            ring.transform.position = Vector3.Lerp(ringCurrentPos, midpoint, Time.deltaTime * smoothSpeed);
+                        }
+                    }
+                }
             }
             
             // Check if players have moved too far apart
@@ -1063,7 +1076,7 @@ public class MultiplayerRingGame : MonoBehaviour
         float distanceFromSphereToCircleEdge = (player1CurrentRadius / 2);
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
-        float tolerance = 0.05f; // Tighter tolerance for more precise gameplay
+        float tolerance = 0.2f; // Adjusted tolerance for world-space units
         
         // Show visual feedback
         StartCoroutine(ShowHitFeedback(player1ExpandingCircle, player1ExpandingCircleMaterial, distanceFromTarget, player1CurrentRadius));
