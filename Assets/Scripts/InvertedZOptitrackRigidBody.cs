@@ -65,6 +65,7 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
         if (rbState != null)
         {
             Vector3 currentOptitrackPosition = rbState.Pose.Position;
+            Debug.Log($"[Raw OptiTrack] Frame: {Time.frameCount}, Position: {currentOptitrackPosition}, LastPosition: {lastOptitrackPosition}");
 
             // If this is our first position update, initialize the accumulated position
             if (!lastOptitrackPosition.HasValue)
@@ -91,16 +92,17 @@ public class InvertedZOptitrackRigidBody : MonoBehaviour
             transform.localPosition = accumulatedPosition;
             transform.localRotation = rbState.Pose.Orientation;
 
+            // Debug log to verify delta calculations
+            Debug.Log($"[Delta Calculation] Frame: {Time.frameCount}\n" +
+                     $"Current Frame Position: {currentOptitrackPosition}\n" +
+                     $"Last Frame Position: {lastOptitrackPosition.Value}\n" +
+                     $"Raw Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}\n" +
+                     $"Inverted Delta: {delta}\n" +
+                     $"Accumulated Position: {accumulatedPosition}");
+
             // Store the current position for next frame's delta calculation
             lastOptitrackPosition = currentOptitrackPosition;
-
-            // Debug log to verify delta calculations
-            Debug.Log($"Current OptiTrack Pos: {currentOptitrackPosition}, " +
-                     $"Last OptiTrack Pos: {lastOptitrackPosition.Value}, " +
-                     $"Raw Delta: {currentOptitrackPosition - lastOptitrackPosition.Value}, " +
-                     $"Inverted Delta: {delta}, " +
-                     $"Accumulated Pos: {accumulatedPosition}, " +
-                     $"Transform Pos: {transform.localPosition}");
+            Debug.Log($"[Transform Update] Frame: {Time.frameCount}, Final Transform Position: {transform.localPosition}");
         }
     }
 }
