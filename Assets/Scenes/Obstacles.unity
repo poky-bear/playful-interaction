@@ -531,10 +531,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad0e1905e35b2064cb93b3e7bb1007cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activationDistance: 1
+  activationDistance: 1.5
   baseRingRadius: 0.15
-  ringSpacing: 0.3
-  ringThickness: 0.03
+  ringHeight: 0
+  smoothSpeed: 5
+  ringSpacing: 0.8
+  ringThickness: 0.08
   expansionSpeed: 0.3
   activationTime: 3
   multiplayerRingColor: {r: 0.8, g: 0.2, b: 0.8, a: 1}
