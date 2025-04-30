@@ -18,7 +18,7 @@ public class RingGameController : MonoBehaviour
     public float expansionSpeed = 1.0f;
     
     [Tooltip("Tolerance for hitting the active ring (smaller = more precise)")]
-    public float hitTolerance = 0.5f;
+    public float hitTolerance = 0.05f;
 
     [Header("References")]
     [Tooltip("Reference to the ConcentricRings component")]
@@ -288,12 +288,8 @@ public class RingGameController : MonoBehaviour
         // This ensures we're measuring from the sphere's position, not world origin
         Vector3 spherePosition = concentricRings.targetSphere.transform.position;
         // Scale the radius by the same factor as the sphere to match the ring radius calculation
-        float scaleFactor = Mathf.Max(
-            concentricRings.targetSphere.transform.lossyScale.x,
-            concentricRings.targetSphere.transform.lossyScale.y,
-            concentricRings.targetSphere.transform.lossyScale.z
-        );
-        float distanceFromSphereToCircleEdge = (currentRadius / 2) * scaleFactor;
+
+        float distanceFromSphereToCircleEdge = (currentRadius / 2);
 
        
         
@@ -303,7 +299,6 @@ public class RingGameController : MonoBehaviour
         
         Debug.Log("Radius of target ring: " + activeRingRadius + 
             ", Raw radius: " + (currentRadius / 2) +
-            ", Scale factor: " + scaleFactor +
             ", Scaled radius: " + distanceFromSphereToCircleEdge + 
             ", Total diff: " + distanceFromTarget);
 

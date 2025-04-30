@@ -797,16 +797,10 @@ public class MultiplayerRingGame : MonoBehaviour
     void CheckPlayer1Hit()
     {
         player1IsExpanding = false;
-        // Scale the radius by the same factor as the sphere to match the ring radius calculation
-        float scaleFactor = Mathf.Max(
-            player1Sphere.transform.lossyScale.x,
-            player1Sphere.transform.lossyScale.y,
-            player1Sphere.transform.lossyScale.z
-        );
-        float distanceFromSphereToCircleEdge = (player1CurrentRadius / 2) * scaleFactor;
+        float distanceFromSphereToCircleEdge = (player1CurrentRadius / 2);
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
-        float tolerance = 0.3f; // Tighter tolerance for more precise gameplay
+        float tolerance = 0.1f; // Tighter tolerance for more precise gameplay
         
         // Show visual feedback
         StartCoroutine(ShowHitFeedback(player1ExpandingCircle, player1ExpandingCircleMaterial, distanceFromTarget, player1CurrentRadius));
@@ -844,12 +838,8 @@ public class MultiplayerRingGame : MonoBehaviour
     {
         player2IsExpanding = false;
         // Scale the radius by the same factor as the sphere to match the ring radius calculation
-        float scaleFactor = Mathf.Max(
-            player2Sphere.transform.lossyScale.x,
-            player2Sphere.transform.lossyScale.y,
-            player2Sphere.transform.lossyScale.z
-        );
-        float distanceFromSphereToCircleEdge = (player2CurrentRadius / 2) * scaleFactor;
+    
+        float distanceFromSphereToCircleEdge = (player2CurrentRadius / 2);
         float activeRingRadius = GetRingRadius(ringOrder[currentRingIndex]);
         float distanceFromTarget = Mathf.Abs(distanceFromSphereToCircleEdge - activeRingRadius);
         float tolerance = 0.3f; // Tighter tolerance for more precise gameplay
