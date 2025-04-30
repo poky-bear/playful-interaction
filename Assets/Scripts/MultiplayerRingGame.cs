@@ -1001,10 +1001,11 @@ public class MultiplayerRingGame : MonoBehaviour
             if (transitionManager != null)
             {
                 transitionManager.StartTransition();
+                Debug.Log("Starting game mode transition after multiplayer game completion");
             }
             else
             {
-                Debug.LogWarning("TransitionManager not assigned to MultiplayerRingGame!");
+                Debug.LogError("TransitionManager not found! Cannot transition to next game mode.");
             }
         }
         else
