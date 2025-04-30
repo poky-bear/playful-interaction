@@ -253,7 +253,6 @@ public class Player2RingGameController : MonoBehaviour
             
             // Ensure the expanding circle stays centered on the sphere and maintains rotation
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
-            expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         }
         
         // Always keep the expanding circle centered on the sphere, even when not expanding
@@ -261,7 +260,6 @@ public class Player2RingGameController : MonoBehaviour
         if (expandingCircle.activeSelf)
         {
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
-            expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         }
     }
     

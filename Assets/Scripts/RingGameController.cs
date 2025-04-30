@@ -56,21 +56,6 @@ public class RingGameController : MonoBehaviour
             }
         }
         
-        // Find Cube object if not assigned
-        if (cubeObject == null)
-        {
-            // Try to find a GameObject named "Cube" in the scene
-            cubeObject = GameObject.Find("Cube");
-            if (cubeObject == null)
-            {
-                Debug.LogWarning("No Cube object found in the scene. Creating one...");
-                // Create a cube if none exists
-                cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cubeObject.name = "Cube";
-                // Position it away from the play area initially
-                cubeObject.transform.position = new Vector3(0, -10, 0);
-            }
-        }
 
         // Wait for the ConcentricRings to initialize
         StartCoroutine(WaitForRingsInitialization());
@@ -102,8 +87,6 @@ public class RingGameController : MonoBehaviour
         // Start with zero scale
         expandingCircle.transform.localScale = Vector3.zero;
         
-        // Rotate to make the ring horizontal
-        expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         
         // Remove collider as we don't need physics for this
         Destroy(expandingCircle.GetComponent<Collider>());
@@ -253,7 +236,6 @@ public class RingGameController : MonoBehaviour
             
             // Ensure the expanding circle stays centered on the sphere and maintains rotation
             expandingCircle.transform.position = concentricRings.targetSphere.transform.position;
-            expandingCircle.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         }
         
         // Always keep the expanding circle centered on the sphere, even when not expanding
