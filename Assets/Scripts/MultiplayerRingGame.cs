@@ -66,8 +66,10 @@ public class MultiplayerRingGame : MonoBehaviour
     private float proximityTimer = 0f;
     private bool multiplayerModeActive = false;
     private bool gameCompleted = false;
+    private GameObject centerExpandingCircle = null;
     private GameObject player1ExpandingCircle = null;
     private GameObject player2ExpandingCircle = null;
+    private Material centerExpandingCircleMaterial;
     private Material player1ExpandingCircleMaterial;
     private Material player2ExpandingCircleMaterial;
     private float player1CurrentRadius = 0f;
