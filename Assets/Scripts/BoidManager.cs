@@ -12,6 +12,7 @@ public class BoidManager : MonoBehaviour {
     public Transform player1Target; // Reference to player 1
     public Transform player2Target; // Reference to player 2
     private bool isMultiplayerMode = false;
+    private bool isGameWon = false; // Flag to track if the game has been won
     public float splitDistance = 5f; // Distance at which the flock splits
     Boid[] boids;
 
@@ -85,6 +86,25 @@ public class BoidManager : MonoBehaviour {
             }
         }
     }
+    
+    // Call this method when the multiplayer game is won
+    public void SetGameWon(bool won)
+    {
+        isGameWon = won;
+        Debug.Log("BoidManager: Game won state set to " + won);
+        
+        // When the game is won, update all boids to use the unified flock color
+        if (won && boids != null)
+        {
+            foreach (Boid b in boids)
+            {
+                if (b != null)
+                {
+                    b.SetColour(unifiedFlockColor);
+                }
+            }
+        }
+    }
 
     void Start () {
         // Find and initialize all boids
@@ -148,10 +168,15 @@ public class BoidManager : MonoBehaviour {
                 boids[i].avgAvoidanceHeading = boidData[i].avoidanceHeading;
                 boids[i].numPerceivedFlockmates = boidData[i].numFlockmates;
 
-                // Update boid colors based on player distance
+                // Update boid colors based on player distance and game state
                 if (isMultiplayerMode)
                 {
-                    if (playerDistance <= splitDistance)
+                    if (isGameWon)
+                    {
+                        // Game is won, always use unified flock color regardless of distance
+                        boids[i].SetColour(unifiedFlockColor);
+                    }
+                    else if (playerDistance <= splitDistance)
                     {
                         // Players are close, all boids same color
                         boids[i].SetColour(unifiedFlockColor);

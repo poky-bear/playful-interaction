@@ -58,6 +58,13 @@ public class MultiplayerRingGame : MonoBehaviour
         if (boidManager != null)
         {
             boidManager.SetMultiplayerMode(true, player1Sphere.transform, player2Sphere.transform);
+            
+            // If the game is completed, make sure the boids use the unified color
+            if (gameCompleted)
+            {
+                boidManager.SetGameWon(true);
+            }
+            
             Debug.Log("Boids now following both players in multiplayer mode");
         }
     }
@@ -718,11 +725,19 @@ public class MultiplayerRingGame : MonoBehaviour
         HideIndividualExpandingCircles();
         
         // Reset boid targets to single player mode if game is completed
-        if (gameCompleted)
+        BoidManager boidManager = FindObjectOfType<BoidManager>();
+        if (boidManager != null)
         {
-            BoidManager boidManager = FindObjectOfType<BoidManager>();
-            if (boidManager != null)
+            if (gameCompleted)
             {
+                // If game is completed, keep the game won state but return to single player mode
+                boidManager.SetMultiplayerMode(false);
+                Debug.Log("Boids returning to single player mode but keeping game won state");
+            }
+            else
+            {
+                // If game is not completed, reset everything
+                boidManager.SetGameWon(false);
                 boidManager.SetMultiplayerMode(false);
                 Debug.Log("Boids returning to single player mode");
             }
@@ -986,6 +1001,13 @@ public class MultiplayerRingGame : MonoBehaviour
             Debug.Log(successMessage);
             gameCompleted = true;
             
+            // Notify BoidManager that the game is won
+            BoidManager boidManager = FindObjectOfType<BoidManager>();
+            if (boidManager != null)
+            {
+                boidManager.SetGameWon(true);
+            }
+            
             // Final celebration
             StartCoroutine(CelebrateGameCompletion());
             
@@ -1164,9 +1186,18 @@ public class MultiplayerRingGame : MonoBehaviour
     // Public method to reset the game
     public void ResetGame()
     {
+        // Reset game completed state first
+        gameCompleted = false;
+        
+        // Reset the boid manager game won state
+        BoidManager boidManager = FindObjectOfType<BoidManager>();
+        if (boidManager != null)
+        {
+            boidManager.SetGameWon(false);
+        }
+        
         // Deactivate multiplayer mode and reactivate original rings
         DeactivateMultiplayerMode();
-        gameCompleted = false;
 
         // Reset player success tracking
         player1Success = false;
