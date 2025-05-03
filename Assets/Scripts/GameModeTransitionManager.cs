@@ -51,7 +51,7 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void Awake()
     {
-        // Initialize corner positions
+        // Initialize corner positions - y coordinate will be set at runtime based on player height
         cornerPositions = new Vector3[4]
         {
             new Vector3(settings.cornerOffset, 0, settings.cornerOffset),   // Front Right
@@ -175,6 +175,12 @@ public class GameModeTransitionManager : MonoBehaviour
         // Pick a random corner
         int randomCorner = Random.Range(0, cornerPositions.Length);
         Vector3 spawnPosition = cornerPositions[randomCorner];
+        
+        // Set the y-coordinate to match the player's height
+        if (player1 != null)
+        {
+            spawnPosition.y = player1.transform.position.y;
+        }
         
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
         Debug.Log($"[Transition] Moving Predator bird to {cornerNames[randomCorner]} corner at position {spawnPosition}");
