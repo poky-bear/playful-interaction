@@ -3817,9 +3817,9 @@ MonoBehaviour:
   player1Target: {fileID: 0}
   player2Target: {fileID: 0}
   splitDistance: 5
-  unifiedFlockColor: {r: 0.8, g: 0.4, b: 0.8, a: 1}
-  player1Color: {r: 1, g: 0.4, b: 0.4, a: 1}
-  player2Color: {r: 0.4, g: 0.4, b: 1, a: 1}
+  unifiedFlockColor: {r: 0.5372549, g: 0.94509804, b: 0.4627451, a: 1}
+  player1Color: {r: 1, g: 0.7760035, b: 0, a: 1}
+  player2Color: {r: 0.25490203, g: 0.48116028, b: 0.99215686, a: 1}
 --- !u!4 &2001783958
 Transform:
   m_ObjectHideFlags: 0
