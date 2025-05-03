@@ -2340,7 +2340,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 16a190dddf88c435d85d4e56e49188b2, type: 2}
+  - {fileID: 2100000, guid: 9e10c44f07e28fc408035bd3939929a7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3689,8 +3689,6 @@ MonoBehaviour:
     maxSpeedIncrease: 10
     cornerOffset: 10
   boidSettings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
-  cubeScale: {x: 0.5, y: 1, z: 0.5}
-  cubeColor: {r: 1, g: 0, b: 0, a: 1}
   predatorMaxSpeed: 2
   predatorMinSpeed: 1
   predatorSteerForce: 1
@@ -4842,8 +4840,6 @@ MonoBehaviour:
     maxSpeedIncrease: 10
     cornerOffset: 10
   boidSettings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
-  cubeScale: {x: 0.5, y: 1, z: 0.5}
-  cubeColor: {r: 1, g: 0, b: 0, a: 1}
   predatorMaxSpeed: 2
   predatorMinSpeed: 1
   predatorSteerForce: 1
