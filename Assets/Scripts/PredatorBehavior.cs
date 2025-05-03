@@ -168,11 +168,11 @@ public class PredatorBehavior : MonoBehaviour
         transform.position += movement;
         
         // Maintain the initial Y position
-        Vector3 updatedPos = transform.position;
+        Vector3 currentPos = transform.position;
         if (player1 != null)
         {
-            updatedPos.y = player1.transform.position.y;
-            transform.position = updatedPos;
+            currentPos.y = player1.transform.position.y;
+            transform.position = currentPos;
         }
         
         // Set forward direction (but keep it level on the XZ plane)
