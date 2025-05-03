@@ -176,10 +176,28 @@ public class GameModeTransitionManager : MonoBehaviour
         int randomCorner = Random.Range(0, cornerPositions.Length);
         Vector3 spawnPosition = cornerPositions[randomCorner];
         
-        // Set the y-coordinate to match the player's height
+        // Set the y-coordinate to match the player's height or use a raycast to find the floor
         if (player1 != null)
         {
             spawnPosition.y = player1.transform.position.y;
+        }
+        else
+        {
+            // Default to a reasonable height if player1 is null
+            spawnPosition.y = 0.5f; // Assuming the floor is at y=0
+        }
+        
+        // Perform a raycast to find the floor
+        RaycastHit hit;
+        if (Physics.Raycast(spawnPosition + Vector3.up * 10f, Vector3.down, out hit, 20f))
+        {
+            // Set the y position to be just above the floor
+            spawnPosition.y = hit.point.y + 0.5f; // 0.5 units above the floor
+            Debug.Log($"[Transition] Found floor at y={hit.point.y}, setting predator height to {spawnPosition.y}");
+        }
+        else
+        {
+            Debug.LogWarning("[Transition] Could not find floor with raycast, using default height");
         }
         
         string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
