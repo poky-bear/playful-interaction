@@ -4366,6 +4366,7 @@ MonoBehaviour:
   target: {fileID: 1167494963}
   player1Target: {fileID: 0}
   player2Target: {fileID: 0}
+  isGameWon: 0
   splitDistance: 5
   unifiedFlockColor: {r: 0.6117647, g: 0.9725491, b: 0.5254902, a: 1}
   player1Color: {r: 1, g: 0.95294124, b: 0.19215688, a: 1}
@@ -4655,6 +4656,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 5401a3cce2b2e4d9482734da75374d0a,
         type: 2}
+    - target: {fileID: 3559297176007848096, guid: 4cde6ba5a87074e8a973d577574f33c1,
+        type: 3}
+      propertyPath: colour.b
+      value: 0.9622642
+      objectReference: {fileID: 0}
+    - target: {fileID: 3559297176007848096, guid: 4cde6ba5a87074e8a973d577574f33c1,
+        type: 3}
+      propertyPath: colour.g
+      value: 0.1674632
+      objectReference: {fileID: 0}
+    - target: {fileID: 3559297176007848096, guid: 4cde6ba5a87074e8a973d577574f33c1,
+        type: 3}
+      propertyPath: colour.r
+      value: 0.13163051
+      objectReference: {fileID: 0}
     - target: {fileID: 3559297176007848096, guid: 4cde6ba5a87074e8a973d577574f33c1,
         type: 3}
       propertyPath: spawnCount
