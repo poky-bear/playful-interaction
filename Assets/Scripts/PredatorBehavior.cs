@@ -58,7 +58,11 @@ public class PredatorBehavior : MonoBehaviour
         
         // Initialize velocity
         float startSpeed = (minSpeed + maxSpeed) / 2f;
-        velocity = transform.forward * startSpeed;
+        // Ensure initial velocity is in the XZ plane
+        Vector3 initialDirection = transform.forward;
+        initialDirection.y = 0;
+        initialDirection = initialDirection.normalized;
+        velocity = initialDirection * startSpeed;
 
         // Find or create ring game controller
         if (ringGame == null)
@@ -115,23 +119,38 @@ public class PredatorBehavior : MonoBehaviour
 
         // Calculate desired velocity towards target
         Vector3 offsetToTarget = (targetPos - currentPos);
+        // Constrain movement to XZ plane
+        offsetToTarget.y = 0;
         Vector3 desiredVelocity = offsetToTarget.normalized * maxSpeed;
         
         // Calculate steering force
         Vector3 steeringForce = Vector3.ClampMagnitude(desiredVelocity - velocity, maxSteerForce);
+        // Ensure steering force stays in XZ plane
+        steeringForce.y = 0;
         
         // Apply smoother acceleration using attractionWeight
         Vector3 acceleration = steeringForce * attractionWeight;
+        // Ensure acceleration stays in XZ plane
+        acceleration.y = 0;
         
         // Check for obstacles and avoid if necessary
         if (IsHeadingForCollision()) {
             Vector3 collisionAvoidDir = ObstacleRays();
+            // Ensure collision avoidance direction stays in XZ plane
+            collisionAvoidDir.y = 0;
+            collisionAvoidDir = collisionAvoidDir.normalized;
+            
             Vector3 collisionAvoidForce = SteerTowards(collisionAvoidDir) * avoidCollisionWeight;
+            // Ensure collision avoidance force stays in XZ plane
+            collisionAvoidForce.y = 0;
+            
             acceleration += collisionAvoidForce;
         }
 
         // Update velocity with smoothing
         velocity = Vector3.Lerp(velocity, velocity + acceleration, Time.deltaTime * 5f);
+        // Ensure velocity stays in XZ plane
+        velocity.y = 0;
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
         
         // Ensure minimum speed
@@ -141,8 +160,28 @@ public class PredatorBehavior : MonoBehaviour
         }
         
         // Update position and rotation
-        transform.position += velocity * Time.deltaTime;
-        transform.forward = velocity.normalized;
+        Vector3 movement = velocity * Time.deltaTime;
+        
+        // Constrain movement to XZ plane (maintain Y position)
+        movement.y = 0;
+        
+        transform.position += movement;
+        
+        // Maintain the initial Y position
+        Vector3 currentPos = transform.position;
+        if (player1 != null)
+        {
+            currentPos.y = player1.transform.position.y;
+            transform.position = currentPos;
+        }
+        
+        // Set forward direction (but keep it level on the XZ plane)
+        Vector3 forwardDir = velocity.normalized;
+        forwardDir.y = 0;
+        if (forwardDir.magnitude > 0.01f)
+        {
+            transform.forward = forwardDir.normalized;
+        }
         
         // Log status periodically
         if (Time.frameCount % 60 == 0)
@@ -160,32 +199,48 @@ public class PredatorBehavior : MonoBehaviour
 
     private Vector3 ObstacleRays() {
         Vector3[] rayDirections = new Vector3[] {
-            transform.up,
-            transform.up + transform.right,
-            transform.up - transform.right,
             transform.right,
-            -transform.right,
-            -transform.up + transform.right,
-            -transform.up - transform.right,
-            -transform.up
+            transform.right + transform.forward,
+            transform.right - transform.forward,
+            transform.forward,
+            -transform.forward,
+            -transform.right + transform.forward,
+            -transform.right - transform.forward,
+            -transform.right
         };
 
         for (int i = 0; i < rayDirections.Length; i++) {
             Vector3 dir = rayDirections[i].normalized;
+            // Ensure the ray direction stays in the XZ plane
+            dir.y = 0;
+            dir = dir.normalized;
+            
             Ray ray = new Ray(transform.position, dir);
             if (!Physics.SphereCast(ray, boundsRadius, collisionAvoidDst, obstacleMask)) {
                 return dir;
             }
         }
 
-        return transform.forward;
+        // Default to forward direction in XZ plane
+        Vector3 forward = transform.forward;
+        forward.y = 0;
+        return forward.normalized;
     }
 
     private Vector3 SteerTowards(Vector3 vector) {
         if (vector.sqrMagnitude < 0.000001f) {
             return Vector3.zero;
         }
-        Vector3 v = vector.normalized * maxSpeed - velocity;
+        
+        // Ensure the steering vector stays in the XZ plane
+        Vector3 horizontalVector = vector;
+        horizontalVector.y = 0;
+        horizontalVector = horizontalVector.normalized;
+        
+        Vector3 v = horizontalVector * maxSpeed - velocity;
+        // Ensure the resulting steering force stays in the XZ plane
+        v.y = 0;
+        
         return Vector3.ClampMagnitude(v, maxSteerForce);
     }
     
