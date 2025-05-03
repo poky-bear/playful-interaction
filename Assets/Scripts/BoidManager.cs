@@ -12,7 +12,7 @@ public class BoidManager : MonoBehaviour {
     public Transform player1Target; // Reference to player 1
     public Transform player2Target; // Reference to player 2
     private bool isMultiplayerMode = false;
-    private bool isGameWon = false; // Flag to track if the game has been won
+    public bool isGameWon = false; // Flag to track if the game has been won
     public float splitDistance = 5f; // Distance at which the flock splits
     Boid[] boids;
 
@@ -94,13 +94,42 @@ public class BoidManager : MonoBehaviour {
         Debug.Log("BoidManager: Game won state set to " + won);
         
         // When the game is won, update all boids to use the unified flock color
-        if (won && boids != null)
+        if (boids != null)
         {
             foreach (Boid b in boids)
             {
                 if (b != null)
                 {
-                    b.SetColour(unifiedFlockColor);
+                    if (won)
+                    {
+                        // When game is won, set all boids to unified color initially
+                        b.SetColour(unifiedFlockColor);
+                    }
+                    else
+                    {
+                        // When game is reset, restore original colors based on player assignment
+                        if (isMultiplayerMode)
+                        {
+                            float distance = 0f;
+                            if (player1Target != null && player2Target != null)
+                            {
+                                distance = Vector3.Distance(player1Target.position, player2Target.position);
+                            }
+                            
+                            if (distance <= splitDistance)
+                            {
+                                b.SetColour(unifiedFlockColor);
+                            }
+                            else
+                            {
+                                b.SetColour(b.playerAssignment == 1 ? player1Color : player2Color);
+                            }
+                        }
+                        else
+                        {
+                            b.SetColour(Color.white);
+                        }
+                    }
                 }
             }
         }
@@ -173,8 +202,17 @@ public class BoidManager : MonoBehaviour {
                 {
                     if (isGameWon)
                     {
-                        // Game is won, always use unified flock color regardless of distance
-                        boids[i].SetColour(unifiedFlockColor);
+                        // Game is won, color depends on player distance
+                        if (playerDistance <= splitDistance)
+                        {
+                            // Players are close, all boids use unified color
+                            boids[i].SetColour(unifiedFlockColor);
+                        }
+                        else
+                        {
+                            // Players are far apart, color based on assignment
+                            boids[i].SetColour(boids[i].playerAssignment == 1 ? player1Color : player2Color);
+                        }
                     }
                     else if (playerDistance <= splitDistance)
                     {

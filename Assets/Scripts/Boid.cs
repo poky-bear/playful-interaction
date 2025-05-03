@@ -71,17 +71,35 @@ public class Boid : MonoBehaviour {
         if (boidManager != null && boidManager.player1Target != null && boidManager.player2Target != null) {
             float distance = Vector3.Distance(boidManager.player1Target.position, boidManager.player2Target.position);
             
-            if (distance <= boidManager.splitDistance) {
-                // Players are close, use midpoint as target
-                Vector3 midpoint = (boidManager.player1Target.position + boidManager.player2Target.position) / 2f;
-                Vector3 offsetToTarget = (midpoint - position);
-                acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
-            } else {
-                // Players are far apart, follow assigned player
-                Transform assignedTarget = (playerAssignment == 1) ? boidManager.player1Target : boidManager.player2Target;
-                if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
-                    Vector3 offsetToTarget = (assignedTarget.position - position);
+            // Check if the game is won - if so, always follow the center when players are close
+            if (boidManager.isGameWon) {
+                // When game is won, always use midpoint as target when players are close
+                if (distance <= boidManager.splitDistance) {
+                    Vector3 midpoint = (boidManager.player1Target.position + boidManager.player2Target.position) / 2f;
+                    Vector3 offsetToTarget = (midpoint - position);
                     acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                } else {
+                    // Even when game is won, if players are far apart, follow assigned player
+                    Transform assignedTarget = (playerAssignment == 1) ? boidManager.player1Target : boidManager.player2Target;
+                    if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
+                        Vector3 offsetToTarget = (assignedTarget.position - position);
+                        acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                    }
+                }
+            } else {
+                // Normal multiplayer behavior (game not won yet)
+                if (distance <= boidManager.splitDistance) {
+                    // Players are close, use midpoint as target
+                    Vector3 midpoint = (boidManager.player1Target.position + boidManager.player2Target.position) / 2f;
+                    Vector3 offsetToTarget = (midpoint - position);
+                    acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                } else {
+                    // Players are far apart, follow assigned player
+                    Transform assignedTarget = (playerAssignment == 1) ? boidManager.player1Target : boidManager.player2Target;
+                    if (assignedTarget != null && assignedTarget.gameObject.activeInHierarchy) {
+                        Vector3 offsetToTarget = (assignedTarget.position - position);
+                        acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+                    }
                 }
             }
         } else {
