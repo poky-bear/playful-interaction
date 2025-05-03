@@ -35,7 +35,17 @@ public class Boid : MonoBehaviour {
     private BoidManager boidManager; // Reference to the manager for multiplayer info
 
     void Awake () {
-        material = transform.GetComponentInChildren<MeshRenderer> ().material;
+        // Get the material reference
+        MeshRenderer renderer = GetComponentInChildren<MeshRenderer>();
+        if (renderer != null) {
+            // Create a unique material instance for this boid
+            material = new Material(renderer.sharedMaterial);
+            renderer.material = material;
+            Debug.Log($"Boid {GetInstanceID()}: Material initialized in Awake");
+        } else {
+            Debug.LogWarning($"Boid {GetInstanceID()}: No MeshRenderer found in children");
+        }
+        
         cachedTransform = transform;
     }
 
@@ -57,9 +67,21 @@ public class Boid : MonoBehaviour {
     }
 
     public void SetColour (Color col) {
-        if (material != null) {
-            material.color = col;
+        // Check if material is null and try to get it if needed
+        if (material == null) {
+            MeshRenderer renderer = GetComponentInChildren<MeshRenderer>();
+            if (renderer != null) {
+                material = renderer.material;
+                Debug.Log($"Boid {GetInstanceID()}: Material was null, retrieved new material reference");
+            } else {
+                Debug.LogWarning($"Boid {GetInstanceID()}: Cannot find MeshRenderer in children");
+                return;
+            }
         }
+        
+        // Set the color and log for debugging
+        material.color = col;
+        Debug.Log($"Boid {GetInstanceID()}: Color set to {col}");
     }
 
     public void UpdateBoid () {

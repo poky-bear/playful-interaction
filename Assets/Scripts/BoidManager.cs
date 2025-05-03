@@ -200,30 +200,39 @@ public class BoidManager : MonoBehaviour {
                 // Update boid colors based on player distance and game state
                 if (isMultiplayerMode)
                 {
+                    Color targetColor;
+                    
                     if (isGameWon)
                     {
                         // Game is won, color depends on player distance
                         if (playerDistance <= splitDistance)
                         {
                             // Players are close, all boids use unified color
-                            boids[i].SetColour(unifiedFlockColor);
+                            targetColor = unifiedFlockColor;
+                            Debug.Log($"Boid {boids[i].GetInstanceID()}: Game won, players close, setting unified color");
                         }
                         else
                         {
                             // Players are far apart, color based on assignment
-                            boids[i].SetColour(boids[i].playerAssignment == 1 ? player1Color : player2Color);
+                            targetColor = boids[i].playerAssignment == 1 ? player1Color : player2Color;
+                            Debug.Log($"Boid {boids[i].GetInstanceID()}: Game won, players far, setting player color");
                         }
                     }
                     else if (playerDistance <= splitDistance)
                     {
                         // Players are close, all boids same color
-                        boids[i].SetColour(unifiedFlockColor);
+                        targetColor = unifiedFlockColor;
+                        Debug.Log($"Boid {boids[i].GetInstanceID()}: Game not won, players close, setting unified color");
                     }
                     else
                     {
                         // Players are far apart, color based on assignment
-                        boids[i].SetColour(boids[i].playerAssignment == 1 ? player1Color : player2Color);
+                        targetColor = boids[i].playerAssignment == 1 ? player1Color : player2Color;
+                        Debug.Log($"Boid {boids[i].GetInstanceID()}: Game not won, players far, setting player color");
                     }
+                    
+                    // Force update the color
+                    boids[i].SetColour(targetColor);
                 }
 
                 boids[i].UpdateBoid ();
