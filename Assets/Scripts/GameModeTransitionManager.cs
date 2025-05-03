@@ -172,9 +172,11 @@ public class GameModeTransitionManager : MonoBehaviour
 
     private void ActivatePredator()
     {
-        // Pick a random corner
-        int randomCorner = Random.Range(0, cornerPositions.Length);
-        Vector3 spawnPosition = cornerPositions[randomCorner];
+        // Generate a random position on the board
+        // Use a random position within the play area instead of just corners
+        float randomX = Random.Range(-10f, 10f);  // Adjust these values based on your board size
+        float randomZ = Random.Range(-10f, 10f);  // Adjust these values based on your board size
+        Vector3 spawnPosition = new Vector3(randomX, 0f, randomZ);
         
         // Set the y-coordinate to match the player's height or use a raycast to find the floor
         if (player1 != null)
@@ -200,8 +202,7 @@ public class GameModeTransitionManager : MonoBehaviour
             Debug.LogWarning("[Transition] Could not find floor with raycast, using default height");
         }
         
-        string[] cornerNames = new string[] { "Front Right", "Back Right", "Front Left", "Back Left" };
-        Debug.Log($"[Transition] Moving Predator bird to {cornerNames[randomCorner]} corner at position {spawnPosition}");
+        Debug.Log($"[Transition] Moving Predator bird to random position at {spawnPosition}");
 
         // Find the existing Predator bird 2 object
         GameObject predatorObj = GameObject.Find("Predator bird 2");
@@ -229,6 +230,18 @@ public class GameModeTransitionManager : MonoBehaviour
         predator.minSpeed = predatorMinSpeed;
         predator.maxSteerForce = predatorSteerForce;
         predator.attractionWeight = predatorAttractionWeight;
+        
+        // Activate the predator and its ring game
+        predator.isActive = true;
+        if (predator.ringGame != null)
+        {
+            predator.ringGame.OnPredatorModeActivated();
+            Debug.Log("[Transition] Activated predator ring game");
+        }
+        else
+        {
+            Debug.LogWarning("[Transition] Predator ring game reference is null!");
+        }
             
         Debug.Log($"[Transition] Configured predator - Speed: {predator.maxSpeed:F1} to {predator.minSpeed:F1}, " +
                  $"Steer: {predator.maxSteerForce:F1}, Attraction: {predator.attractionWeight:F1}");

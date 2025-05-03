@@ -45,6 +45,9 @@ public class PredatorBehavior : MonoBehaviour
     
     [Tooltip("If true, the game won't end when the predator catches a player")]
     public bool disableGameOver = true;
+    
+    [Tooltip("If true, the predator will move and chase players")]
+    public bool isActive = false;
 
     private void Start()
     {
@@ -68,7 +71,7 @@ public class PredatorBehavior : MonoBehaviour
             ringGame.player1Sphere = player1;
             ringGame.player2Sphere = player2;
             ringGame.predator = gameObject;
-            ringGame.OnPredatorModeActivated();
+            // Don't activate predator mode yet - will be activated by GameModeTransitionManager
         }
     }
     
@@ -77,6 +80,12 @@ public class PredatorBehavior : MonoBehaviour
         if (player1 == null || player2 == null)
         {
             Debug.LogWarning("[Predator] One or both players are missing!");
+            return;
+        }
+        
+        // Don't move if not active
+        if (!isActive)
+        {
             return;
         }
 
