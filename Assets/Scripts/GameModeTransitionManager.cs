@@ -187,6 +187,26 @@ public class GameModeTransitionManager : MonoBehaviour
             return;
         }
         
+        // Enable the mesh renderer of the sphere child
+        Transform sphereChild = predatorObj.transform.Find("Sphere");
+        if (sphereChild != null)
+        {
+            MeshRenderer sphereMeshRenderer = sphereChild.GetComponent<MeshRenderer>();
+            if (sphereMeshRenderer != null)
+            {
+                sphereMeshRenderer.enabled = true;
+                Debug.Log("[Transition] Enabled mesh renderer for Predator bird 2's sphere child");
+            }
+            else
+            {
+                Debug.LogWarning("[Transition] Could not find MeshRenderer component on Predator bird 2's sphere child");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[Transition] Could not find 'Sphere' child object of Predator bird 2");
+        }
+        
         // Move the predator to spawn position
         predatorObj.transform.position = spawnPosition;
         predatorObj.transform.LookAt(Vector3.zero);
