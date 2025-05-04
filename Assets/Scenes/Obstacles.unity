@@ -2987,9 +2987,9 @@ MonoBehaviour:
     maxSpeedIncrease: 10
     cornerOffset: 10
   boidSettings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
-  predatorMaxSpeed: 2
-  predatorMinSpeed: 1
-  predatorSteerForce: 1
+  predatorMaxSpeed: 4
+  predatorMinSpeed: 2
+  predatorSteerForce: 2
   predatorAttractionWeight: 0.5
 --- !u!1 &1241058947
 GameObject:
@@ -3753,9 +3753,9 @@ MonoBehaviour:
     maxSpeedIncrease: 10
     cornerOffset: 10
   boidSettings: {fileID: 11400000, guid: fd4bc51c395304add92e7ac263cc6d3f, type: 2}
-  predatorMaxSpeed: 2
-  predatorMinSpeed: 1
-  predatorSteerForce: 1
+  predatorMaxSpeed: 4
+  predatorMinSpeed: 2
+  predatorSteerForce: 2
   predatorAttractionWeight: 0.5
 --- !u!4 &1701607477
 Transform:

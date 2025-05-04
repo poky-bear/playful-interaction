@@ -15,13 +15,13 @@ public class PredatorBehavior : MonoBehaviour
     [Tooltip("Weight of obstacle avoidance")]
     public float avoidCollisionWeight = 2f;
     [Tooltip("Maximum movement speed")]
-    public float maxSpeed = 2f;  // Slower than boids
+    public float maxSpeed = 4f;  // Slower than boids
     
     [Tooltip("Minimum movement speed")]
-    public float minSpeed = 1f;  // Keep some movement
+    public float minSpeed = 2f;  // Keep some movement
     
     [Tooltip("How strongly the predator steers")]
-    public float maxSteerForce = 1f;  // Gentle steering
+    public float maxSteerForce = 2f;  // Gentle steering
     
     [Tooltip("How strongly the predator is attracted to players")]
     public float attractionWeight = 0.5f;  // Gentle attraction
