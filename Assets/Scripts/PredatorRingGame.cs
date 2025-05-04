@@ -39,6 +39,9 @@ public class PredatorRingGame : MonoBehaviour
     [Tooltip("Reference to the predator object")]
     public GameObject predator;
     
+    [Tooltip("Reference to the transition manager")]
+    public TransitionManager transitionManager;
+    
     // Target dot object
     private GameObject targetDot;
     
@@ -756,29 +759,129 @@ public class PredatorRingGame : MonoBehaviour
         gameCompleted = true;
         Debug.Log("All rings completed successfully! Predator defeated!");
         
-        // Destroy current rings
+        // Start the celebration effect
+        StartCoroutine(CelebrateGameCompletion());
+
+        // Hide the predator
+        if (predator != null)
+        {
+            // Fade out the predator
+            StartCoroutine(FadeOutPredator());
+        }
+
+        // Start the transition to the next game mode if available
+        if (transitionManager != null)
+        {
+            transitionManager.StartTransition();
+        }
+        
+        // Reset game state
+        currentRingIndex = 0;
+    }
+    
+    private IEnumerator CelebrateGameCompletion()
+    {
+        // Make all rings glow in celebration
+        float celebrationDuration = 2.0f;
+        float time = 0;
+
+        while (time < celebrationDuration)
+        {
+            time += Time.deltaTime;
+
+            // Create a rainbow effect on all rings
+            for (int i = 0; i < rings.Length; i++)
+            {
+                float hue = (time * 0.5f + i * 0.33f) % 1f;
+                Color celebrationColor = Color.HSVToRGB(hue, 0.8f, 1f);
+
+                ringMaterials[i].color = celebrationColor;
+                ringMaterials[i].EnableKeyword("_EMISSION");
+                ringMaterials[i].SetColor("_EmissionColor", celebrationColor * 0.7f);
+            }
+
+            yield return null;
+        }
+
+        // Fade out all rings
+        time = 0;
+        float fadeOutDuration = 1.0f;
+
+        while (time < fadeOutDuration)
+        {
+            time += Time.deltaTime;
+            float alpha = 1f - (time / fadeOutDuration);
+
+            for (int i = 0; i < rings.Length; i++)
+            {
+                Color currentColor = ringMaterials[i].color;
+                ringMaterials[i].color = new Color(currentColor.r, currentColor.g, currentColor.b, alpha);
+                ringMaterials[i].SetColor("_EmissionColor", currentColor * alpha * 0.7f);
+            }
+
+            yield return null;
+        }
+
+        // Destroy rings after fade out
         if (ringsObject != null)
         {
             Destroy(ringsObject);
             ringsObject = null;
             rings = null;
         }
+    }
+    
+    private IEnumerator FadeOutPredator()
+    {
+        if (predator == null) yield break;
         
-        // Hide the predator
-        if (predator != null)
+        // Get the predator's renderer
+        Renderer predatorRenderer = predator.GetComponent<Renderer>();
+        if (predatorRenderer == null) 
         {
             predator.SetActive(false);
+            yield break;
         }
         
-        // Reset game state
-        // gameCompleted = false;
-        currentRingIndex = 0;
+        // Get the material
+        Material predatorMaterial = predatorRenderer.material;
+        
+        // Fade out duration
+        float fadeOutDuration = 1.0f;
+        float time = 0;
+        
+        // Store original color
+        Color originalColor = predatorMaterial.color;
+        
+        // Make sure the material is set to transparent mode
+        SetupTransparentMaterial(predatorMaterial);
+        
+        while (time < fadeOutDuration)
+        {
+            time += Time.deltaTime;
+            float alpha = 1f - (time / fadeOutDuration);
+            
+            // Update the alpha
+            predatorMaterial.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            
+            yield return null;
+        }
+        
+        // Hide the predator after fade out
+        predator.SetActive(false);
+    }
+    
+    void ResetGameState()
+    {
         player1Ready = false;
         player2Ready = false;
         activePlayer = null;
         
         // Make the original dot visible again
-        CreateDotAtPosition(initialDotSpawnPosition.Value);
+        if (initialDotSpawnPosition.HasValue)
+        {
+            CreateDotAtPosition(initialDotSpawnPosition.Value);
+        }
     }
     
     public void OnPredatorModeActivated()
