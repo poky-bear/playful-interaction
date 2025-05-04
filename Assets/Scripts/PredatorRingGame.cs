@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 public class PredatorRingGame : MonoBehaviour
 {
@@ -451,6 +452,31 @@ public class PredatorRingGame : MonoBehaviour
         material.renderQueue = 3000;
     }
     
+    private System.Collections.IEnumerator HideExpandingCircleAfterDelay(GameObject circle, Material material, float delay)
+    {
+        // Keep the circle visible for the specified delay
+        yield return new WaitForSeconds(delay);
+        
+        // Fade out the circle
+        float fadeOutDuration = 0.25f;
+        float time = 0;
+        Color currentColor = material.color;
+        
+        while (time < fadeOutDuration)
+        {
+            time += Time.deltaTime;
+            float alpha = Mathf.Lerp(currentColor.a, 0f, time / fadeOutDuration);
+            
+            material.color = new Color(currentColor.r, currentColor.g, currentColor.b, alpha);
+            
+            yield return null;
+        }
+        
+        // Disable emission and hide the circle
+        material.DisableKeyword("_EMISSION");
+        circle.SetActive(false);
+    }
+    
     Mesh CreateTorusMesh(float radius, float tubeRadius)
     {
         Mesh mesh = new Mesh();
@@ -536,9 +562,17 @@ public class PredatorRingGame : MonoBehaviour
         // The actual radius is half the scale since we're using a sphere
         float actualRadius = player1CurrentRadius / 2f;
         
+        // Calculate distance from target for feedback
+        float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
+        
         // Check if the expanding circle matches the ring size
-        if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
+        if (distanceFromTarget <= hitTolerance)
         {
+            // Successful hit - change color to green
+            player1ExpandingCircleMaterial.color = new Color(0f, 1f, 0.2f, 0.5f);
+            player1ExpandingCircleMaterial.EnableKeyword("_EMISSION");
+            player1ExpandingCircleMaterial.SetColor("_EmissionColor", new Color(0f, 1f, 0.2f) * 0.5f);
+            
             player1Ready = true;
             Debug.Log($"[Player 1] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             
@@ -551,21 +585,31 @@ public class PredatorRingGame : MonoBehaviour
         else
         {
             // Show feedback on how close they were
-            float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
             if (distanceFromTarget < hitTolerance * 2)
             {
+                // Close - orange color
+                player1ExpandingCircleMaterial.color = new Color(1f, 0.6f, 0f, 0.5f);
+                player1ExpandingCircleMaterial.EnableKeyword("_EMISSION");
+                player1ExpandingCircleMaterial.SetColor("_EmissionColor", new Color(1f, 0.6f, 0f) * 0.3f);
+                
                 Debug.Log($"[Player 1] Close! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
             else
             {
+                // Miss - red color
+                player1ExpandingCircleMaterial.color = new Color(1f, 0.2f, 0.2f, 0.5f);
+                player1ExpandingCircleMaterial.DisableKeyword("_EMISSION");
+                
                 Debug.Log($"[Player 1] Miss! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
         }
         
-        // Reset player 1's expanding circle
+        // Keep the expanding circle visible for feedback
+        StartCoroutine(HideExpandingCircleAfterDelay(player1ExpandingCircle, player1ExpandingCircleMaterial, 1.0f));
+        
+        // Reset expansion state
         player1CurrentRadius = 0f;
         player1IsExpanding = false;
-        player1ExpandingCircle.SetActive(false);
     }
     
     void CheckPlayer2Hit()
@@ -578,9 +622,17 @@ public class PredatorRingGame : MonoBehaviour
         // The actual radius is half the scale since we're using a sphere
         float actualRadius = player2CurrentRadius / 2f;
         
+        // Calculate distance from target for feedback
+        float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
+        
         // Check if the expanding circle matches the ring size
-        if (Mathf.Abs(actualRadius - ringRadius) <= hitTolerance)
+        if (distanceFromTarget <= hitTolerance)
         {
+            // Successful hit - change color to green
+            player2ExpandingCircleMaterial.color = new Color(0f, 1f, 0.2f, 0.5f);
+            player2ExpandingCircleMaterial.EnableKeyword("_EMISSION");
+            player2ExpandingCircleMaterial.SetColor("_EmissionColor", new Color(0f, 1f, 0.2f) * 0.5f);
+            
             player2Ready = true;
             Debug.Log($"[Player 2] Hit! Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             
@@ -593,21 +645,31 @@ public class PredatorRingGame : MonoBehaviour
         else
         {
             // Show feedback on how close they were
-            float distanceFromTarget = Mathf.Abs(actualRadius - ringRadius);
             if (distanceFromTarget < hitTolerance * 2)
             {
+                // Close - orange color
+                player2ExpandingCircleMaterial.color = new Color(1f, 0.6f, 0f, 0.5f);
+                player2ExpandingCircleMaterial.EnableKeyword("_EMISSION");
+                player2ExpandingCircleMaterial.SetColor("_EmissionColor", new Color(1f, 0.6f, 0f) * 0.3f);
+                
                 Debug.Log($"[Player 2] Close! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
             else
             {
+                // Miss - red color
+                player2ExpandingCircleMaterial.color = new Color(1f, 0.2f, 0.2f, 0.5f);
+                player2ExpandingCircleMaterial.DisableKeyword("_EMISSION");
+                
                 Debug.Log($"[Player 2] Miss! {distanceFromTarget:F2} units away. Radius: {actualRadius:F2}, Target: {ringRadius:F2}");
             }
         }
         
-        // Reset player 2's expanding circle
+        // Keep the expanding circle visible for feedback
+        StartCoroutine(HideExpandingCircleAfterDelay(player2ExpandingCircle, player2ExpandingCircleMaterial, 1.0f));
+        
+        // Reset expansion state
         player2CurrentRadius = 0f;
         player2IsExpanding = false;
-        player2ExpandingCircle.SetActive(false);
     }
     
     void AdvanceToNextRing()
