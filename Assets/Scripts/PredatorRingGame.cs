@@ -422,7 +422,7 @@ public class PredatorRingGame : MonoBehaviour
         
         player1ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(player1ExpandingCircleMaterial);
-        player1ExpandingCircleMaterial.color = new Color(1f, 0.8f, 0.2f, 0.5f);
+        player1ExpandingCircleMaterial.color = new Color(0.7f, 0.7f, 0.7f, 0.5f);
         player1ExpandingCircle.GetComponent<Renderer>().material = player1ExpandingCircleMaterial;
         player1ExpandingCircle.SetActive(false);
         
@@ -435,7 +435,7 @@ public class PredatorRingGame : MonoBehaviour
         
         player2ExpandingCircleMaterial = new Material(Shader.Find("Standard"));
         SetupTransparentMaterial(player2ExpandingCircleMaterial);
-        player2ExpandingCircleMaterial.color = new Color(0.2f, 0.8f, 1f, 0.5f);
+        player2ExpandingCircleMaterial.color = new Color(0.7f, 0.7f, 0.7f, 0.5f);
         player2ExpandingCircle.GetComponent<Renderer>().material = player2ExpandingCircleMaterial;
         player2ExpandingCircle.SetActive(false);
     }
@@ -540,6 +540,11 @@ public class PredatorRingGame : MonoBehaviour
     {
         player1CurrentRadius = 0.1f; // Start with small radius like RingGameController
         player1IsExpanding = true;
+        
+        // Set a visible gray color for the expanding circle
+        player1ExpandingCircleMaterial.color = new Color(0.7f, 0.7f, 0.7f, 0.5f);
+        player1ExpandingCircleMaterial.DisableKeyword("_EMISSION");
+        
         player1ExpandingCircle.SetActive(true);
         player1ExpandingCircle.transform.position = player1Sphere.transform.position;
     }
@@ -548,6 +553,11 @@ public class PredatorRingGame : MonoBehaviour
     {
         player2CurrentRadius = 0.1f; // Start with small radius like RingGameController
         player2IsExpanding = true;
+        
+        // Set a visible gray color for the expanding circle
+        player2ExpandingCircleMaterial.color = new Color(0.7f, 0.7f, 0.7f, 0.5f);
+        player2ExpandingCircleMaterial.DisableKeyword("_EMISSION");
+        
         player2ExpandingCircle.SetActive(true);
         player2ExpandingCircle.transform.position = player2Sphere.transform.position;
     }
