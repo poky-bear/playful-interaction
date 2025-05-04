@@ -40,7 +40,7 @@ public class PredatorRingGame : MonoBehaviour
     public GameObject predator;
     
     [Tooltip("Reference to the transition manager")]
-    public TransitionManager transitionManager;
+    public GameModeTransitionManager transitionManager;
     
     // Target dot object
     private GameObject targetDot;
